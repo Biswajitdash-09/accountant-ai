@@ -1,105 +1,107 @@
 
 import { Link, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
-import {
-  LayoutDashboard,
-  Receipt,
-  CreditCard,
-  FileText,
-  Calculator,
-  Upload,
+import { 
+  LayoutDashboard, 
+  Receipt, 
+  CreditCard, 
+  FileText, 
+  Calculator, 
+  Upload, 
   Bot,
-  X,
+  User,
+  X
 } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 interface SidebarProps {
-  activePath: string;
-  onMobileClose?: () => void;
+  isOpen: boolean;
+  onClose: () => void;
 }
 
-const navigation = [
-  {
-    name: "Dashboard",
-    href: "/dashboard",
-    icon: LayoutDashboard,
-  },
-  {
-    name: "Transactions",
-    href: "/transactions",
-    icon: Receipt,
-  },
-  {
-    name: "Accounts",
-    href: "/accounts",
-    icon: CreditCard,
-  },
-  {
-    name: "Reports",
-    href: "/reports",
-    icon: FileText,
-  },
-  {
-    name: "Tax",
-    href: "/tax",
-    icon: Calculator,
-  },
-  {
-    name: "Upload",
-    href: "/upload",
-    icon: Upload,
-  },
-  {
-    name: "Assistant",
-    href: "/assistant",
-    icon: Bot,
-  },
-];
+const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
+  const location = useLocation();
 
-const Sidebar = ({ activePath, onMobileClose }: SidebarProps) => {
-  const handleLinkClick = () => {
-    if (onMobileClose) {
-      onMobileClose();
-    }
-  };
+  const navigation = [
+    { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
+    { name: "Transactions", href: "/transactions", icon: Receipt },
+    { name: "Accounts", href: "/accounts", icon: CreditCard },
+    { name: "Reports", href: "/reports", icon: FileText },
+    { name: "Tax", href: "/tax", icon: Calculator },
+    { name: "Upload", href: "/upload", icon: Upload },
+    { name: "Assistant", href: "/assistant", icon: Bot },
+    { name: "Profile", href: "/profile", icon: User },
+  ];
 
   return (
-    <div className="flex h-full w-64 flex-col bg-background border-r">
-      <div className="flex h-16 items-center justify-between px-6 border-b">
-        <h1 className="text-xl font-semibold">Accountant AI</h1>
-        {onMobileClose && (
-          <button
-            onClick={onMobileClose}
-            className="lg:hidden p-2 hover:bg-accent rounded-md"
-          >
-            <X className="h-5 w-5" />
-          </button>
-        )}
-      </div>
+    <>
+      {/* Mobile overlay */}
+      {isOpen && (
+        <div 
+          className="fixed inset-0 bg-black/20 backdrop-blur-sm z-40 lg:hidden"
+          onClick={onClose}
+        />
+      )}
       
-      <nav className="flex-1 px-4 py-6 space-y-2">
-        {navigation.map((item) => {
-          const Icon = item.icon;
-          const isActive = activePath === item.href;
-          
-          return (
-            <Link
-              key={item.name}
-              to={item.href}
-              onClick={handleLinkClick}
-              className={cn(
-                "flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-md transition-colors",
-                isActive
-                  ? "bg-primary text-primary-foreground"
-                  : "text-muted-foreground hover:text-foreground hover:bg-accent"
-              )}
+      {/* Sidebar */}
+      <aside 
+        className={cn(
+          "fixed left-0 top-0 z-50 h-full w-64 bg-background border-r border-border transition-transform duration-300 ease-in-out lg:static lg:translate-x-0",
+          isOpen ? "translate-x-0" : "-translate-x-full"
+        )}
+      >
+        <div className="flex h-full flex-col">
+          {/* Header */}
+          <div className="flex items-center justify-between p-6 border-b">
+            <div className="flex items-center space-x-2">
+              <Bot className="h-8 w-8 text-primary" />
+              <span className="text-xl font-bold">Accountant AI</span>
+            </div>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={onClose}
+              className="lg:hidden"
             >
-              <Icon className="h-4 w-4" />
-              {item.name}
-            </Link>
-          );
-        })}
-      </nav>
-    </div>
+              <X className="h-4 w-4" />
+            </Button>
+          </div>
+
+          {/* Navigation */}
+          <nav className="flex-1 space-y-1 p-4">
+            {navigation.map((item) => {
+              const Icon = item.icon;
+              const isActive = location.pathname === item.href;
+              
+              return (
+                <Link
+                  key={item.name}
+                  to={item.href}
+                  onClick={onClose}
+                  className={cn(
+                    "flex items-center space-x-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
+                    isActive
+                      ? "bg-primary text-primary-foreground shadow-sm"
+                      : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+                  )}
+                >
+                  <Icon className="h-5 w-5" />
+                  <span>{item.name}</span>
+                </Link>
+              );
+            })}
+          </nav>
+
+          {/* Footer */}
+          <div className="border-t p-4">
+            <div className="text-xs text-muted-foreground">
+              <p>© 2024 Accountant AI</p>
+              <p>AI-Powered Accounting</p>
+            </div>
+          </div>
+        </div>
+      </aside>
+    </>
   );
 };
 

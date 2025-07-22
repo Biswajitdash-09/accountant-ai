@@ -1,160 +1,186 @@
 
-import { CreditCard, Plus, MoreHorizontal } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Progress } from "@/components/ui/progress";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import { useState } from "react";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { useAccounts } from "@/hooks/useAccounts";
 import AddAccountModal from "@/components/modals/AddAccountModal";
-import { useToast } from "@/hooks/use-toast";
-
-interface Account {
-  id: string;
-  name: string;
-  type: string;
-  balance: number;
-  limit?: number;
-  icon: React.ReactNode;
-}
+import AddTransactionModal from "@/components/modals/AddTransactionModal";
+import { CreditCard, Wallet, Building, Trash2, Edit, Eye, Loader2, Plus } from "lucide-react";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 
 const Accounts = () => {
-  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
-  const { toast } = useToast();
+  const { accounts, isLoading, deleteAccount } = useAccounts();
+  const [selectedAccount, setSelectedAccount] = useState<string | null>(null);
 
-  // Mock data for demonstration
-  const accounts: Account[] = [
-    {
-      id: "acc1",
-      name: "Business Checking",
-      type: "Checking",
-      balance: 12500.75,
-      icon: <CreditCard className="h-8 w-8 text-primary" />,
-    },
-    {
-      id: "acc2",
-      name: "Business Savings",
-      type: "Savings",
-      balance: 8750.25,
-      icon: <CreditCard className="h-8 w-8 text-primary" />,
-    },
-    {
-      id: "acc3",
-      name: "Business Credit Card",
-      type: "Credit",
-      balance: 3250.15,
-      limit: 10000,
-      icon: <CreditCard className="h-8 w-8 text-primary" />,
-    },
-  ];
-
-  const handleAddAccount = () => {
-    setIsAddModalOpen(true);
+  const getAccountIcon = (type: string) => {
+    switch (type.toLowerCase()) {
+      case 'checking':
+        return <Wallet className="h-5 w-5" />;
+      case 'savings':
+        return <Building className="h-5 w-5" />;
+      case 'credit':
+        return <CreditCard className="h-5 w-5" />;
+      default:
+        return <Wallet className="h-5 w-5" />;
+    }
   };
 
-  const handleViewDetails = (accountName: string) => {
-    toast({
-      title: "Account Details",
-      description: `Opening details for ${accountName}`,
-    });
+  const getAccountTypeColor = (type: string) => {
+    switch (type.toLowerCase()) {
+      case 'checking':
+        return 'bg-blue-500/10 text-blue-700 border-blue-200';
+      case 'savings':
+        return 'bg-green-500/10 text-green-700 border-green-200';
+      case 'credit':
+        return 'bg-purple-500/10 text-purple-700 border-purple-200';
+      default:
+        return 'bg-gray-500/10 text-gray-700 border-gray-200';
+    }
   };
 
-  const handleAddTransaction = (accountName: string) => {
-    toast({
-      title: "Add Transaction",
-      description: `Opening transaction form for ${accountName}`,
-    });
+  const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'USD',
+    }).format(amount);
   };
+
+  const handleDeleteAccount = async (accountId: string) => {
+    try {
+      await deleteAccount.mutateAsync(accountId);
+    } catch (error) {
+      console.error('Failed to delete account:', error);
+    }
+  };
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="flex flex-col items-center space-y-4">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          <p className="text-muted-foreground">Loading accounts...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <h1 className="text-2xl lg:text-3xl font-bold">Accounts</h1>
-        <Button size="sm" onClick={handleAddAccount} className="w-full sm:w-auto">
-          <Plus className="h-4 w-4 mr-2" />
-          Add Account
-        </Button>
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div>
+          <h1 className="text-3xl font-bold">Accounts</h1>
+          <p className="text-muted-foreground">
+            Manage your financial accounts and balances
+          </p>
+        </div>
+        <AddAccountModal 
+          trigger={
+            <Button className="w-full sm:w-auto">
+              <Plus className="h-4 w-4 mr-2" />
+              Add Account
+            </Button>
+          }
+        />
       </div>
 
-      {/* Mobile responsive grid - single column on mobile */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
-        {accounts.map((account) => (
-          <Card key={account.id} className="overflow-hidden">
-            <CardHeader className="pb-2">
-              <div className="flex justify-between items-start">
-                <div className="space-y-1">
-                  <CardTitle className="text-lg">{account.name}</CardTitle>
-                  <CardDescription>{account.type}</CardDescription>
-                </div>
-                <div className="flex items-center space-x-2">
-                  {account.icon}
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" size="icon" className="h-8 w-8">
-                        <MoreHorizontal className="h-4 w-4" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                      <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                      <DropdownMenuSeparator />
-                      <DropdownMenuItem onClick={() => handleViewDetails(account.name)}>
-                        View Transactions
-                      </DropdownMenuItem>
-                      <DropdownMenuItem>Edit Account</DropdownMenuItem>
-                      <DropdownMenuItem>Reconcile</DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </div>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">
-                ${account.balance.toFixed(2)}
-              </div>
-              
-              {account.limit && (
-                <div className="mt-2 space-y-1">
-                  <div className="flex justify-between text-xs">
-                    <span>Credit Used</span>
-                    <span>
-                      ${account.balance.toFixed(2)} / ${account.limit.toFixed(2)}
-                    </span>
+      {accounts.length === 0 ? (
+        <Card className="text-center py-12">
+          <CardContent>
+            <Wallet className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
+            <h3 className="text-lg font-medium mb-2">No accounts yet</h3>
+            <p className="text-muted-foreground mb-4">
+              Get started by adding your first financial account
+            </p>
+            <AddAccountModal 
+              trigger={
+                <Button>
+                  <Plus className="h-4 w-4 mr-2" />
+                  Add Your First Account
+                </Button>
+              }
+            />
+          </CardContent>
+        </Card>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {accounts.map((account) => (
+            <Card key={account.id} className="hover:shadow-lg transition-shadow">
+              <CardHeader className="pb-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-3">
+                    <div className="p-2 bg-primary/10 rounded-lg">
+                      {getAccountIcon(account.account_type)}
+                    </div>
+                    <div>
+                      <CardTitle className="text-lg">{account.account_name}</CardTitle>
+                      <Badge className={getAccountTypeColor(account.account_type)} variant="outline">
+                        {account.account_type}
+                      </Badge>
+                    </div>
                   </div>
-                  <Progress value={(account.balance / account.limit) * 100} />
                 </div>
-              )}
-            </CardContent>
-            <CardFooter className="border-t pt-4 flex flex-col sm:flex-row justify-between gap-2">
-              <Button 
-                variant="outline" 
-                size="sm" 
-                className="w-full sm:w-auto"
-                onClick={() => handleViewDetails(account.name)}
-              >
-                View Details
-              </Button>
-              <Button 
-                size="sm" 
-                className="w-full sm:w-auto"
-                onClick={() => handleAddTransaction(account.name)}
-              >
-                Add Transaction
-              </Button>
-            </CardFooter>
-          </Card>
-        ))}
-      </div>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div>
+                  <p className="text-sm text-muted-foreground">Current Balance</p>
+                  <p className="text-2xl font-bold">{formatCurrency(account.balance)}</p>
+                </div>
+                
+                <div className="flex flex-col sm:flex-row gap-2">
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    className="flex-1"
+                    onClick={() => setSelectedAccount(account.id)}
+                  >
+                    <Eye className="h-4 w-4 mr-2" />
+                    Details
+                  </Button>
+                  <AddTransactionModal 
+                    trigger={
+                      <Button size="sm" className="flex-1">
+                        <Plus className="h-4 w-4 mr-2" />
+                        Add Transaction
+                      </Button>
+                    }
+                  />
+                </div>
 
-      <AddAccountModal 
-        isOpen={isAddModalOpen} 
-        onClose={() => setIsAddModalOpen(false)} 
-      />
+                <div className="flex justify-end space-x-2 pt-2 border-t">
+                  <Button variant="ghost" size="sm">
+                    <Edit className="h-4 w-4" />
+                  </Button>
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <Button variant="ghost" size="sm" className="text-destructive hover:text-destructive">
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>Delete Account</AlertDialogTitle>
+                        <AlertDialogDescription>
+                          Are you sure you want to delete "{account.account_name}"? This action cannot be undone.
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogAction 
+                          onClick={() => handleDeleteAccount(account.id)}
+                          className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                        >
+                          Delete
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      )}
     </div>
   );
 };
