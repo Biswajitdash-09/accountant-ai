@@ -11,6 +11,9 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { useState } from "react";
+import AddAccountModal from "@/components/modals/AddAccountModal";
+import { useToast } from "@/hooks/use-toast";
 
 interface Account {
   id: string;
@@ -22,6 +25,9 @@ interface Account {
 }
 
 const Accounts = () => {
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const { toast } = useToast();
+
   // Mock data for demonstration
   const accounts: Account[] = [
     {
@@ -48,23 +54,42 @@ const Accounts = () => {
     },
   ];
 
+  const handleAddAccount = () => {
+    setIsAddModalOpen(true);
+  };
+
+  const handleViewDetails = (accountName: string) => {
+    toast({
+      title: "Account Details",
+      description: `Opening details for ${accountName}`,
+    });
+  };
+
+  const handleAddTransaction = (accountName: string) => {
+    toast({
+      title: "Add Transaction",
+      description: `Opening transaction form for ${accountName}`,
+    });
+  };
+
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold">Accounts</h1>
-        <Button size="sm">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <h1 className="text-2xl lg:text-3xl font-bold">Accounts</h1>
+        <Button size="sm" onClick={handleAddAccount} className="w-full sm:w-auto">
           <Plus className="h-4 w-4 mr-2" />
           Add Account
         </Button>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      {/* Mobile responsive grid - single column on mobile */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
         {accounts.map((account) => (
           <Card key={account.id} className="overflow-hidden">
             <CardHeader className="pb-2">
               <div className="flex justify-between items-start">
                 <div className="space-y-1">
-                  <CardTitle>{account.name}</CardTitle>
+                  <CardTitle className="text-lg">{account.name}</CardTitle>
                   <CardDescription>{account.type}</CardDescription>
                 </div>
                 <div className="flex items-center space-x-2">
@@ -78,7 +103,9 @@ const Accounts = () => {
                     <DropdownMenuContent align="end">
                       <DropdownMenuLabel>Actions</DropdownMenuLabel>
                       <DropdownMenuSeparator />
-                      <DropdownMenuItem>View Transactions</DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => handleViewDetails(account.name)}>
+                        View Transactions
+                      </DropdownMenuItem>
                       <DropdownMenuItem>Edit Account</DropdownMenuItem>
                       <DropdownMenuItem>Reconcile</DropdownMenuItem>
                     </DropdownMenuContent>
@@ -103,13 +130,31 @@ const Accounts = () => {
                 </div>
               )}
             </CardContent>
-            <CardFooter className="border-t pt-4 flex justify-between">
-              <Button variant="outline" size="sm">View Details</Button>
-              <Button size="sm">Add Transaction</Button>
+            <CardFooter className="border-t pt-4 flex flex-col sm:flex-row justify-between gap-2">
+              <Button 
+                variant="outline" 
+                size="sm" 
+                className="w-full sm:w-auto"
+                onClick={() => handleViewDetails(account.name)}
+              >
+                View Details
+              </Button>
+              <Button 
+                size="sm" 
+                className="w-full sm:w-auto"
+                onClick={() => handleAddTransaction(account.name)}
+              >
+                Add Transaction
+              </Button>
             </CardFooter>
           </Card>
         ))}
       </div>
+
+      <AddAccountModal 
+        isOpen={isAddModalOpen} 
+        onClose={() => setIsAddModalOpen(false)} 
+      />
     </div>
   );
 };

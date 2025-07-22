@@ -1,5 +1,5 @@
 
-import { DollarSign, ArrowUp, ArrowDown, FileText, CreditCard } from "lucide-react";
+import { DollarSign, ArrowUp, ArrowDown, FileText } from "lucide-react";
 import MetricCard from "@/components/dashboard/MetricCard";
 import RecentTransactions from "@/components/dashboard/RecentTransactions";
 import ExpenseChart from "@/components/dashboard/ExpenseChart";
@@ -77,9 +77,10 @@ const Dashboard = () => {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-3xl font-bold">Dashboard</h1>
+      <h1 className="text-2xl lg:text-3xl font-bold">Dashboard</h1>
       
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      {/* Mobile responsive metric cards - stack on mobile */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <MetricCard
           title="Total Balance"
           value={metrics.totalBalance}
@@ -108,7 +109,8 @@ const Dashboard = () => {
         />
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      {/* Charts - stack on mobile */}
+      <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
         <IncomeExpenseChart data={incomeExpenseData} />
         <ExpenseChart data={expenseData} />
       </div>

@@ -1,9 +1,12 @@
 
-import { FileText } from "lucide-react";
+import { FileText, Download } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { useToast } from "@/hooks/use-toast";
 
 const Reports = () => {
+  const { toast } = useToast();
+
   // Mock data for demonstration
   const availableReports = [
     {
@@ -44,24 +47,53 @@ const Reports = () => {
     },
   ];
 
+  const handleGenerateReport = (reportTitle: string) => {
+    toast({
+      title: "Generating Report",
+      description: `Creating ${reportTitle} report...`,
+    });
+
+    // Simulate report generation
+    setTimeout(() => {
+      toast({
+        title: "Report Ready",
+        description: `${reportTitle} has been generated successfully`,
+      });
+    }, 2000);
+  };
+
   return (
     <div className="space-y-6">
-      <h1 className="text-3xl font-bold">Reports</h1>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <h1 className="text-2xl lg:text-3xl font-bold">Reports</h1>
+        <Button variant="outline" size="sm" className="w-full sm:w-auto">
+          <Download className="h-4 w-4 mr-2" />
+          Export All
+        </Button>
+      </div>
       
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      {/* Mobile responsive grid - single column on mobile */}
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
         {availableReports.map((report) => (
-          <Card key={report.id} className="flex flex-col">
+          <Card key={report.id} className="flex flex-col h-full">
             <CardHeader>
               <div className="flex items-start justify-between">
-                <div>
-                  <CardTitle>{report.title}</CardTitle>
+                <div className="flex-1">
+                  <CardTitle className="text-lg">{report.title}</CardTitle>
                   <CardDescription className="mt-2">{report.description}</CardDescription>
                 </div>
-                {report.icon}
+                <div className="ml-4 flex-shrink-0">
+                  {report.icon}
+                </div>
               </div>
             </CardHeader>
             <CardContent className="mt-auto">
-              <Button className="w-full">Generate Report</Button>
+              <Button 
+                className="w-full" 
+                onClick={() => handleGenerateReport(report.title)}
+              >
+                Generate Report
+              </Button>
             </CardContent>
           </Card>
         ))}

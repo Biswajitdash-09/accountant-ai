@@ -9,10 +9,12 @@ import {
   Calculator,
   Upload,
   Bot,
+  X,
 } from "lucide-react";
 
 interface SidebarProps {
   activePath: string;
+  onMobileClose?: () => void;
 }
 
 const navigation = [
@@ -53,11 +55,25 @@ const navigation = [
   },
 ];
 
-const Sidebar = ({ activePath }: SidebarProps) => {
+const Sidebar = ({ activePath, onMobileClose }: SidebarProps) => {
+  const handleLinkClick = () => {
+    if (onMobileClose) {
+      onMobileClose();
+    }
+  };
+
   return (
-    <div className="fixed inset-y-0 left-0 z-50 w-64 bg-background border-r">
-      <div className="flex h-16 items-center px-6 border-b">
+    <div className="flex h-full w-64 flex-col bg-background border-r">
+      <div className="flex h-16 items-center justify-between px-6 border-b">
         <h1 className="text-xl font-semibold">Accountant AI</h1>
+        {onMobileClose && (
+          <button
+            onClick={onMobileClose}
+            className="lg:hidden p-2 hover:bg-accent rounded-md"
+          >
+            <X className="h-5 w-5" />
+          </button>
+        )}
       </div>
       
       <nav className="flex-1 px-4 py-6 space-y-2">
@@ -69,6 +85,7 @@ const Sidebar = ({ activePath }: SidebarProps) => {
             <Link
               key={item.name}
               to={item.href}
+              onClick={handleLinkClick}
               className={cn(
                 "flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-md transition-colors",
                 isActive

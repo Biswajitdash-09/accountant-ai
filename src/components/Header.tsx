@@ -1,46 +1,60 @@
 
 import { useAuth } from "@/contexts/AuthContext";
-import { useTheme } from "@/hooks/useTheme";
 import { Button } from "@/components/ui/button";
-import { Moon, Sun, LogOut, User } from "lucide-react";
+import { useTheme } from "@/hooks/useTheme";
+import { Moon, Sun, Menu, LogOut } from "lucide-react";
 
-const Header = () => {
-  const { user, signOut } = useAuth();
+interface HeaderProps {
+  onMobileMenuToggle?: () => void;
+}
+
+const Header = ({ onMobileMenuToggle }: HeaderProps) => {
+  const { user, logout } = useAuth();
   const { theme, toggleTheme } = useTheme();
 
+  const handleLogout = () => {
+    logout();
+  };
+
   return (
-    <header className="bg-background border-b px-6 py-4 flex items-center justify-between">
-      <h1 className="text-xl font-semibold">Accountant AI</h1>
-      
+    <header className="h-16 border-b bg-background flex items-center justify-between px-4 lg:px-6">
       <div className="flex items-center gap-4">
+        {onMobileMenuToggle && (
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={onMobileMenuToggle}
+            className="lg:hidden"
+          >
+            <Menu className="h-5 w-5" />
+          </Button>
+        )}
+        <h2 className="hidden lg:block text-lg font-semibold">Welcome to Accountant AI</h2>
+      </div>
+
+      <div className="flex items-center gap-2">
         <Button
           variant="ghost"
           size="icon"
           onClick={toggleTheme}
           className="h-9 w-9"
         >
-          {theme === "dark" ? (
+          {theme === 'dark' ? (
             <Sun className="h-4 w-4" />
           ) : (
             <Moon className="h-4 w-4" />
           )}
-          <span className="sr-only">Toggle theme</span>
         </Button>
-        
+
         {user && (
-          <div className="flex items-center gap-2">
-            <User className="h-4 w-4" />
-            <span className="text-sm">{user.email}</span>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={signOut}
-              className="ml-2"
-            >
-              <LogOut className="h-4 w-4 mr-2" />
-              Logout
-            </Button>
-          </div>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={handleLogout}
+            className="h-9 w-9"
+          >
+            <LogOut className="h-4 w-4" />
+          </Button>
         )}
       </div>
     </header>
