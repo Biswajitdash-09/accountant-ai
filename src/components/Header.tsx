@@ -9,11 +9,11 @@ interface HeaderProps {
 }
 
 const Header = ({ onMobileMenuToggle }: HeaderProps) => {
-  const { user, logout } = useAuth();
+  const { user, signOut } = useAuth();
   const { theme, toggleTheme } = useTheme();
 
   const handleLogout = () => {
-    logout();
+    signOut();
   };
 
   return (
