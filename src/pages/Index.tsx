@@ -1,14 +1,81 @@
-// Update this page (the content is just a fallback if you fail to update the page)
+
+import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
+import Layout from "@/components/Layout";
+import Dashboard from "./Dashboard";
+import Transactions from "./Transactions";
+import Accounts from "./Accounts";
+import Reports from "./Reports";
+import Tax from "./Tax";
+import Upload from "./Upload";
+import Assistant from "./Assistant";
+import NotFound from "./NotFound";
+
+const App = () => {
+  return (
+    <Routes>
+      <Route 
+        path="/" 
+        element={
+          <Layout>
+            <Dashboard />
+          </Layout>
+        } 
+      />
+      <Route 
+        path="/transactions" 
+        element={
+          <Layout>
+            <Transactions />
+          </Layout>
+        } 
+      />
+      <Route 
+        path="/accounts" 
+        element={
+          <Layout>
+            <Accounts />
+          </Layout>
+        } 
+      />
+      <Route 
+        path="/reports" 
+        element={
+          <Layout>
+            <Reports />
+          </Layout>
+        } 
+      />
+      <Route 
+        path="/tax" 
+        element={
+          <Layout>
+            <Tax />
+          </Layout>
+        } 
+      />
+      <Route 
+        path="/upload" 
+        element={
+          <Layout>
+            <Upload />
+          </Layout>
+        } 
+      />
+      <Route 
+        path="/assistant" 
+        element={
+          <Layout>
+            <Assistant />
+          </Layout>
+        } 
+      />
+      <Route path="*" element={<NotFound />} />
+    </Routes>
+  );
+};
 
 const Index = () => {
-  return (
-    <div className="min-h-screen flex items-center justify-center bg-background">
-      <div className="text-center">
-        <h1 className="text-4xl font-bold mb-4">Welcome to Your Blank App</h1>
-        <p className="text-xl text-muted-foreground">Start building your amazing project here!</p>
-      </div>
-    </div>
-  );
+  return <App />;
 };
 
 export default Index;
