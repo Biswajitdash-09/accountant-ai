@@ -34,7 +34,7 @@ const Layout = ({ children }: LayoutProps) => {
       <div className={`${
         isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'
       } fixed inset-y-0 left-0 z-50 w-64 transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:inset-0`}>
-        <Sidebar activePath={location.pathname} onMobileClose={closeMobileMenu} />
+        <Sidebar isOpen={isMobileMenuOpen} onClose={closeMobileMenu} />
       </div>
       
       <div className="flex-1 flex flex-col lg:ml-0">

@@ -6,6 +6,7 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
+  DialogTrigger,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -18,19 +19,21 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
+import { useAccounts } from "@/hooks/useAccounts";
 
 interface AddAccountModalProps {
-  isOpen: boolean;
-  onClose: () => void;
+  trigger?: React.ReactNode;
 }
 
-const AddAccountModal = ({ isOpen, onClose }: AddAccountModalProps) => {
+const AddAccountModal = ({ trigger }: AddAccountModalProps) => {
+  const [open, setOpen] = useState(false);
   const [accountName, setAccountName] = useState("");
   const [accountType, setAccountType] = useState("");
   const [initialBalance, setInitialBalance] = useState("");
   const { toast } = useToast();
+  const { createAccount } = useAccounts();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (!accountName || !accountType || !initialBalance) {
@@ -42,21 +45,37 @@ const AddAccountModal = ({ isOpen, onClose }: AddAccountModalProps) => {
       return;
     }
 
-    // Here you would typically save to database
-    toast({
-      title: "Account Added",
-      description: `${accountName} has been added successfully`,
-    });
+    try {
+      await createAccount.mutateAsync({
+        account_name: accountName,
+        account_type: accountType,
+        balance: parseFloat(initialBalance),
+      });
 
-    // Reset form
-    setAccountName("");
-    setAccountType("");
-    setInitialBalance("");
-    onClose();
+      toast({
+        title: "Account Added",
+        description: `${accountName} has been added successfully`,
+      });
+
+      // Reset form
+      setAccountName("");
+      setAccountType("");
+      setInitialBalance("");
+      setOpen(false);
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to create account",
+        variant: "destructive",
+      });
+    }
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
+        {trigger || <Button>Add Account</Button>}
+      </DialogTrigger>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
           <DialogTitle>Add New Account</DialogTitle>
@@ -103,7 +122,7 @@ const AddAccountModal = ({ isOpen, onClose }: AddAccountModalProps) => {
           </div>
 
           <div className="flex justify-end space-x-2 pt-4">
-            <Button type="button" variant="outline" onClick={onClose}>
+            <Button type="button" variant="outline" onClick={() => setOpen(false)}>
               Cancel
             </Button>
             <Button type="submit">Add Account</Button>
