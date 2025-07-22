@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { ChevronRight, BarChart2, Shield, Clock, Robot } from "lucide-react";
+import { ChevronRight, BarChart2, Shield, Clock, Bot } from "lucide-react";
 
 const Landing = () => {
   const navigate = useNavigate();
@@ -213,7 +213,7 @@ const Landing = () => {
             </div>
             <div className="bg-background p-6 rounded-lg shadow-md">
               <div className="bg-primary/10 p-3 rounded-full w-12 h-12 flex items-center justify-center mb-4">
-                <Robot className="h-6 w-6 text-primary" />
+                <Bot className="h-6 w-6 text-primary" />
               </div>
               <h3 className="text-xl font-semibold mb-2">AI Assistant</h3>
               <p className="text-muted-foreground">
