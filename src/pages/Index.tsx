@@ -1,5 +1,6 @@
 
-import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
+import { Routes, Route, Navigate } from "react-router-dom";
+import ProtectedRoute from "@/components/ProtectedRoute";
 import Layout from "@/components/Layout";
 import Dashboard from "./Dashboard";
 import Transactions from "./Transactions";
@@ -15,58 +16,76 @@ const App = () => {
     <Routes>
       <Route 
         path="/" 
+        element={<Navigate to="/dashboard" replace />} 
+      />
+      <Route 
+        path="/dashboard" 
         element={
-          <Layout>
-            <Dashboard />
-          </Layout>
+          <ProtectedRoute>
+            <Layout>
+              <Dashboard />
+            </Layout>
+          </ProtectedRoute>
         } 
       />
       <Route 
         path="/transactions" 
         element={
-          <Layout>
-            <Transactions />
-          </Layout>
+          <ProtectedRoute>
+            <Layout>
+              <Transactions />
+            </Layout>
+          </ProtectedRoute>
         } 
       />
       <Route 
         path="/accounts" 
         element={
-          <Layout>
-            <Accounts />
-          </Layout>
+          <ProtectedRoute>
+            <Layout>
+              <Accounts />
+            </Layout>
+          </ProtectedRoute>
         } 
       />
       <Route 
         path="/reports" 
         element={
-          <Layout>
-            <Reports />
-          </Layout>
+          <ProtectedRoute>
+            <Layout>
+              <Reports />
+            </Layout>
+          </ProtectedRoute>
         } 
       />
       <Route 
         path="/tax" 
         element={
-          <Layout>
-            <Tax />
-          </Layout>
+          <ProtectedRoute>
+            <Layout>
+              <Tax />
+            </Layout>
+          </ProtectedRoute>
         } 
       />
       <Route 
         path="/upload" 
         element={
-          <Layout>
-            <Upload />
-          </Layout>
+          <ProtectedRoute>
+            <Layout>
+              <Upload />
+            </Layout>
+          </ProtectedRoute>
         } 
       />
       <Route 
         path="/assistant" 
         element={
-          <Layout>
-            <Assistant />
-          </Layout>
+          <ProtectedRoute>
+            <Layout>
+              <Assistant />
+            </Layout>
+          </ProtectedRoute>
         } 
       />
       <Route path="*" element={<NotFound />} />
