@@ -1,88 +1,87 @@
 
-import { Link } from "react-router-dom";
-import { 
-  LayoutDashboard, 
-  Receipt, 
-  CreditCard, 
-  BarChart4, 
-  FileText, 
-  Upload, 
-  MessageSquare, 
-  Settings,
-  LogOut
-} from "lucide-react";
+import { Link, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
-
-const SidebarItem = ({ 
-  icon: Icon, 
-  label, 
-  path, 
-  active = false 
-}: { 
-  icon: React.ElementType; 
-  label: string; 
-  path: string; 
-  active?: boolean;
-}) => {
-  return (
-    <Link 
-      to={path}
-      className={cn(
-        "flex items-center gap-3 px-3 py-2 rounded-md transition-colors",
-        active 
-          ? "bg-sidebar-accent text-sidebar-accent-foreground"
-          : "text-sidebar-foreground hover:bg-sidebar-accent/50 hover:text-sidebar-accent-foreground"
-      )}
-    >
-      <Icon className="w-5 h-5" />
-      <span>{label}</span>
-    </Link>
-  );
-};
+import {
+  LayoutDashboard,
+  Receipt,
+  CreditCard,
+  FileText,
+  Calculator,
+  Upload,
+  Bot,
+} from "lucide-react";
 
 interface SidebarProps {
   activePath: string;
 }
 
-const Sidebar = ({ activePath }: SidebarProps) => {
-  const menuItems = [
-    { icon: LayoutDashboard, label: "Dashboard", path: "/" },
-    { icon: Receipt, label: "Transactions", path: "/transactions" },
-    { icon: CreditCard, label: "Accounts", path: "/accounts" },
-    { icon: BarChart4, label: "Reports", path: "/reports" },
-    { icon: FileText, label: "Tax", path: "/tax" },
-    { icon: Upload, label: "Upload", path: "/upload" },
-    { icon: MessageSquare, label: "AI Assistant", path: "/assistant" },
-    { icon: Settings, label: "Settings", path: "/settings" },
-  ];
+const navigation = [
+  {
+    name: "Dashboard",
+    href: "/dashboard",
+    icon: LayoutDashboard,
+  },
+  {
+    name: "Transactions",
+    href: "/transactions",
+    icon: Receipt,
+  },
+  {
+    name: "Accounts",
+    href: "/accounts",
+    icon: CreditCard,
+  },
+  {
+    name: "Reports",
+    href: "/reports",
+    icon: FileText,
+  },
+  {
+    name: "Tax",
+    href: "/tax",
+    icon: Calculator,
+  },
+  {
+    name: "Upload",
+    href: "/upload",
+    icon: Upload,
+  },
+  {
+    name: "Assistant",
+    href: "/assistant",
+    icon: Bot,
+  },
+];
 
+const Sidebar = ({ activePath }: SidebarProps) => {
   return (
-    <div className="w-64 h-screen bg-sidebar flex flex-col fixed left-0 top-0 border-r border-sidebar-border">
-      <div className="p-6">
-        <h1 className="text-2xl font-bold text-sidebar-foreground flex items-center">
-          <span className="mr-2">IntellyFin</span>
-          <span className="text-xs bg-finance-highlight text-black px-2 py-0.5 rounded">AI</span>
-        </h1>
+    <div className="fixed inset-y-0 left-0 z-50 w-64 bg-background border-r">
+      <div className="flex h-16 items-center px-6 border-b">
+        <h1 className="text-xl font-semibold">Accountant AI</h1>
       </div>
       
-      <div className="flex-1 px-3 py-2 space-y-1">
-        {menuItems.map((item) => (
-          <SidebarItem 
-            key={item.path}
-            icon={item.icon}
-            label={item.label}
-            path={item.path}
-            active={activePath === item.path}
-          />
-        ))}
-      </div>
-
-      <div className="p-4 border-t border-sidebar-border">
-        <button className="w-full flex items-center gap-3 px-3 py-2 rounded-md text-sidebar-foreground hover:bg-sidebar-accent/50 hover:text-sidebar-accent-foreground transition-colors">
-          <LogOut className="w-5 h-5" />
-          <span>Logout</span>
-        </button>
-      </div>
+      <nav className="flex-1 px-4 py-6 space-y-2">
+        {navigation.map((item) => {
+          const Icon = item.icon;
+          const isActive = activePath === item.href;
+          
+          return (
+            <Link
+              key={item.name}
+              to={item.href}
+              className={cn(
+                "flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-md transition-colors",
+                isActive
+                  ? "bg-primary text-primary-foreground"
+                  : "text-muted-foreground hover:text-foreground hover:bg-accent"
+              )}
+            >
+              <Icon className="h-4 w-4" />
+              {item.name}
+            </Link>
+          );
+        })}
+      </nav>
     </div>
   );
 };
