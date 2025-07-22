@@ -18,12 +18,14 @@ import { supabase } from "@/integrations/supabase/client";
 import { Provider } from "@supabase/supabase-js";
 import { FcGoogle } from "react-icons/fc";
 import { FaLinkedin } from "react-icons/fa";
-import { Loader2 } from "lucide-react";
+import { Loader2, Bot, Moon, Sun } from "lucide-react";
+import { useTheme } from "@/hooks/useTheme";
 
 const Auth = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { toast } = useToast();
+  const { theme, toggleTheme } = useTheme();
   const [isLoading, setIsLoading] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -144,27 +146,48 @@ const Auth = () => {
   };
 
   const handleGuestLogin = async () => {
-    // For demo purposes - creating a temporary session
-    // In a real app, you'd implement proper guest authentication
+    // Store guest session flag in localStorage
+    localStorage.setItem('isGuest', 'true');
+    toast({
+      title: "Demo Mode",
+      description: "You're now exploring Accountant AI in demo mode.",
+    });
     navigate("/dashboard");
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-accent/10 px-4">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/5 via-background to-accent/5 px-4 relative">
+      {/* Dark mode toggle */}
+      <Button
+        variant="ghost"
+        size="icon"
+        onClick={toggleTheme}
+        className="absolute top-4 right-4"
+      >
+        {theme === 'dark' ? (
+          <Sun className="h-[1.2rem] w-[1.2rem]" />
+        ) : (
+          <Moon className="h-[1.2rem] w-[1.2rem]" />
+        )}
+      </Button>
+
       <div className="max-w-md w-full">
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold">IntellyFin</h1>
-          <p className="text-muted-foreground mt-2">AI-Powered Accounting Platform</p>
+          <div className="flex items-center justify-center mb-4">
+            <Bot className="h-12 w-12 text-primary mr-3" />
+            <h1 className="text-4xl font-bold">Accountant AI</h1>
+          </div>
+          <p className="text-muted-foreground text-lg">AI-Powered Accounting Platform</p>
         </div>
         
-        <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as "login" | "signup")}>
+        <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as "login" | "signup")} className="animate-fade-in">
           <TabsList className="grid grid-cols-2 mb-8">
             <TabsTrigger value="login">Login</TabsTrigger>
             <TabsTrigger value="signup">Sign Up</TabsTrigger>
           </TabsList>
           
           <TabsContent value="login">
-            <Card>
+            <Card className="shadow-xl border-0 bg-background/95 backdrop-blur">
               <form onSubmit={handleLogin}>
                 <CardHeader>
                   <CardTitle>Welcome back</CardTitle>
@@ -182,6 +205,7 @@ const Auth = () => {
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       required
+                      className="transition-all duration-200 focus:scale-[1.02]"
                     />
                   </div>
                   <div className="space-y-2">
@@ -189,7 +213,7 @@ const Auth = () => {
                       <Label htmlFor="password">Password</Label>
                       <a 
                         href="#" 
-                        className="text-sm text-primary hover:underline"
+                        className="text-sm text-primary hover:underline transition-colors"
                         onClick={(e) => e.preventDefault()}
                       >
                         Forgot password?
@@ -201,12 +225,13 @@ const Auth = () => {
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                       required
+                      className="transition-all duration-200 focus:scale-[1.02]"
                     />
                   </div>
                   <div className="space-y-4">
                     <Button
                       type="submit"
-                      className="w-full"
+                      className="w-full transition-all duration-200 hover:scale-105"
                       disabled={isLoading}
                     >
                       {isLoading ? (
@@ -236,6 +261,7 @@ const Auth = () => {
                         type="button"
                         onClick={() => handleOAuthLogin("google")}
                         disabled={isLoading}
+                        className="transition-all duration-200 hover:scale-105"
                       >
                         <FcGoogle className="mr-2 h-4 w-4" />
                         Google
@@ -245,6 +271,7 @@ const Auth = () => {
                         type="button"
                         onClick={() => handleOAuthLogin("linkedin_oidc")}
                         disabled={isLoading}
+                        className="transition-all duration-200 hover:scale-105"
                       >
                         <FaLinkedin className="mr-2 h-4 w-4 text-blue-600" />
                         LinkedIn
@@ -256,10 +283,10 @@ const Auth = () => {
                   <Button
                     variant="ghost"
                     type="button"
-                    className="w-full"
+                    className="w-full transition-all duration-200 hover:scale-105"
                     onClick={handleGuestLogin}
                   >
-                    Continue as Guest
+                    Try Demo Mode
                   </Button>
                 </CardFooter>
               </form>
@@ -267,7 +294,7 @@ const Auth = () => {
           </TabsContent>
           
           <TabsContent value="signup">
-            <Card>
+            <Card className="shadow-xl border-0 bg-background/95 backdrop-blur">
               <form onSubmit={handleSignUp}>
                 <CardHeader>
                   <CardTitle>Create an account</CardTitle>
@@ -284,6 +311,7 @@ const Auth = () => {
                       value={fullName}
                       onChange={(e) => setFullName(e.target.value)}
                       required
+                      className="transition-all duration-200 focus:scale-[1.02]"
                     />
                   </div>
                   <div className="space-y-2">
@@ -295,6 +323,7 @@ const Auth = () => {
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       required
+                      className="transition-all duration-200 focus:scale-[1.02]"
                     />
                   </div>
                   <div className="space-y-2">
@@ -305,11 +334,12 @@ const Auth = () => {
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                       required
+                      className="transition-all duration-200 focus:scale-[1.02]"
                     />
                   </div>
                   <Button
                     type="submit"
-                    className="w-full"
+                    className="w-full transition-all duration-200 hover:scale-105"
                     disabled={isLoading}
                   >
                     {isLoading ? (
@@ -339,6 +369,7 @@ const Auth = () => {
                       type="button"
                       onClick={() => handleOAuthLogin("google")}
                       disabled={isLoading}
+                      className="transition-all duration-200 hover:scale-105"
                     >
                       <FcGoogle className="mr-2 h-4 w-4" />
                       Google
@@ -348,6 +379,7 @@ const Auth = () => {
                       type="button"
                       onClick={() => handleOAuthLogin("linkedin_oidc")}
                       disabled={isLoading}
+                      className="transition-all duration-200 hover:scale-105"
                     >
                       <FaLinkedin className="mr-2 h-4 w-4 text-blue-600" />
                       LinkedIn
