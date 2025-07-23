@@ -6,12 +6,14 @@ import { Badge } from "@/components/ui/badge";
 import { useAccounts } from "@/hooks/useAccounts";
 import AddAccountModal from "@/components/modals/AddAccountModal";
 import AddTransactionModal from "@/components/modals/AddTransactionModal";
-import { CreditCard, Wallet, Building, Trash2, Edit, Eye, Loader2, Plus } from "lucide-react";
+import AccountDetailsModal from "@/components/modals/AccountDetailsModal";
+import ImportStatementModal from "@/components/modals/ImportStatementModal";
+import EditAccountModal from "@/components/modals/EditAccountModal";
+import { CreditCard, Wallet, Building, Trash2, Edit, Eye, Loader2, Plus, Upload } from "lucide-react";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 
 const Accounts = () => {
   const { accounts, isLoading, deleteAccount } = useAccounts();
-  const [selectedAccount, setSelectedAccount] = useState<string | null>(null);
 
   const getAccountIcon = (type: string) => {
     switch (type.toLowerCase()) {
@@ -127,30 +129,45 @@ const Accounts = () => {
                   <p className="text-2xl font-bold">{formatCurrency(account.balance)}</p>
                 </div>
                 
-                <div className="flex flex-col sm:flex-row gap-2">
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
-                    className="flex-1"
-                    onClick={() => setSelectedAccount(account.id)}
-                  >
-                    <Eye className="h-4 w-4 mr-2" />
-                    Details
-                  </Button>
-                  <AddTransactionModal 
+                <div className="grid grid-cols-2 gap-2">
+                  <AccountDetailsModal
+                    account={account}
                     trigger={
-                      <Button size="sm" className="flex-1">
-                        <Plus className="h-4 w-4 mr-2" />
-                        Add Transaction
+                      <Button variant="outline" size="sm" className="w-full">
+                        <Eye className="h-4 w-4 mr-2" />
+                        Details
+                      </Button>
+                    }
+                  />
+                  <ImportStatementModal
+                    account={account}
+                    trigger={
+                      <Button variant="outline" size="sm" className="w-full">
+                        <Upload className="h-4 w-4 mr-2" />
+                        Import
                       </Button>
                     }
                   />
                 </div>
 
+                <AddTransactionModal 
+                  trigger={
+                    <Button size="sm" className="w-full">
+                      <Plus className="h-4 w-4 mr-2" />
+                      Add Transaction
+                    </Button>
+                  }
+                />
+
                 <div className="flex justify-end space-x-2 pt-2 border-t">
-                  <Button variant="ghost" size="sm">
-                    <Edit className="h-4 w-4" />
-                  </Button>
+                  <EditAccountModal
+                    account={account}
+                    trigger={
+                      <Button variant="ghost" size="sm">
+                        <Edit className="h-4 w-4" />
+                      </Button>
+                    }
+                  />
                   <AlertDialog>
                     <AlertDialogTrigger asChild>
                       <Button variant="ghost" size="sm" className="text-destructive hover:text-destructive">
