@@ -15,6 +15,10 @@ export interface Document {
   extracted_text?: string;
   category?: string;
   tags?: string[];
+  version?: number;
+  parent_document_id?: string;
+  ai_confidence?: number;
+  processing_status?: string;
   processed_at?: string;
   created_at: string;
   updated_at?: string;
