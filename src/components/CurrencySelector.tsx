@@ -3,13 +3,31 @@ import React from "react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useCurrencies } from "@/hooks/useCurrencies";
 import { useUserPreferences } from "@/hooks/useUserPreferences";
+import { useNotificationService } from "@/hooks/useNotificationService";
 
 export const CurrencySelector = () => {
   const { currencies } = useCurrencies();
   const { preferences, updatePreferences } = useUserPreferences();
+  const { createNotification } = useNotificationService();
 
-  const handleCurrencyChange = (currencyId: string) => {
-    updatePreferences.mutate({ default_currency_id: currencyId });
+  const handleCurrencyChange = async (currencyId: string) => {
+    const selectedCurrency = currencies.find(c => c.id === currencyId);
+    
+    try {
+      await updatePreferences.mutateAsync({ default_currency_id: currencyId });
+      
+      // Create notification about currency change
+      if (selectedCurrency) {
+        await createNotification(
+          'Currency Updated',
+          `Your default currency has been changed to ${selectedCurrency.name} (${selectedCurrency.code}). All financial data will now be displayed in this currency.`,
+          'system',
+          'medium'
+        );
+      }
+    } catch (error) {
+      console.error('Error updating currency:', error);
+    }
   };
 
   const selectedCurrency = currencies.find(c => c.id === preferences?.default_currency_id);

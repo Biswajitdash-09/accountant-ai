@@ -1,9 +1,33 @@
 
-import { useMemo } from "react";
+import { useMemo, useEffect } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { useCurrencies } from "./useCurrencies";
+import { useUserPreferences } from "./useUserPreferences";
 
 export const useCurrencyFormatter = () => {
   const { currencies, baseCurrency, convertAmount } = useCurrencies();
+  const { preferences } = useUserPreferences();
+  const queryClient = useQueryClient();
+
+  // Get the user's preferred currency or fallback to base currency
+  const preferredCurrency = useMemo(() => {
+    if (preferences?.default_currency_id) {
+      return currencies.find(c => c.id === preferences.default_currency_id) || baseCurrency;
+    }
+    return baseCurrency;
+  }, [currencies, baseCurrency, preferences]);
+
+  // Invalidate related queries when currency changes
+  useEffect(() => {
+    if (preferredCurrency) {
+      // Invalidate all financial data queries to trigger re-rendering with new currency
+      queryClient.invalidateQueries({ queryKey: ['revenue_streams'] });
+      queryClient.invalidateQueries({ queryKey: ['financial_goals'] });
+      queryClient.invalidateQueries({ queryKey: ['transactions'] });
+      queryClient.invalidateQueries({ queryKey: ['budgets'] });
+      queryClient.invalidateQueries({ queryKey: ['balance_sheet_items'] });
+    }
+  }, [preferredCurrency?.id, queryClient]);
 
   const formatCurrency = useMemo(() => {
     return (
@@ -22,9 +46,9 @@ export const useCurrencyFormatter = () => {
         decimals = 2
       } = options || {};
 
-      // Default to base currency if no specific currency is provided
-      const targetCurrencyId = toCurrencyId || baseCurrency?.id;
-      const sourceCurrencyId = fromCurrencyId || baseCurrency?.id;
+      // Use preferred currency as default target
+      const targetCurrencyId = toCurrencyId || preferredCurrency?.id;
+      const sourceCurrencyId = fromCurrencyId || preferredCurrency?.id;
 
       if (!targetCurrencyId || !sourceCurrencyId) {
         return amount.toFixed(decimals);
@@ -55,11 +79,12 @@ export const useCurrencyFormatter = () => {
 
       return result;
     };
-  }, [currencies, baseCurrency, convertAmount]);
+  }, [currencies, preferredCurrency, convertAmount]);
 
   return {
     formatCurrency,
     currencies,
     baseCurrency,
+    preferredCurrency,
   };
 };

@@ -14,13 +14,21 @@ interface MetricCardProps {
     period: string;
   };
   currency?: boolean;
+  currencyId?: string;
 }
 
-export const MetricCard = ({ title, value, icon: Icon, trend, currency = false }: MetricCardProps) => {
+export const MetricCard = ({ 
+  title, 
+  value, 
+  icon: Icon, 
+  trend, 
+  currency = false, 
+  currencyId 
+}: MetricCardProps) => {
   const { formatCurrency } = useCurrencyFormatter();
 
   const displayValue = currency && typeof value === 'number' 
-    ? formatCurrency(value) 
+    ? formatCurrency(value, currencyId, undefined, { showSymbol: true, showCode: false })
     : value;
 
   return (

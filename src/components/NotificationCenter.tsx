@@ -1,14 +1,21 @@
 
-import React from "react";
+import React, { useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Bell, Check, CheckCheck, X } from "lucide-react";
 import { useNotifications } from "@/hooks/useNotifications";
+import { useNotificationService } from "@/hooks/useNotificationService";
 import { format } from "date-fns";
 
 export const NotificationCenter = () => {
   const { notifications, unreadCount, markAsRead, markAllAsRead, deleteNotification } = useNotifications();
+  const { createNotification } = useNotificationService();
+
+  // Set up real-time notification updates
+  useEffect(() => {
+    // This effect ensures the component re-renders when notifications change
+  }, [notifications]);
 
   const getPriorityColor = (priority: string) => {
     switch (priority) {
@@ -61,7 +68,7 @@ export const NotificationCenter = () => {
           {notifications.map((notification) => (
             <div
               key={notification.id}
-              className={`p-3 border rounded-lg ${
+              className={`p-3 border rounded-lg transition-colors ${
                 !notification.is_read ? 'bg-blue-50 border-blue-200' : 'bg-background'
               }`}
             >
@@ -108,9 +115,12 @@ export const NotificationCenter = () => {
             </div>
           ))}
           {notifications.length === 0 && (
-            <p className="text-muted-foreground text-center py-6">
-              No notifications yet. You're all caught up!
-            </p>
+            <div className="text-center py-8">
+              <Bell className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+              <p className="text-muted-foreground">
+                No notifications yet. You're all caught up!
+              </p>
+            </div>
           )}
         </div>
       </CardContent>

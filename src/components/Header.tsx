@@ -1,5 +1,6 @@
 
 import React from "react";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -7,11 +8,13 @@ import {
   DropdownMenu, 
   DropdownMenuContent, 
   DropdownMenuItem, 
-  DropdownMenuTrigger 
+  DropdownMenuTrigger,
+  DropdownMenuSeparator
 } from "@/components/ui/dropdown-menu";
 import { Badge } from "@/components/ui/badge";
 import { Search, Bell, Settings, User, LogOut, Menu } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
+import { useProfile } from "@/hooks/useProfile";
 import { useNotifications } from "@/hooks/useNotifications";
 import { CurrencySelector } from "./CurrencySelector";
 
@@ -21,7 +24,22 @@ interface HeaderProps {
 
 const Header = ({ onMobileMenuToggle }: HeaderProps) => {
   const { user, signOut } = useAuth();
+  const { profile } = useProfile();
   const { unreadCount } = useNotifications();
+  const navigate = useNavigate();
+
+  const handleProfileClick = () => {
+    navigate("/profile");
+  };
+
+  const handleNotificationsClick = () => {
+    navigate("/dashboard?tab=notifications");
+  };
+
+  const handleSignOut = async () => {
+    await signOut();
+    navigate("/");
+  };
 
   return (
     <header className="bg-background border-b border-border px-6 py-4">
@@ -49,7 +67,12 @@ const Header = ({ onMobileMenuToggle }: HeaderProps) => {
         <div className="flex items-center space-x-4">
           <CurrencySelector />
           
-          <Button variant="ghost" size="sm" className="relative">
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            className="relative"
+            onClick={handleNotificationsClick}
+          >
             <Bell className="h-4 w-4" />
             {unreadCount > 0 && (
               <Badge 
@@ -65,26 +88,34 @@ const Header = ({ onMobileMenuToggle }: HeaderProps) => {
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" className="relative h-8 w-8 rounded-full">
                 <Avatar className="h-8 w-8">
-                  <AvatarImage src={user?.user_metadata?.avatar_url} />
+                  <AvatarImage src={profile?.avatar_url} />
                   <AvatarFallback>
-                    {user?.email?.charAt(0).toUpperCase() || 'U'}
+                    {profile?.full_name?.split(' ').map(n => n[0]).join('') || 
+                     user?.email?.charAt(0).toUpperCase() || 'U'}
                   </AvatarFallback>
                 </Avatar>
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent className="w-56" align="end" forceMount>
-              <DropdownMenuItem className="flex items-center">
+              <div className="flex items-center justify-start gap-2 p-2">
+                <div className="flex flex-col space-y-1 leading-none">
+                  <p className="font-medium">{profile?.full_name || "User"}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {profile?.email || user?.email}
+                  </p>
+                </div>
+              </div>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={handleProfileClick}>
                 <User className="mr-2 h-4 w-4" />
                 <span>Profile</span>
               </DropdownMenuItem>
-              <DropdownMenuItem className="flex items-center">
+              <DropdownMenuItem onClick={handleProfileClick}>
                 <Settings className="mr-2 h-4 w-4" />
                 <span>Settings</span>
               </DropdownMenuItem>
-              <DropdownMenuItem 
-                className="flex items-center text-red-600" 
-                onClick={signOut}
-              >
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={handleSignOut}>
                 <LogOut className="mr-2 h-4 w-4" />
                 <span>Sign out</span>
               </DropdownMenuItem>
