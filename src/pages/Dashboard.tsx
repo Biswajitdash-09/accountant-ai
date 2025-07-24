@@ -1,123 +1,107 @@
 
-import { DollarSign, ArrowUp, ArrowDown, FileText } from "lucide-react";
-import MetricCard from "@/components/dashboard/MetricCard";
-import RecentTransactions from "@/components/dashboard/RecentTransactions";
-import ExpenseChart from "@/components/dashboard/ExpenseChart";
-import IncomeExpenseChart from "@/components/dashboard/IncomeExpenseChart";
+import React from "react";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { DollarSign, TrendingUp, TrendingDown, PieChart, CheckSquare, Calendar, Bell } from "lucide-react";
+import { MetricCard } from "@/components/dashboard/MetricCard";
+import { IncomeExpenseChart } from "@/components/dashboard/IncomeExpenseChart";
+import { ExpenseChart } from "@/components/dashboard/ExpenseChart";
+import { RecentTransactions } from "@/components/dashboard/RecentTransactions";
+import { FinancialGoalsManager } from "@/components/dashboard/FinancialGoalsManager";
+import { TaskManager } from "@/components/TaskManager";
+import { DeadlineTracker } from "@/components/DeadlineTracker";
+import { NotificationCenter } from "@/components/NotificationCenter";
+import { useCurrencyFormatter } from "@/hooks/useCurrencyFormatter";
 
-const Dashboard = () => {
-  // Mock data for demonstration
-  const metrics = {
-    totalBalance: "$24,563.65",
-    income: "$8,350.00",
-    expenses: "$3,285.75",
-    pendingTaxes: "$1,543.25",
-  };
-
-  const recentTransactions = [
-    {
-      id: "tx1",
-      date: "Jul 20, 2025",
-      description: "Client Payment - XYZ Corp",
-      category: "Income",
-      amount: 2500,
-      type: "income" as const,
-    },
-    {
-      id: "tx2",
-      date: "Jul 19, 2025",
-      description: "Office Rent",
-      category: "Rent",
-      amount: 1200,
-      type: "expense" as const,
-    },
-    {
-      id: "tx3",
-      date: "Jul 17, 2025",
-      description: "Software Subscription",
-      category: "Software",
-      amount: 49.99,
-      type: "expense" as const,
-    },
-    {
-      id: "tx4",
-      date: "Jul 15, 2025",
-      description: "Client Payment - ABC Inc",
-      category: "Income",
-      amount: 3500,
-      type: "income" as const,
-    },
-    {
-      id: "tx5",
-      date: "Jul 12, 2025",
-      description: "Utility Bills",
-      category: "Utilities",
-      amount: 175.25,
-      type: "expense" as const,
-    },
-  ];
-
-  const expenseData = [
-    { name: "Rent", value: 1200 },
-    { name: "Software", value: 450 },
-    { name: "Utilities", value: 175 },
-    { name: "Marketing", value: 300 },
-    { name: "Other", value: 150 },
-  ];
-
-  const incomeExpenseData = [
-    { month: "Jan", income: 5000, expenses: 3200 },
-    { month: "Feb", income: 5500, expenses: 3300 },
-    { month: "Mar", income: 6000, expenses: 3400 },
-    { month: "Apr", income: 6500, expenses: 3500 },
-    { month: "May", income: 7000, expenses: 3600 },
-    { month: "Jun", income: 7500, expenses: 3700 },
-    { month: "Jul", income: 8000, expenses: 3800 },
-  ];
+export const Dashboard = () => {
+  const { formatCurrency } = useCurrencyFormatter();
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl lg:text-3xl font-bold">Dashboard</h1>
-      
-      {/* Mobile responsive metric cards - stack on mobile */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <MetricCard
-          title="Total Balance"
-          value={metrics.totalBalance}
-          icon={<DollarSign className="h-4 w-4 text-muted-foreground" />}
-          description="Across all accounts"
-        />
-        <MetricCard
-          title="Income (This Month)"
-          value={metrics.income}
-          icon={<ArrowUp className="h-4 w-4 text-finance-positive" />}
-          trend={{ value: 12, positive: true }}
-          description="vs last month"
-        />
-        <MetricCard
-          title="Expenses (This Month)"
-          value={metrics.expenses}
-          icon={<ArrowDown className="h-4 w-4 text-finance-negative" />}
-          trend={{ value: 5, positive: false }}
-          description="vs last month"
-        />
-        <MetricCard
-          title="Pending Tax"
-          value={metrics.pendingTaxes}
-          icon={<FileText className="h-4 w-4 text-muted-foreground" />}
-          description="Estimated due"
-        />
+      <div>
+        <h1 className="text-3xl font-bold">Dashboard</h1>
+        <p className="text-muted-foreground">
+          Welcome back! Here's an overview of your financial activity.
+        </p>
       </div>
 
-      {/* Charts - stack on mobile */}
-      <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
-        <IncomeExpenseChart data={incomeExpenseData} />
-        <ExpenseChart data={expenseData} />
-      </div>
+      <Tabs defaultValue="overview" className="w-full">
+        <TabsList className="grid w-full grid-cols-4">
+          <TabsTrigger value="overview">Overview</TabsTrigger>
+          <TabsTrigger value="tasks">Tasks</TabsTrigger>
+          <TabsTrigger value="deadlines">Deadlines</TabsTrigger>
+          <TabsTrigger value="notifications">Notifications</TabsTrigger>
+        </TabsList>
 
-      <RecentTransactions transactions={recentTransactions} />
+        <TabsContent value="overview" className="space-y-6">
+          {/* Financial Metrics */}
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+            <MetricCard
+              title="Total Balance"
+              value={formatCurrency(25000)}
+              icon={DollarSign}
+              trend={{
+                value: 12,
+                isPositive: true,
+                period: "from last month"
+              }}
+            />
+            <MetricCard
+              title="Monthly Income"
+              value={formatCurrency(8500)}
+              icon={TrendingUp}
+              trend={{
+                value: 8,
+                isPositive: true,
+                period: "from last month"
+              }}
+            />
+            <MetricCard
+              title="Monthly Expenses"
+              value={formatCurrency(6200)}
+              icon={TrendingDown}
+              trend={{
+                value: 3,
+                isPositive: false,
+                period: "from last month"
+              }}
+            />
+            <MetricCard
+              title="Savings Rate"
+              value="27%"
+              icon={PieChart}
+              trend={{
+                value: 4,
+                isPositive: true,
+                period: "from last month"
+              }}
+            />
+          </div>
+
+          {/* Charts and Financial Goals */}
+          <div className="grid gap-6 md:grid-cols-2">
+            <IncomeExpenseChart />
+            <ExpenseChart />
+          </div>
+
+          <div className="grid gap-6 md:grid-cols-2">
+            <RecentTransactions />
+            <FinancialGoalsManager />
+          </div>
+        </TabsContent>
+
+        <TabsContent value="tasks" className="space-y-6">
+          <TaskManager />
+        </TabsContent>
+
+        <TabsContent value="deadlines" className="space-y-6">
+          <DeadlineTracker />
+        </TabsContent>
+
+        <TabsContent value="notifications" className="space-y-6">
+          <NotificationCenter />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 };
-
-export default Dashboard;

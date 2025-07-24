@@ -1,64 +1,83 @@
 
-import { useAuth } from "@/contexts/AuthContext";
+import React from "react";
 import { Button } from "@/components/ui/button";
-import { useTheme } from "@/hooks/useTheme";
-import { Moon, Sun, Menu, LogOut } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { 
+  DropdownMenu, 
+  DropdownMenuContent, 
+  DropdownMenuItem, 
+  DropdownMenuTrigger 
+} from "@/components/ui/dropdown-menu";
+import { Badge } from "@/components/ui/badge";
+import { Search, Bell, Settings, User, LogOut } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
+import { useNotifications } from "@/hooks/useNotifications";
+import { CurrencySelector } from "./CurrencySelector";
 
-interface HeaderProps {
-  onMobileMenuToggle?: () => void;
-}
-
-const Header = ({ onMobileMenuToggle }: HeaderProps) => {
+export const Header = () => {
   const { user, signOut } = useAuth();
-  const { theme, toggleTheme } = useTheme();
-
-  const handleLogout = () => {
-    signOut();
-  };
+  const { unreadCount } = useNotifications();
 
   return (
-    <header className="h-16 border-b bg-background flex items-center justify-between px-4 lg:px-6">
-      <div className="flex items-center gap-4">
-        {onMobileMenuToggle && (
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={onMobileMenuToggle}
-            className="lg:hidden"
-          >
-            <Menu className="h-5 w-5" />
+    <header className="bg-background border-b border-border px-6 py-4">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center space-x-4">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input 
+              placeholder="Search..." 
+              className="pl-10 w-64"
+            />
+          </div>
+        </div>
+        
+        <div className="flex items-center space-x-4">
+          <CurrencySelector />
+          
+          <Button variant="ghost" size="sm" className="relative">
+            <Bell className="h-4 w-4" />
+            {unreadCount > 0 && (
+              <Badge 
+                variant="destructive" 
+                className="absolute -top-2 -right-2 h-5 w-5 flex items-center justify-center text-xs"
+              >
+                {unreadCount}
+              </Badge>
+            )}
           </Button>
-        )}
-        <h2 className="hidden lg:block text-lg font-semibold">Welcome to Accountant AI</h2>
-      </div>
-
-      <div className="flex items-center gap-2">
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={toggleTheme}
-          className="h-9 w-9"
-        >
-          {theme === 'dark' ? (
-            <Sun className="h-4 w-4" />
-          ) : (
-            <Moon className="h-4 w-4" />
-          )}
-        </Button>
-
-        {user && (
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={handleLogout}
-            className="h-9 w-9"
-          >
-            <LogOut className="h-4 w-4" />
-          </Button>
-        )}
+          
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" className="relative h-8 w-8 rounded-full">
+                <Avatar className="h-8 w-8">
+                  <AvatarImage src={user?.user_metadata?.avatar_url} />
+                  <AvatarFallback>
+                    {user?.email?.charAt(0).toUpperCase() || 'U'}
+                  </AvatarFallback>
+                </Avatar>
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent className="w-56" align="end" forceMount>
+              <DropdownMenuItem className="flex items-center">
+                <User className="mr-2 h-4 w-4" />
+                <span>Profile</span>
+              </DropdownMenuItem>
+              <DropdownMenuItem className="flex items-center">
+                <Settings className="mr-2 h-4 w-4" />
+                <span>Settings</span>
+              </DropdownMenuItem>
+              <DropdownMenuItem 
+                className="flex items-center text-red-600" 
+                onClick={signOut}
+              >
+                <LogOut className="mr-2 h-4 w-4" />
+                <span>Sign out</span>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
       </div>
     </header>
   );
 };
-
-export default Header;
