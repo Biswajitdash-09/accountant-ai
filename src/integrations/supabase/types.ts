@@ -779,6 +779,486 @@ export type Database = {
         }
         Relationships: []
       }
+      tax_calculations: {
+        Row: {
+          amount_owed: number | null
+          business_entity_id: string | null
+          calculated_at: string | null
+          calculation_details: Json | null
+          calculation_type: string
+          created_at: string | null
+          credits_applied: number | null
+          gross_income: number | null
+          id: string
+          tax_liability: number | null
+          tax_period_id: string
+          taxable_income: number | null
+          total_deductions: number | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          amount_owed?: number | null
+          business_entity_id?: string | null
+          calculated_at?: string | null
+          calculation_details?: Json | null
+          calculation_type: string
+          created_at?: string | null
+          credits_applied?: number | null
+          gross_income?: number | null
+          id?: string
+          tax_liability?: number | null
+          tax_period_id: string
+          taxable_income?: number | null
+          total_deductions?: number | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          amount_owed?: number | null
+          business_entity_id?: string | null
+          calculated_at?: string | null
+          calculation_details?: Json | null
+          calculation_type?: string
+          created_at?: string | null
+          credits_applied?: number | null
+          gross_income?: number | null
+          id?: string
+          tax_liability?: number | null
+          tax_period_id?: string
+          taxable_income?: number | null
+          total_deductions?: number | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_tax_calculations_business_entity"
+            columns: ["business_entity_id"]
+            isOneToOne: false
+            referencedRelation: "business_entities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_tax_calculations_tax_period"
+            columns: ["tax_period_id"]
+            isOneToOne: false
+            referencedRelation: "tax_periods"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      tax_deductions: {
+        Row: {
+          amount: number
+          business_entity_id: string | null
+          category: string
+          created_at: string | null
+          currency_id: string | null
+          deduction_type: string
+          description: string
+          id: string
+          is_approved: boolean | null
+          notes: string | null
+          subcategory: string | null
+          supporting_documents: Json | null
+          tax_period_id: string
+          transaction_id: string | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          business_entity_id?: string | null
+          category: string
+          created_at?: string | null
+          currency_id?: string | null
+          deduction_type: string
+          description: string
+          id?: string
+          is_approved?: boolean | null
+          notes?: string | null
+          subcategory?: string | null
+          supporting_documents?: Json | null
+          tax_period_id: string
+          transaction_id?: string | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          business_entity_id?: string | null
+          category?: string
+          created_at?: string | null
+          currency_id?: string | null
+          deduction_type?: string
+          description?: string
+          id?: string
+          is_approved?: boolean | null
+          notes?: string | null
+          subcategory?: string | null
+          supporting_documents?: Json | null
+          tax_period_id?: string
+          transaction_id?: string | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_tax_deductions_business_entity"
+            columns: ["business_entity_id"]
+            isOneToOne: false
+            referencedRelation: "business_entities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_tax_deductions_currency"
+            columns: ["currency_id"]
+            isOneToOne: false
+            referencedRelation: "currencies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_tax_deductions_tax_period"
+            columns: ["tax_period_id"]
+            isOneToOne: false
+            referencedRelation: "tax_periods"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_tax_deductions_transaction"
+            columns: ["transaction_id"]
+            isOneToOne: false
+            referencedRelation: "transactions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      tax_documents: {
+        Row: {
+          business_entity_id: string | null
+          created_at: string | null
+          deduction_id: string | null
+          document_id: string
+          document_type: string
+          id: string
+          tax_period_id: string | null
+          tax_purpose: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          business_entity_id?: string | null
+          created_at?: string | null
+          deduction_id?: string | null
+          document_id: string
+          document_type: string
+          id?: string
+          tax_period_id?: string | null
+          tax_purpose: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          business_entity_id?: string | null
+          created_at?: string | null
+          deduction_id?: string | null
+          document_id?: string
+          document_type?: string
+          id?: string
+          tax_period_id?: string | null
+          tax_purpose?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_tax_documents_business_entity"
+            columns: ["business_entity_id"]
+            isOneToOne: false
+            referencedRelation: "business_entities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_tax_documents_deduction"
+            columns: ["deduction_id"]
+            isOneToOne: false
+            referencedRelation: "tax_deductions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_tax_documents_document"
+            columns: ["document_id"]
+            isOneToOne: false
+            referencedRelation: "documents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_tax_documents_tax_period"
+            columns: ["tax_period_id"]
+            isOneToOne: false
+            referencedRelation: "tax_periods"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      tax_forms: {
+        Row: {
+          business_entity_id: string | null
+          confirmation_number: string | null
+          created_at: string | null
+          due_date: string | null
+          filed_date: string | null
+          form_data: Json | null
+          form_name: string
+          form_type: string
+          id: string
+          status: string
+          tax_period_id: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          business_entity_id?: string | null
+          confirmation_number?: string | null
+          created_at?: string | null
+          due_date?: string | null
+          filed_date?: string | null
+          form_data?: Json | null
+          form_name: string
+          form_type: string
+          id?: string
+          status?: string
+          tax_period_id: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          business_entity_id?: string | null
+          confirmation_number?: string | null
+          created_at?: string | null
+          due_date?: string | null
+          filed_date?: string | null
+          form_data?: Json | null
+          form_name?: string
+          form_type?: string
+          id?: string
+          status?: string
+          tax_period_id?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_tax_forms_business_entity"
+            columns: ["business_entity_id"]
+            isOneToOne: false
+            referencedRelation: "business_entities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_tax_forms_tax_period"
+            columns: ["tax_period_id"]
+            isOneToOne: false
+            referencedRelation: "tax_periods"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      tax_payments: {
+        Row: {
+          amount: number
+          business_entity_id: string | null
+          confirmation_number: string | null
+          created_at: string | null
+          currency_id: string | null
+          due_date: string | null
+          id: string
+          notes: string | null
+          payment_date: string
+          payment_method: string | null
+          payment_type: string
+          status: string
+          tax_period_id: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          business_entity_id?: string | null
+          confirmation_number?: string | null
+          created_at?: string | null
+          currency_id?: string | null
+          due_date?: string | null
+          id?: string
+          notes?: string | null
+          payment_date: string
+          payment_method?: string | null
+          payment_type: string
+          status?: string
+          tax_period_id: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          business_entity_id?: string | null
+          confirmation_number?: string | null
+          created_at?: string | null
+          currency_id?: string | null
+          due_date?: string | null
+          id?: string
+          notes?: string | null
+          payment_date?: string
+          payment_method?: string | null
+          payment_type?: string
+          status?: string
+          tax_period_id?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_tax_payments_business_entity"
+            columns: ["business_entity_id"]
+            isOneToOne: false
+            referencedRelation: "business_entities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_tax_payments_currency"
+            columns: ["currency_id"]
+            isOneToOne: false
+            referencedRelation: "currencies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_tax_payments_tax_period"
+            columns: ["tax_period_id"]
+            isOneToOne: false
+            referencedRelation: "tax_periods"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      tax_periods: {
+        Row: {
+          actual_tax_due: number | null
+          amount_paid: number | null
+          business_entity_id: string | null
+          created_at: string | null
+          end_date: string
+          estimated_tax_due: number | null
+          id: string
+          period_type: string
+          quarter: number | null
+          start_date: string
+          status: string
+          tax_year: number
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          actual_tax_due?: number | null
+          amount_paid?: number | null
+          business_entity_id?: string | null
+          created_at?: string | null
+          end_date: string
+          estimated_tax_due?: number | null
+          id?: string
+          period_type: string
+          quarter?: number | null
+          start_date: string
+          status?: string
+          tax_year: number
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          actual_tax_due?: number | null
+          amount_paid?: number | null
+          business_entity_id?: string | null
+          created_at?: string | null
+          end_date?: string
+          estimated_tax_due?: number | null
+          id?: string
+          period_type?: string
+          quarter?: number | null
+          start_date?: string
+          status?: string
+          tax_year?: number
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_tax_periods_business_entity"
+            columns: ["business_entity_id"]
+            isOneToOne: false
+            referencedRelation: "business_entities"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      tax_settings: {
+        Row: {
+          auto_categorize_expenses: boolean | null
+          business_entity_id: string | null
+          business_type: string | null
+          created_at: string | null
+          default_deduction_categories: Json | null
+          filing_status: string | null
+          id: string
+          notification_preferences: Json | null
+          quarterly_filing: boolean | null
+          state_tax_id: string | null
+          tax_id_number: string | null
+          tax_year_start: string | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          auto_categorize_expenses?: boolean | null
+          business_entity_id?: string | null
+          business_type?: string | null
+          created_at?: string | null
+          default_deduction_categories?: Json | null
+          filing_status?: string | null
+          id?: string
+          notification_preferences?: Json | null
+          quarterly_filing?: boolean | null
+          state_tax_id?: string | null
+          tax_id_number?: string | null
+          tax_year_start?: string | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          auto_categorize_expenses?: boolean | null
+          business_entity_id?: string | null
+          business_type?: string | null
+          created_at?: string | null
+          default_deduction_categories?: Json | null
+          filing_status?: string | null
+          id?: string
+          notification_preferences?: Json | null
+          quarterly_filing?: boolean | null
+          state_tax_id?: string | null
+          tax_id_number?: string | null
+          tax_year_start?: string | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_tax_settings_business_entity"
+            columns: ["business_entity_id"]
+            isOneToOne: false
+            referencedRelation: "business_entities"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       transactions: {
         Row: {
           account_id: string | null
