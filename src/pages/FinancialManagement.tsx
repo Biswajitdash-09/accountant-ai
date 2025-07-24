@@ -1,3 +1,4 @@
+
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Plus, TrendingUp, DollarSign, Target, PieChart } from "lucide-react";
@@ -88,38 +89,37 @@ const FinancialManagement = () => {
         <MetricCard
           title="Total Revenue"
           value={`$${overviewMetrics.totalRevenue.toLocaleString()}`}
-          icon={<DollarSign className="h-4 w-4" />}
+          icon={DollarSign}
           trend={{
             value: Math.abs(overviewMetrics.revenueTrend),
-            positive: overviewMetrics.revenueTrend > 0,
+            isPositive: overviewMetrics.revenueTrend > 0,
+            period: "vs last month",
           }}
-          description="All revenue streams"
         />
         <MetricCard
           title="Net Profit"
           value={`$${overviewMetrics.profit.toLocaleString()}`}
-          icon={<TrendingUp className="h-4 w-4" />}
+          icon={TrendingUp}
           trend={{
             value: Math.abs(overviewMetrics.profitMargin),
-            positive: overviewMetrics.profit > 0,
+            isPositive: overviewMetrics.profit > 0,
+            period: "margin",
           }}
-          description={`${overviewMetrics.profitMargin.toFixed(1)}% margin`}
         />
         <MetricCard
           title="Net Worth"
           value={`$${overviewMetrics.netWorth.toLocaleString()}`}
-          icon={<Target className="h-4 w-4" />}
+          icon={Target}
           trend={{
             value: Math.abs(overviewMetrics.netWorth),
-            positive: overviewMetrics.netWorth > 0,
+            isPositive: overviewMetrics.netWorth > 0,
+            period: "assets - liabilities",
           }}
-          description="Assets minus liabilities"
         />
         <MetricCard
           title="Active Goals"
           value={overviewMetrics.activeGoals.toString()}
-          icon={<PieChart className="h-4 w-4" />}
-          description={`${overviewMetrics.activeBudgets} active budgets`}
+          icon={PieChart}
         />
       </div>
 

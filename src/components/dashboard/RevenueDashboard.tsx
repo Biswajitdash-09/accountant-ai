@@ -1,3 +1,4 @@
+
 import React from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -19,7 +20,7 @@ const RevenueDashboard = () => {
     return <div>Error: {error.message}</div>;
   }
 
-  const totalProjectedRevenue = revenueStreams.reduce((sum, stream) => sum + stream.projected_amount, 0);
+  const totalProjectedRevenue = revenueStreams.reduce((sum, stream) => sum + (stream.target_amount || 0), 0);
   const totalActualRevenue = revenueStreams.reduce((sum, stream) => sum + stream.actual_amount, 0);
   const revenueDifference = totalActualRevenue - totalProjectedRevenue;
   const revenueProgress = (totalActualRevenue / totalProjectedRevenue) * 100;
@@ -35,17 +36,17 @@ const RevenueDashboard = () => {
           <MetricCard
             title="Projected Revenue"
             value={`$${totalProjectedRevenue.toLocaleString()}`}
-            icon={<DollarSign className="h-4 w-4" />}
+            icon={DollarSign}
           />
           <MetricCard
             title="Actual Revenue"
             value={`$${totalActualRevenue.toLocaleString()}`}
-            icon={<TrendingUp className="h-4 w-4" />}
+            icon={TrendingUp}
           />
           <MetricCard
             title="Revenue Difference"
             value={`$${revenueDifference.toLocaleString()}`}
-            icon={revenueDifference > 0 ? <TrendingUp className="h-4 w-4" /> : <TrendingDown className="h-4 w-4" />}
+            icon={revenueDifference > 0 ? TrendingUp : TrendingDown}
           />
         </div>
         <Card>
@@ -71,7 +72,7 @@ const RevenueDashboard = () => {
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <p className="text-sm font-medium">Projected Revenue:</p>
-                  <p className="text-lg">${stream.projected_amount.toLocaleString()}</p>
+                  <p className="text-lg">${(stream.target_amount || 0).toLocaleString()}</p>
                 </div>
                 <div>
                   <p className="text-sm font-medium">Actual Revenue:</p>
@@ -79,7 +80,7 @@ const RevenueDashboard = () => {
                 </div>
                 <div>
                   <p className="text-sm font-medium">Progress:</p>
-                  <Progress value={(stream.actual_amount / stream.projected_amount) * 100} />
+                  <Progress value={((stream.actual_amount / (stream.target_amount || 1)) * 100)} />
                 </div>
                 <div>
                   <p className="text-sm font-medium">Status:</p>
