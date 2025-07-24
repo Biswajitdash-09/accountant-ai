@@ -12,9 +12,13 @@ export interface Transaction {
   amount: number;
   date: string;
   category?: string;
+  subcategory?: string;
   type?: 'income' | 'expense';
   notes?: string;
   description?: string;
+  revenue_stream_id?: string;
+  cost_center?: string;
+  is_recurring?: boolean;
   created_at: string;
   updated_at?: string;
 }
@@ -86,6 +90,7 @@ export const useTransactions = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['transactions'] });
       queryClient.invalidateQueries({ queryKey: ['accounts'] });
+      queryClient.invalidateQueries({ queryKey: ['revenue_streams'] });
       toast({
         title: "Success",
         description: "Transaction created successfully",
@@ -116,6 +121,7 @@ export const useTransactions = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['transactions'] });
       queryClient.invalidateQueries({ queryKey: ['accounts'] });
+      queryClient.invalidateQueries({ queryKey: ['revenue_streams'] });
       toast({
         title: "Success",
         description: "Transaction updated successfully",
@@ -142,6 +148,7 @@ export const useTransactions = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['transactions'] });
       queryClient.invalidateQueries({ queryKey: ['accounts'] });
+      queryClient.invalidateQueries({ queryKey: ['revenue_streams'] });
       toast({
         title: "Success",
         description: "Transaction deleted successfully",

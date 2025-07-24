@@ -107,6 +107,115 @@ export type Database = {
         }
         Relationships: []
       }
+      balance_sheet_items: {
+        Row: {
+          amount: number
+          business_entity_id: string | null
+          category: string
+          created_at: string | null
+          description: string | null
+          id: string
+          is_active: boolean | null
+          item_name: string
+          item_type: string
+          updated_at: string | null
+          user_id: string
+          valuation_date: string
+        }
+        Insert: {
+          amount: number
+          business_entity_id?: string | null
+          category: string
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          item_name: string
+          item_type: string
+          updated_at?: string | null
+          user_id: string
+          valuation_date?: string
+        }
+        Update: {
+          amount?: number
+          business_entity_id?: string | null
+          category?: string
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          item_name?: string
+          item_type?: string
+          updated_at?: string | null
+          user_id?: string
+          valuation_date?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "balance_sheet_items_business_entity_id_fkey"
+            columns: ["business_entity_id"]
+            isOneToOne: false
+            referencedRelation: "business_entities"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      budget_templates: {
+        Row: {
+          budget_period: string
+          business_entity_id: string | null
+          created_at: string | null
+          expense_categories: Json | null
+          id: string
+          income_categories: Json | null
+          is_default: boolean | null
+          template_name: string
+          template_type: string
+          total_expenses: number | null
+          total_income: number | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          budget_period: string
+          business_entity_id?: string | null
+          created_at?: string | null
+          expense_categories?: Json | null
+          id?: string
+          income_categories?: Json | null
+          is_default?: boolean | null
+          template_name: string
+          template_type: string
+          total_expenses?: number | null
+          total_income?: number | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          budget_period?: string
+          business_entity_id?: string | null
+          created_at?: string | null
+          expense_categories?: Json | null
+          id?: string
+          income_categories?: Json | null
+          is_default?: boolean | null
+          template_name?: string
+          template_type?: string
+          total_expenses?: number | null
+          total_income?: number | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "budget_templates_business_entity_id_fkey"
+            columns: ["business_entity_id"]
+            isOneToOne: false
+            referencedRelation: "business_entities"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       business_entities: {
         Row: {
           address: Json | null
@@ -211,6 +320,62 @@ export type Database = {
           },
         ]
       }
+      financial_goals: {
+        Row: {
+          business_entity_id: string | null
+          created_at: string | null
+          current_amount: number | null
+          description: string | null
+          goal_name: string
+          goal_type: string
+          id: string
+          is_achieved: boolean | null
+          priority: string | null
+          target_amount: number
+          target_date: string | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          business_entity_id?: string | null
+          created_at?: string | null
+          current_amount?: number | null
+          description?: string | null
+          goal_name: string
+          goal_type: string
+          id?: string
+          is_achieved?: boolean | null
+          priority?: string | null
+          target_amount: number
+          target_date?: string | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          business_entity_id?: string | null
+          created_at?: string | null
+          current_amount?: number | null
+          description?: string | null
+          goal_name?: string
+          goal_type?: string
+          id?: string
+          is_achieved?: boolean | null
+          priority?: string | null
+          target_amount?: number
+          target_date?: string | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "financial_goals_business_entity_id_fkey"
+            columns: ["business_entity_id"]
+            isOneToOne: false
+            referencedRelation: "business_entities"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -277,16 +442,76 @@ export type Database = {
         }
         Relationships: []
       }
+      revenue_streams: {
+        Row: {
+          actual_amount: number | null
+          business_entity_id: string | null
+          created_at: string | null
+          description: string | null
+          id: string
+          is_active: boolean | null
+          period_end: string | null
+          period_start: string | null
+          stream_name: string
+          stream_type: string
+          target_amount: number | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          actual_amount?: number | null
+          business_entity_id?: string | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          period_end?: string | null
+          period_start?: string | null
+          stream_name: string
+          stream_type: string
+          target_amount?: number | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          actual_amount?: number | null
+          business_entity_id?: string | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          period_end?: string | null
+          period_start?: string | null
+          stream_name?: string
+          stream_type?: string
+          target_amount?: number | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "revenue_streams_business_entity_id_fkey"
+            columns: ["business_entity_id"]
+            isOneToOne: false
+            referencedRelation: "business_entities"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       transactions: {
         Row: {
           account_id: string | null
           amount: number
           category: string | null
+          cost_center: string | null
           created_at: string | null
           date: string
           description: string | null
           id: string
+          is_recurring: boolean | null
           notes: string | null
+          revenue_stream_id: string | null
+          subcategory: string | null
           type: string | null
           updated_at: string | null
           user_id: string
@@ -295,11 +520,15 @@ export type Database = {
           account_id?: string | null
           amount: number
           category?: string | null
+          cost_center?: string | null
           created_at?: string | null
           date?: string
           description?: string | null
           id?: string
+          is_recurring?: boolean | null
           notes?: string | null
+          revenue_stream_id?: string | null
+          subcategory?: string | null
           type?: string | null
           updated_at?: string | null
           user_id: string
@@ -308,11 +537,15 @@ export type Database = {
           account_id?: string | null
           amount?: number
           category?: string | null
+          cost_center?: string | null
           created_at?: string | null
           date?: string
           description?: string | null
           id?: string
+          is_recurring?: boolean | null
           notes?: string | null
+          revenue_stream_id?: string | null
+          subcategory?: string | null
           type?: string | null
           updated_at?: string | null
           user_id?: string
@@ -323,6 +556,13 @@ export type Database = {
             columns: ["account_id"]
             isOneToOne: false
             referencedRelation: "accounts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "transactions_revenue_stream_id_fkey"
+            columns: ["revenue_stream_id"]
+            isOneToOne: false
+            referencedRelation: "revenue_streams"
             referencedColumns: ["id"]
           },
         ]
