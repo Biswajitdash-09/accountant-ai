@@ -31,7 +31,7 @@ const AddFinancialDataModal = ({ children }: AddFinancialDataModalProps) => {
 
   const [transactionData, setTransactionData] = useState({
     amount: 0,
-    type: 'expense',
+    type: 'expense' as 'income' | 'expense',
     category: '',
     description: '',
     date: format(new Date(), 'yyyy-MM-dd'),
@@ -39,7 +39,7 @@ const AddFinancialDataModal = ({ children }: AddFinancialDataModalProps) => {
 
   const [revenueData, setRevenueData] = useState({
     stream_name: '',
-    stream_type: 'sales',
+    stream_type: 'sales' as 'sales' | 'donations' | 'loans' | 'grants' | 'other',
     description: '',
     target_amount: 0,
     actual_amount: 0,
@@ -48,17 +48,19 @@ const AddFinancialDataModal = ({ children }: AddFinancialDataModalProps) => {
 
   const [goalData, setGoalData] = useState({
     goal_name: '',
-    goal_type: 'savings',
+    goal_type: 'savings' as 'savings' | 'investment' | 'debt_reduction' | 'revenue' | 'expense_reduction',
     target_amount: 0,
     current_amount: 0,
-    priority: 'medium',
+    priority: 'medium' as 'low' | 'medium' | 'high' | 'critical',
     description: '',
+    is_achieved: false,
   });
 
   const [budgetData, setBudgetData] = useState({
     name: '',
-    budget_period: 'monthly',
+    budget_period: 'monthly' as 'weekly' | 'monthly' | 'quarterly' | 'yearly',
     total_budget: 0,
+    actual_spent: 0,
     start_date: format(new Date(), 'yyyy-MM-dd'),
     end_date: format(new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), 'yyyy-MM-dd'),
     categories: [],
@@ -67,7 +69,7 @@ const AddFinancialDataModal = ({ children }: AddFinancialDataModalProps) => {
 
   const [balanceSheetData, setBalanceSheetData] = useState({
     item_name: '',
-    item_type: 'current_asset',
+    item_type: 'current_asset' as 'current_asset' | 'fixed_asset' | 'current_liability' | 'long_term_liability' | 'equity',
     category: '',
     amount: 0,
     valuation_date: format(new Date(), 'yyyy-MM-dd'),
@@ -139,7 +141,7 @@ const AddFinancialDataModal = ({ children }: AddFinancialDataModalProps) => {
                 </div>
                 <div>
                   <Label htmlFor="type">Type</Label>
-                  <Select value={transactionData.type} onValueChange={(value) => setTransactionData({ ...transactionData, type: value })}>
+                  <Select value={transactionData.type} onValueChange={(value: 'income' | 'expense') => setTransactionData({ ...transactionData, type: value })}>
                     <SelectTrigger>
                       <SelectValue />
                     </SelectTrigger>
@@ -197,7 +199,7 @@ const AddFinancialDataModal = ({ children }: AddFinancialDataModalProps) => {
               </div>
               <div>
                 <Label htmlFor="stream_type">Stream Type</Label>
-                <Select value={revenueData.stream_type} onValueChange={(value) => setRevenueData({ ...revenueData, stream_type: value })}>
+                <Select value={revenueData.stream_type} onValueChange={(value: 'sales' | 'donations' | 'loans' | 'grants' | 'other') => setRevenueData({ ...revenueData, stream_type: value })}>
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
@@ -256,7 +258,7 @@ const AddFinancialDataModal = ({ children }: AddFinancialDataModalProps) => {
               </div>
               <div>
                 <Label htmlFor="goal_type">Goal Type</Label>
-                <Select value={goalData.goal_type} onValueChange={(value) => setGoalData({ ...goalData, goal_type: value })}>
+                <Select value={goalData.goal_type} onValueChange={(value: 'savings' | 'investment' | 'debt_reduction' | 'revenue' | 'expense_reduction') => setGoalData({ ...goalData, goal_type: value })}>
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
@@ -292,7 +294,7 @@ const AddFinancialDataModal = ({ children }: AddFinancialDataModalProps) => {
               </div>
               <div>
                 <Label htmlFor="priority">Priority</Label>
-                <Select value={goalData.priority} onValueChange={(value) => setGoalData({ ...goalData, priority: value })}>
+                <Select value={goalData.priority} onValueChange={(value: 'low' | 'medium' | 'high' | 'critical') => setGoalData({ ...goalData, priority: value })}>
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
@@ -330,7 +332,7 @@ const AddFinancialDataModal = ({ children }: AddFinancialDataModalProps) => {
               </div>
               <div>
                 <Label htmlFor="budget_period">Budget Period</Label>
-                <Select value={budgetData.budget_period} onValueChange={(value) => setBudgetData({ ...budgetData, budget_period: value })}>
+                <Select value={budgetData.budget_period} onValueChange={(value: 'weekly' | 'monthly' | 'quarterly' | 'yearly') => setBudgetData({ ...budgetData, budget_period: value })}>
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
@@ -391,7 +393,7 @@ const AddFinancialDataModal = ({ children }: AddFinancialDataModalProps) => {
               </div>
               <div>
                 <Label htmlFor="item_type">Item Type</Label>
-                <Select value={balanceSheetData.item_type} onValueChange={(value) => setBalanceSheetData({ ...balanceSheetData, item_type: value })}>
+                <Select value={balanceSheetData.item_type} onValueChange={(value: 'current_asset' | 'fixed_asset' | 'current_liability' | 'long_term_liability' | 'equity') => setBalanceSheetData({ ...balanceSheetData, item_type: value })}>
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
