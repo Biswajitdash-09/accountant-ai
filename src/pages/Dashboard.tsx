@@ -4,16 +4,16 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { DollarSign, TrendingUp, TrendingDown, PieChart, CheckSquare, Calendar, Bell } from "lucide-react";
 import { MetricCard } from "@/components/dashboard/MetricCard";
-import { IncomeExpenseChart } from "@/components/dashboard/IncomeExpenseChart";
-import { ExpenseChart } from "@/components/dashboard/ExpenseChart";
-import { RecentTransactions } from "@/components/dashboard/RecentTransactions";
-import { FinancialGoalsManager } from "@/components/dashboard/FinancialGoalsManager";
+import IncomeExpenseChart from "@/components/dashboard/IncomeExpenseChart";
+import ExpenseChart from "@/components/dashboard/ExpenseChart";
+import RecentTransactions from "@/components/dashboard/RecentTransactions";
+import FinancialGoalsManager from "@/components/dashboard/FinancialGoalsManager";
 import { TaskManager } from "@/components/TaskManager";
 import { DeadlineTracker } from "@/components/DeadlineTracker";
 import { NotificationCenter } from "@/components/NotificationCenter";
 import { useCurrencyFormatter } from "@/hooks/useCurrencyFormatter";
 
-export const Dashboard = () => {
+const Dashboard = () => {
   const { formatCurrency } = useCurrencyFormatter();
 
   return (
@@ -38,7 +38,8 @@ export const Dashboard = () => {
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
             <MetricCard
               title="Total Balance"
-              value={formatCurrency(25000)}
+              value={25000}
+              currency={true}
               icon={DollarSign}
               trend={{
                 value: 12,
@@ -48,7 +49,8 @@ export const Dashboard = () => {
             />
             <MetricCard
               title="Monthly Income"
-              value={formatCurrency(8500)}
+              value={8500}
+              currency={true}
               icon={TrendingUp}
               trend={{
                 value: 8,
@@ -58,7 +60,8 @@ export const Dashboard = () => {
             />
             <MetricCard
               title="Monthly Expenses"
-              value={formatCurrency(6200)}
+              value={6200}
+              currency={true}
               icon={TrendingDown}
               trend={{
                 value: 3,
@@ -105,3 +108,5 @@ export const Dashboard = () => {
     </div>
   );
 };
+
+export default Dashboard;

@@ -10,12 +10,16 @@ import {
   DropdownMenuTrigger 
 } from "@/components/ui/dropdown-menu";
 import { Badge } from "@/components/ui/badge";
-import { Search, Bell, Settings, User, LogOut } from "lucide-react";
+import { Search, Bell, Settings, User, LogOut, Menu } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useNotifications } from "@/hooks/useNotifications";
 import { CurrencySelector } from "./CurrencySelector";
 
-export const Header = () => {
+interface HeaderProps {
+  onMobileMenuToggle?: () => void;
+}
+
+const Header = ({ onMobileMenuToggle }: HeaderProps) => {
   const { user, signOut } = useAuth();
   const { unreadCount } = useNotifications();
 
@@ -23,6 +27,16 @@ export const Header = () => {
     <header className="bg-background border-b border-border px-6 py-4">
       <div className="flex items-center justify-between">
         <div className="flex items-center space-x-4">
+          {onMobileMenuToggle && (
+            <Button
+              variant="ghost"
+              size="sm"
+              className="lg:hidden"
+              onClick={onMobileMenuToggle}
+            >
+              <Menu className="h-4 w-4" />
+            </Button>
+          )}
           <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input 
@@ -81,3 +95,5 @@ export const Header = () => {
     </header>
   );
 };
+
+export default Header;
