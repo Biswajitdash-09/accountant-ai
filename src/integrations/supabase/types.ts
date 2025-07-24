@@ -41,8 +41,111 @@ export type Database = {
         }
         Relationships: []
       }
+      analytics_cache: {
+        Row: {
+          cache_key: string
+          created_at: string | null
+          data: Json
+          expires_at: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          cache_key: string
+          created_at?: string | null
+          data: Json
+          expires_at: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          cache_key?: string
+          created_at?: string | null
+          data?: Json
+          expires_at?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      audit_logs: {
+        Row: {
+          action: string
+          created_at: string | null
+          id: string
+          ip_address: unknown | null
+          new_values: Json | null
+          old_values: Json | null
+          record_id: string | null
+          table_name: string
+          user_agent: string | null
+          user_id: string
+        }
+        Insert: {
+          action: string
+          created_at?: string | null
+          id?: string
+          ip_address?: unknown | null
+          new_values?: Json | null
+          old_values?: Json | null
+          record_id?: string | null
+          table_name: string
+          user_agent?: string | null
+          user_id: string
+        }
+        Update: {
+          action?: string
+          created_at?: string | null
+          id?: string
+          ip_address?: unknown | null
+          new_values?: Json | null
+          old_values?: Json | null
+          record_id?: string | null
+          table_name?: string
+          user_agent?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      business_entities: {
+        Row: {
+          address: Json | null
+          created_at: string | null
+          entity_type: string
+          id: string
+          name: string
+          settings: Json | null
+          tax_id: string | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          address?: Json | null
+          created_at?: string | null
+          entity_type: string
+          id?: string
+          name: string
+          settings?: Json | null
+          tax_id?: string | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          address?: Json | null
+          created_at?: string | null
+          entity_type?: string
+          id?: string
+          name?: string
+          settings?: Json | null
+          tax_id?: string | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       documents: {
         Row: {
+          ai_confidence: number | null
           category: string | null
           created_at: string | null
           extracted_text: string | null
@@ -50,14 +153,18 @@ export type Database = {
           file_size: number
           file_type: string
           id: string
+          parent_document_id: string | null
           processed_at: string | null
+          processing_status: string | null
           public_url: string | null
           storage_path: string
           tags: string[] | null
           updated_at: string | null
           user_id: string
+          version: number | null
         }
         Insert: {
+          ai_confidence?: number | null
           category?: string | null
           created_at?: string | null
           extracted_text?: string | null
@@ -65,14 +172,18 @@ export type Database = {
           file_size: number
           file_type: string
           id?: string
+          parent_document_id?: string | null
           processed_at?: string | null
+          processing_status?: string | null
           public_url?: string | null
           storage_path: string
           tags?: string[] | null
           updated_at?: string | null
           user_id: string
+          version?: number | null
         }
         Update: {
+          ai_confidence?: number | null
           category?: string | null
           created_at?: string | null
           extracted_text?: string | null
@@ -80,14 +191,25 @@ export type Database = {
           file_size?: number
           file_type?: string
           id?: string
+          parent_document_id?: string | null
           processed_at?: string | null
+          processing_status?: string | null
           public_url?: string | null
           storage_path?: string
           tags?: string[] | null
           updated_at?: string | null
           user_id?: string
+          version?: number | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "documents_parent_document_id_fkey"
+            columns: ["parent_document_id"]
+            isOneToOne: false
+            referencedRelation: "documents"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       profiles: {
         Row: {
@@ -116,6 +238,42 @@ export type Database = {
           id?: string
           role?: string | null
           updated_at?: string | null
+        }
+        Relationships: []
+      }
+      recurring_transactions: {
+        Row: {
+          created_at: string | null
+          end_date: string | null
+          frequency: string
+          id: string
+          is_active: boolean | null
+          next_run_date: string
+          template_data: Json
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          end_date?: string | null
+          frequency: string
+          id?: string
+          is_active?: boolean | null
+          next_run_date: string
+          template_data: Json
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          end_date?: string | null
+          frequency?: string
+          id?: string
+          is_active?: boolean | null
+          next_run_date?: string
+          template_data?: Json
+          updated_at?: string | null
+          user_id?: string
         }
         Relationships: []
       }
