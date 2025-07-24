@@ -1,5 +1,4 @@
-
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Upload as UploadIcon, File, X, FileText, Image, CheckCircle, AlertCircle } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -7,6 +6,7 @@ import { Progress } from "@/components/ui/progress";
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { useDocuments } from "@/hooks/useDocuments";
 
 interface UploadedFile {
   name: string;
@@ -15,14 +15,32 @@ interface UploadedFile {
   status: 'uploading' | 'success' | 'error';
   progress: number;
   url?: string;
+  id?: string;
 }
 
 const Upload = () => {
   const { user } = useAuth();
   const { toast } = useToast();
+  const { documents, createDocument, deleteDocument } = useDocuments();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [files, setFiles] = useState<UploadedFile[]>([]);
+
+  // Load existing documents on mount
+  useEffect(() => {
+    if (documents.length > 0) {
+      const existingFiles: UploadedFile[] = documents.map(doc => ({
+        name: doc.file_name,
+        size: formatFileSize(doc.file_size),
+        type: doc.file_type,
+        status: 'success' as const,
+        progress: 100,
+        url: doc.public_url,
+        id: doc.id,
+      }));
+      setFiles(existingFiles);
+    }
+  }, [documents]);
 
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();
@@ -105,6 +123,15 @@ const Upload = () => {
           .from('documents')
           .getPublicUrl(filePath);
 
+        // Save document metadata to database
+        await createDocument.mutateAsync({
+          file_name: file.name,
+          file_size: file.size,
+          file_type: file.type,
+          storage_path: filePath,
+          public_url: urlData.publicUrl,
+        });
+
         setFiles(prev => prev.map((f, idx) => 
           idx === fileIndex
             ? { ...f, status: 'success', progress: 100, url: urlData.publicUrl }
@@ -134,7 +161,15 @@ const Upload = () => {
     }
   };
 
-  const removeFile = (index: number) => {
+  const removeFile = async (index: number) => {
+    const file = files[index];
+    
+    if (file.id) {
+      // Delete from database
+      await deleteDocument.mutateAsync(file.id);
+    }
+    
+    // Remove from local state
     setFiles(files.filter((_, i) => i !== index));
   };
 

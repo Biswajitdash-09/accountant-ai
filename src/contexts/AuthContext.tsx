@@ -35,6 +35,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         setSession(session);
         setUser(session?.user ?? null);
         setLoading(false);
+        
+        // Handle signout event
+        if (event === 'SIGNED_OUT') {
+          // Clear all data and redirect to landing page
+          setTimeout(() => {
+            window.location.href = '/';
+          }, 100);
+        }
       }
     );
 
