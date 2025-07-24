@@ -20,6 +20,7 @@ export type Database = {
           account_type: string
           balance: number | null
           created_at: string | null
+          currency_id: string | null
           id: string
           user_id: string
         }
@@ -28,6 +29,7 @@ export type Database = {
           account_type: string
           balance?: number | null
           created_at?: string | null
+          currency_id?: string | null
           id?: string
           user_id: string
         }
@@ -36,10 +38,19 @@ export type Database = {
           account_type?: string
           balance?: number | null
           created_at?: string | null
+          currency_id?: string | null
           id?: string
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "accounts_currency_id_fkey"
+            columns: ["currency_id"]
+            isOneToOne: false
+            referencedRelation: "currencies"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       analytics_cache: {
         Row: {
@@ -113,6 +124,7 @@ export type Database = {
           business_entity_id: string | null
           category: string
           created_at: string | null
+          currency_id: string | null
           description: string | null
           id: string
           is_active: boolean | null
@@ -127,6 +139,7 @@ export type Database = {
           business_entity_id?: string | null
           category: string
           created_at?: string | null
+          currency_id?: string | null
           description?: string | null
           id?: string
           is_active?: boolean | null
@@ -141,6 +154,7 @@ export type Database = {
           business_entity_id?: string | null
           category?: string
           created_at?: string | null
+          currency_id?: string | null
           description?: string | null
           id?: string
           is_active?: boolean | null
@@ -156,6 +170,13 @@ export type Database = {
             columns: ["business_entity_id"]
             isOneToOne: false
             referencedRelation: "business_entities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "balance_sheet_items_currency_id_fkey"
+            columns: ["currency_id"]
+            isOneToOne: false
+            referencedRelation: "currencies"
             referencedColumns: ["id"]
           },
         ]
@@ -216,6 +237,51 @@ export type Database = {
           },
         ]
       }
+      budgets: {
+        Row: {
+          actual_spent: number | null
+          budget_period: string
+          categories: Json | null
+          created_at: string | null
+          end_date: string
+          id: string
+          is_active: boolean | null
+          name: string
+          start_date: string
+          total_budget: number
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          actual_spent?: number | null
+          budget_period: string
+          categories?: Json | null
+          created_at?: string | null
+          end_date: string
+          id?: string
+          is_active?: boolean | null
+          name: string
+          start_date: string
+          total_budget: number
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          actual_spent?: number | null
+          budget_period?: string
+          categories?: Json | null
+          created_at?: string | null
+          end_date?: string
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          start_date?: string
+          total_budget?: number
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       business_entities: {
         Row: {
           address: Json | null
@@ -249,6 +315,69 @@ export type Database = {
           tax_id?: string | null
           updated_at?: string | null
           user_id?: string
+        }
+        Relationships: []
+      }
+      cost_centers: {
+        Row: {
+          budget_allocation: number | null
+          created_at: string | null
+          description: string | null
+          id: string
+          is_active: boolean | null
+          name: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          budget_allocation?: number | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          budget_allocation?: number | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      currencies: {
+        Row: {
+          code: string
+          exchange_rate: number | null
+          id: string
+          is_base: boolean | null
+          name: string
+          symbol: string
+          updated_at: string | null
+        }
+        Insert: {
+          code: string
+          exchange_rate?: number | null
+          id?: string
+          is_base?: boolean | null
+          name: string
+          symbol: string
+          updated_at?: string | null
+        }
+        Update: {
+          code?: string
+          exchange_rate?: number | null
+          id?: string
+          is_base?: boolean | null
+          name?: string
+          symbol?: string
+          updated_at?: string | null
         }
         Relationships: []
       }
@@ -324,6 +453,7 @@ export type Database = {
         Row: {
           business_entity_id: string | null
           created_at: string | null
+          currency_id: string | null
           current_amount: number | null
           description: string | null
           goal_name: string
@@ -339,6 +469,7 @@ export type Database = {
         Insert: {
           business_entity_id?: string | null
           created_at?: string | null
+          currency_id?: string | null
           current_amount?: number | null
           description?: string | null
           goal_name: string
@@ -354,6 +485,7 @@ export type Database = {
         Update: {
           business_entity_id?: string | null
           created_at?: string | null
+          currency_id?: string | null
           current_amount?: number | null
           description?: string | null
           goal_name?: string
@@ -372,6 +504,13 @@ export type Database = {
             columns: ["business_entity_id"]
             isOneToOne: false
             referencedRelation: "business_entities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "financial_goals_currency_id_fkey"
+            columns: ["currency_id"]
+            isOneToOne: false
+            referencedRelation: "currencies"
             referencedColumns: ["id"]
           },
         ]
@@ -447,6 +586,7 @@ export type Database = {
           actual_amount: number | null
           business_entity_id: string | null
           created_at: string | null
+          currency_id: string | null
           description: string | null
           id: string
           is_active: boolean | null
@@ -462,6 +602,7 @@ export type Database = {
           actual_amount?: number | null
           business_entity_id?: string | null
           created_at?: string | null
+          currency_id?: string | null
           description?: string | null
           id?: string
           is_active?: boolean | null
@@ -477,6 +618,7 @@ export type Database = {
           actual_amount?: number | null
           business_entity_id?: string | null
           created_at?: string | null
+          currency_id?: string | null
           description?: string | null
           id?: string
           is_active?: boolean | null
@@ -496,6 +638,13 @@ export type Database = {
             referencedRelation: "business_entities"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "revenue_streams_currency_id_fkey"
+            columns: ["currency_id"]
+            isOneToOne: false
+            referencedRelation: "currencies"
+            referencedColumns: ["id"]
+          },
         ]
       }
       transactions: {
@@ -504,7 +653,9 @@ export type Database = {
           amount: number
           category: string | null
           cost_center: string | null
+          cost_center_id: string | null
           created_at: string | null
+          currency_id: string | null
           date: string
           description: string | null
           id: string
@@ -521,7 +672,9 @@ export type Database = {
           amount: number
           category?: string | null
           cost_center?: string | null
+          cost_center_id?: string | null
           created_at?: string | null
+          currency_id?: string | null
           date?: string
           description?: string | null
           id?: string
@@ -538,7 +691,9 @@ export type Database = {
           amount?: number
           category?: string | null
           cost_center?: string | null
+          cost_center_id?: string | null
           created_at?: string | null
+          currency_id?: string | null
           date?: string
           description?: string | null
           id?: string
@@ -559,10 +714,65 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "transactions_cost_center_id_fkey"
+            columns: ["cost_center_id"]
+            isOneToOne: false
+            referencedRelation: "cost_centers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "transactions_currency_id_fkey"
+            columns: ["currency_id"]
+            isOneToOne: false
+            referencedRelation: "currencies"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "transactions_revenue_stream_id_fkey"
             columns: ["revenue_stream_id"]
             isOneToOne: false
             referencedRelation: "revenue_streams"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_preferences: {
+        Row: {
+          created_at: string | null
+          date_format: string | null
+          default_currency_id: string | null
+          fiscal_year_start: string | null
+          id: string
+          timezone: string | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          date_format?: string | null
+          default_currency_id?: string | null
+          fiscal_year_start?: string | null
+          id?: string
+          timezone?: string | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          date_format?: string | null
+          default_currency_id?: string | null
+          fiscal_year_start?: string | null
+          id?: string
+          timezone?: string | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_preferences_default_currency_id_fkey"
+            columns: ["default_currency_id"]
+            isOneToOne: false
+            referencedRelation: "currencies"
             referencedColumns: ["id"]
           },
         ]

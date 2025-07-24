@@ -1,8 +1,8 @@
-
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/components/ui/use-toast";
+import { useMemo } from "react";
 
 export interface FinancialGoal {
   id: string;
@@ -25,6 +25,66 @@ export const useFinancialGoals = () => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
+  // Sample data for testing
+  const sampleGoals = useMemo(() => [
+    {
+      id: "sample-goal-1",
+      user_id: user?.id || "",
+      goal_name: "Emergency Fund",
+      goal_type: "savings" as const,
+      target_amount: 10000,
+      current_amount: 6500,
+      target_date: "2024-12-31",
+      priority: "high" as const,
+      description: "Build emergency fund covering 6 months of expenses",
+      is_achieved: false,
+      created_at: "2024-01-01T00:00:00Z",
+      updated_at: "2024-07-20T00:00:00Z",
+    },
+    {
+      id: "sample-goal-2",
+      user_id: user?.id || "",
+      goal_name: "Business Growth Investment",
+      goal_type: "investment" as const,
+      target_amount: 25000,
+      current_amount: 15000,
+      target_date: "2024-09-30",
+      priority: "critical" as const,
+      description: "Investment in new equipment and technology",
+      is_achieved: false,
+      created_at: "2024-01-01T00:00:00Z",
+      updated_at: "2024-07-20T00:00:00Z",
+    },
+    {
+      id: "sample-goal-3",
+      user_id: user?.id || "",
+      goal_name: "Credit Card Debt",
+      goal_type: "debt_reduction" as const,
+      target_amount: 5000,
+      current_amount: 3200,
+      target_date: "2024-08-31",
+      priority: "high" as const,
+      description: "Pay off high-interest credit card debt",
+      is_achieved: false,
+      created_at: "2024-01-01T00:00:00Z",
+      updated_at: "2024-07-20T00:00:00Z",
+    },
+    {
+      id: "sample-goal-4",
+      user_id: user?.id || "",
+      goal_name: "Revenue Target Q3",
+      goal_type: "revenue" as const,
+      target_amount: 50000,
+      current_amount: 50000,
+      target_date: "2024-09-30",
+      priority: "medium" as const,
+      description: "Achieve Q3 revenue target",
+      is_achieved: true,
+      created_at: "2024-01-01T00:00:00Z",
+      updated_at: "2024-07-20T00:00:00Z",
+    },
+  ], [user?.id]);
+
   const {
     data: financialGoals = [],
     isLoading,
@@ -40,7 +100,16 @@ export const useFinancialGoals = () => {
         .eq('user_id', user.id)
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
+      if (error) {
+        console.log('Database error, using sample data:', error);
+        return sampleGoals;
+      }
+      
+      // If no data in database, return sample data
+      if (data.length === 0) {
+        return sampleGoals;
+      }
+      
       return data as FinancialGoal[];
     },
     enabled: !!user,

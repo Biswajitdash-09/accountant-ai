@@ -1,13 +1,16 @@
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { Plus, TrendingUp, DollarSign, Target, PieChart } from "lucide-react";
 import RevenueDashboard from "@/components/dashboard/RevenueDashboard";
 import CostAnalysis from "@/components/dashboard/CostAnalysis";
+import BudgetPlanning from "@/components/dashboard/BudgetPlanning";
+import FinancialGoalsManager from "@/components/dashboard/FinancialGoalsManager";
+import BalanceSheetManager from "@/components/dashboard/BalanceSheetManager";
+import AddFinancialDataModal from "@/components/modals/AddFinancialDataModal";
 import { useRevenueStreams } from "@/hooks/useRevenueStreams";
 import { useFinancialGoals } from "@/hooks/useFinancialGoals";
-import { useBudgetTemplates } from "@/hooks/useBudgetTemplates";
+import { useBudgets } from "@/hooks/useBudgets";
 import { useBalanceSheet } from "@/hooks/useBalanceSheet";
 import { useTransactions } from "@/hooks/useTransactions";
 import { useMemo } from "react";
@@ -16,7 +19,7 @@ import MetricCard from "@/components/dashboard/MetricCard";
 const FinancialManagement = () => {
   const { revenueStreams } = useRevenueStreams();
   const { financialGoals } = useFinancialGoals();
-  const { budgetTemplates } = useBudgetTemplates();
+  const { budgets } = useBudgets();
   const { balanceSheetItems } = useBalanceSheet();
   const { transactions } = useTransactions();
 
@@ -38,6 +41,20 @@ const FinancialManagement = () => {
     const profit = totalRevenue - totalExpenses;
     const profitMargin = totalRevenue > 0 ? (profit / totalRevenue) * 100 : 0;
 
+    // Calculate monthly trends
+    const currentMonth = new Date().toISOString().slice(0, 7);
+    const lastMonth = new Date(new Date().setMonth(new Date().getMonth() - 1)).toISOString().slice(0, 7);
+    
+    const currentMonthRevenue = transactions
+      .filter(t => t.type === 'income' && t.date.startsWith(currentMonth))
+      .reduce((sum, t) => sum + t.amount, 0);
+    
+    const lastMonthRevenue = transactions
+      .filter(t => t.type === 'income' && t.date.startsWith(lastMonth))
+      .reduce((sum, t) => sum + t.amount, 0);
+
+    const revenueTrend = lastMonthRevenue > 0 ? ((currentMonthRevenue - lastMonthRevenue) / lastMonthRevenue) * 100 : 0;
+
     return {
       totalRevenue,
       totalExpenses,
@@ -47,8 +64,10 @@ const FinancialManagement = () => {
       totalAssets,
       totalLiabilities,
       activeGoals: financialGoals.filter(g => !g.is_achieved).length,
+      revenueTrend,
+      activeBudgets: budgets.filter(b => b.is_active).length,
     };
-  }, [revenueStreams, transactions, balanceSheetItems, financialGoals]);
+  }, [revenueStreams, transactions, balanceSheetItems, financialGoals, budgets]);
 
   return (
     <div className="container mx-auto p-6 space-y-6">
@@ -57,10 +76,12 @@ const FinancialManagement = () => {
           <h1 className="text-3xl font-bold">Financial Management</h1>
           <p className="text-muted-foreground">Comprehensive financial overview and management</p>
         </div>
-        <Button>
-          <Plus className="h-4 w-4 mr-2" />
-          Add Financial Data
-        </Button>
+        <AddFinancialDataModal>
+          <div className="flex items-center gap-2 bg-primary text-primary-foreground px-4 py-2 rounded-md hover:bg-primary/90 cursor-pointer">
+            <Plus className="h-4 w-4" />
+            Add Financial Data
+          </div>
+        </AddFinancialDataModal>
       </div>
 
       {/* Overview Metrics */}
@@ -70,8 +91,8 @@ const FinancialManagement = () => {
           value={`$${overviewMetrics.totalRevenue.toLocaleString()}`}
           icon={<DollarSign className="h-4 w-4" />}
           trend={{
-            value: 12.5,
-            positive: true,
+            value: Math.abs(overviewMetrics.revenueTrend),
+            positive: overviewMetrics.revenueTrend > 0,
           }}
           description="All revenue streams"
         />
@@ -89,13 +110,17 @@ const FinancialManagement = () => {
           title="Net Worth"
           value={`$${overviewMetrics.netWorth.toLocaleString()}`}
           icon={<Target className="h-4 w-4" />}
+          trend={{
+            value: Math.abs(overviewMetrics.netWorth),
+            positive: overviewMetrics.netWorth > 0,
+          }}
           description="Assets minus liabilities"
         />
         <MetricCard
           title="Active Goals"
           value={overviewMetrics.activeGoals.toString()}
           icon={<PieChart className="h-4 w-4" />}
-          description="Financial goals in progress"
+          description={`${overviewMetrics.activeBudgets} active budgets`}
         />
       </div>
 
@@ -118,45 +143,15 @@ const FinancialManagement = () => {
         </TabsContent>
 
         <TabsContent value="budget" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Budget Planning</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-center text-muted-foreground py-8">
-                <p>Budget planning features coming soon...</p>
-                <p className="text-sm">Create and manage intelligent budgets based on your financial data</p>
-              </div>
-            </CardContent>
-          </Card>
+          <BudgetPlanning />
         </TabsContent>
 
         <TabsContent value="goals" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Financial Goals</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-center text-muted-foreground py-8">
-                <p>Financial goals tracking coming soon...</p>
-                <p className="text-sm">Set and track your financial objectives with AI-powered insights</p>
-              </div>
-            </CardContent>
-          </Card>
+          <FinancialGoalsManager />
         </TabsContent>
 
         <TabsContent value="balance" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Balance Sheet</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-center text-muted-foreground py-8">
-                <p>Balance sheet features coming soon...</p>
-                <p className="text-sm">Comprehensive balance sheet with assets, liabilities, and equity tracking</p>
-              </div>
-            </CardContent>
-          </Card>
+          <BalanceSheetManager />
         </TabsContent>
       </Tabs>
     </div>
