@@ -82,7 +82,7 @@ const FinancialGoalsManager = () => {
   const getPriorityColor = (priority: string) => {
     switch (priority) {
       case 'critical': return 'destructive';
-      case 'high': return 'warning';
+      case 'high': return 'destructive';
       case 'medium': return 'secondary';
       case 'low': return 'outline';
       default: return 'secondary';
@@ -258,7 +258,9 @@ const FinancialGoalsManager = () => {
                       {goal.priority}
                     </Badge>
                     {goal.is_achieved && (
-                      <Badge variant="success">Achieved</Badge>
+                      <Badge variant="default" className="bg-green-100 text-green-800 border-green-200">
+                        Achieved
+                      </Badge>
                     )}
                     <div className="flex gap-1">
                       <Button
