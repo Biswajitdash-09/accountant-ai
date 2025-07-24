@@ -20,8 +20,8 @@ export const DeadlineTracker = () => {
     title: "",
     description: "",
     deadline_date: "",
-    deadline_type: "personal" as const,
-    priority: "medium" as const,
+    deadline_type: "personal" as "tax" | "financial" | "business" | "personal",
+    priority: "medium" as "low" | "medium" | "high" | "critical",
     notification_days: [7, 3, 1],
   });
 
@@ -37,8 +37,8 @@ export const DeadlineTracker = () => {
       title: "",
       description: "",
       deadline_date: "",
-      deadline_type: "personal" as const,
-      priority: "medium" as const,
+      deadline_type: "personal" as "tax" | "financial" | "business" | "personal",
+      priority: "medium" as "low" | "medium" | "high" | "critical",
       notification_days: [7, 3, 1],
     });
     setIsCreateDialogOpen(false);
@@ -139,7 +139,7 @@ export const DeadlineTracker = () => {
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <Label htmlFor="deadline_type">Type</Label>
-                    <Select value={newDeadline.deadline_type} onValueChange={(value: "tax" | "financial" | "business" | "personal") => setNewDeadline({ ...newDeadline, deadline_type: value })}>
+                    <Select value={newDeadline.deadline_type} onValueChange={(value) => setNewDeadline({ ...newDeadline, deadline_type: value as "tax" | "financial" | "business" | "personal" })}>
                       <SelectTrigger>
                         <SelectValue />
                       </SelectTrigger>
@@ -153,7 +153,7 @@ export const DeadlineTracker = () => {
                   </div>
                   <div>
                     <Label htmlFor="priority">Priority</Label>
-                    <Select value={newDeadline.priority} onValueChange={(value: "low" | "medium" | "high" | "critical") => setNewDeadline({ ...newDeadline, priority: value })}>
+                    <Select value={newDeadline.priority} onValueChange={(value) => setNewDeadline({ ...newDeadline, priority: value as "low" | "medium" | "high" | "critical" })}>
                       <SelectTrigger>
                         <SelectValue />
                       </SelectTrigger>

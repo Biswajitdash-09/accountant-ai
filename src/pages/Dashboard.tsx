@@ -16,6 +16,51 @@ import { useCurrencyFormatter } from "@/hooks/useCurrencyFormatter";
 const Dashboard = () => {
   const { formatCurrency } = useCurrencyFormatter();
 
+  // Sample data for charts
+  const incomeExpenseData = [
+    { month: "Jan", income: 8000, expenses: 5500 },
+    { month: "Feb", income: 8500, expenses: 6000 },
+    { month: "Mar", income: 9000, expenses: 6200 },
+    { month: "Apr", income: 8800, expenses: 5800 },
+    { month: "May", income: 9500, expenses: 6500 },
+    { month: "Jun", income: 10000, expenses: 7000 },
+  ];
+
+  const expenseData = [
+    { name: "Housing", value: 2500 },
+    { name: "Food", value: 800 },
+    { name: "Transportation", value: 600 },
+    { name: "Utilities", value: 400 },
+    { name: "Entertainment", value: 300 },
+  ];
+
+  const sampleTransactions = [
+    {
+      id: "1",
+      date: "2024-01-15",
+      description: "Client Payment",
+      category: "Revenue",
+      amount: 2500,
+      type: "income" as const,
+    },
+    {
+      id: "2",
+      date: "2024-01-14",
+      description: "Office Supplies",
+      category: "Business",
+      amount: 150,
+      type: "expense" as const,
+    },
+    {
+      id: "3",
+      date: "2024-01-13",
+      description: "Software Subscription",
+      category: "Technology",
+      amount: 99,
+      type: "expense" as const,
+    },
+  ];
+
   return (
     <div className="space-y-6">
       <div>
@@ -83,12 +128,12 @@ const Dashboard = () => {
 
           {/* Charts and Financial Goals */}
           <div className="grid gap-6 md:grid-cols-2">
-            <IncomeExpenseChart />
-            <ExpenseChart />
+            <IncomeExpenseChart data={incomeExpenseData} />
+            <ExpenseChart data={expenseData} />
           </div>
 
           <div className="grid gap-6 md:grid-cols-2">
-            <RecentTransactions />
+            <RecentTransactions transactions={sampleTransactions} />
             <FinancialGoalsManager />
           </div>
         </TabsContent>

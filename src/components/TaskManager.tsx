@@ -20,7 +20,7 @@ export const TaskManager = () => {
   const [newTask, setNewTask] = useState({
     title: "",
     description: "",
-    priority: "medium" as const,
+    priority: "medium" as "low" | "medium" | "high" | "critical",
     due_date: "",
     is_recurring: false,
     tags: [] as string[],
@@ -38,7 +38,7 @@ export const TaskManager = () => {
     setNewTask({
       title: "",
       description: "",
-      priority: "medium" as const,
+      priority: "medium" as "low" | "medium" | "high" | "critical",
       due_date: "",
       is_recurring: false,
       tags: [],
@@ -120,7 +120,7 @@ export const TaskManager = () => {
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <Label htmlFor="priority">Priority</Label>
-                    <Select value={newTask.priority} onValueChange={(value: "low" | "medium" | "high" | "critical") => setNewTask({ ...newTask, priority: value })}>
+                    <Select value={newTask.priority} onValueChange={(value) => setNewTask({ ...newTask, priority: value as "low" | "medium" | "high" | "critical" })}>
                       <SelectTrigger>
                         <SelectValue />
                       </SelectTrigger>

@@ -1,4 +1,3 @@
-
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Plus, TrendingUp, DollarSign, Target, PieChart } from "lucide-react";
@@ -14,7 +13,7 @@ import { useBudgets } from "@/hooks/useBudgets";
 import { useBalanceSheet } from "@/hooks/useBalanceSheet";
 import { useTransactions } from "@/hooks/useTransactions";
 import { useMemo } from "react";
-import MetricCard from "@/components/dashboard/MetricCard";
+import { MetricCard } from "@/components/dashboard/MetricCard";
 
 const FinancialManagement = () => {
   const { revenueStreams } = useRevenueStreams();
