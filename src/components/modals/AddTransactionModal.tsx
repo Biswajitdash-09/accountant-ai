@@ -32,6 +32,10 @@ const AddTransactionModal = ({ trigger }: AddTransactionModalProps) => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    if (!formData.amount || !formData.date) {
+      return;
+    }
+
     try {
       await createTransaction.mutateAsync({
         amount: parseFloat(formData.amount),
@@ -75,7 +79,7 @@ const AddTransactionModal = ({ trigger }: AddTransactionModalProps) => {
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="amount">Amount</Label>
+              <Label htmlFor="amount">Amount *</Label>
               <Input
                 id="amount"
                 type="number"
@@ -101,7 +105,7 @@ const AddTransactionModal = ({ trigger }: AddTransactionModalProps) => {
           </div>
           
           <div className="space-y-2">
-            <Label htmlFor="date">Date</Label>
+            <Label htmlFor="date">Date *</Label>
             <Input
               id="date"
               type="date"
@@ -128,22 +132,22 @@ const AddTransactionModal = ({ trigger }: AddTransactionModalProps) => {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="category">Category</Label>
+            <Label htmlFor="description">Description</Label>
             <Input
-              id="category"
-              placeholder="e.g., Office Supplies, Travel"
-              value={formData.category}
-              onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+              id="description"
+              placeholder="Brief description of the transaction"
+              value={formData.description}
+              onChange={(e) => setFormData({ ...formData, description: e.target.value })}
             />
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="description">Description</Label>
+            <Label htmlFor="category">Category</Label>
             <Input
-              id="description"
-              placeholder="Brief description"
-              value={formData.description}
-              onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+              id="category"
+              placeholder="e.g., Office Supplies, Travel, Food"
+              value={formData.category}
+              onChange={(e) => setFormData({ ...formData, category: e.target.value })}
             />
           </div>
 
@@ -151,7 +155,7 @@ const AddTransactionModal = ({ trigger }: AddTransactionModalProps) => {
             <Label htmlFor="notes">Notes</Label>
             <Textarea
               id="notes"
-              placeholder="Additional notes..."
+              placeholder="Additional notes or details..."
               value={formData.notes}
               onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
             />

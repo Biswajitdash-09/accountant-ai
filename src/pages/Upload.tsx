@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { Upload as UploadIcon, File, X, FileText, Image, CheckCircle, AlertCircle } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -20,6 +20,7 @@ interface UploadedFile {
 const Upload = () => {
   const { user } = useAuth();
   const { toast } = useToast();
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [files, setFiles] = useState<UploadedFile[]>([]);
 
@@ -38,6 +39,10 @@ const Upload = () => {
     
     const droppedFiles = Array.from(e.dataTransfer.files);
     handleFileUpload(droppedFiles);
+  };
+
+  const handleBrowseClick = () => {
+    fileInputRef.current?.click();
   };
 
   const handleFileInput = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -179,7 +184,7 @@ const Upload = () => {
             </CardHeader>
             <CardContent>
               <div 
-                className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors ${
+                className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors cursor-pointer ${
                   isDragging 
                     ? 'border-primary bg-primary/5' 
                     : 'border-border hover:border-primary/50'
@@ -187,6 +192,7 @@ const Upload = () => {
                 onDragOver={handleDragOver}
                 onDragLeave={handleDragLeave}
                 onDrop={handleDrop}
+                onClick={handleBrowseClick}
               >
                 <UploadIcon className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
                 <h3 className="text-lg font-medium mb-2">
@@ -195,18 +201,17 @@ const Upload = () => {
                 <p className="text-sm text-muted-foreground mb-4">
                   or click to browse from your computer
                 </p>
-                <div>
-                  <label>
-                    <Button>Browse Files</Button>
-                    <input 
-                      type="file" 
-                      multiple 
-                      className="hidden" 
-                      onChange={handleFileInput}
-                      accept=".pdf,.jpg,.jpeg,.png,.xlsx,.xls,.csv"
-                    />
-                  </label>
-                </div>
+                <Button type="button" onClick={handleBrowseClick}>
+                  Browse Files
+                </Button>
+                <input 
+                  ref={fileInputRef}
+                  type="file" 
+                  multiple 
+                  className="hidden" 
+                  onChange={handleFileInput}
+                  accept=".pdf,.jpg,.jpeg,.png,.xlsx,.xls,.csv"
+                />
                 <p className="text-xs text-muted-foreground mt-4">
                   Supports PDFs, images (JPG, PNG), Excel files, and CSVs
                 </p>

@@ -1,25 +1,12 @@
 
 import { useState } from "react";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { useToast } from "@/hooks/use-toast";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useAccounts } from "@/hooks/useAccounts";
+import { Plus } from "lucide-react";
 
 interface AddAccountModalProps {
   trigger?: React.ReactNode;
@@ -27,76 +14,68 @@ interface AddAccountModalProps {
 
 const AddAccountModal = ({ trigger }: AddAccountModalProps) => {
   const [open, setOpen] = useState(false);
-  const [accountName, setAccountName] = useState("");
-  const [accountType, setAccountType] = useState("");
-  const [initialBalance, setInitialBalance] = useState("");
-  const { toast } = useToast();
+  const [formData, setFormData] = useState({
+    account_name: "",
+    account_type: "",
+    balance: "",
+  });
+
   const { createAccount } = useAccounts();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!accountName || !accountType || !initialBalance) {
-      toast({
-        title: "Error",
-        description: "Please fill in all fields",
-        variant: "destructive",
-      });
+    if (!formData.account_name || !formData.account_type) {
       return;
     }
 
     try {
       await createAccount.mutateAsync({
-        account_name: accountName,
-        account_type: accountType,
-        balance: parseFloat(initialBalance),
+        account_name: formData.account_name,
+        account_type: formData.account_type,
+        balance: parseFloat(formData.balance) || 0,
       });
-
-      toast({
-        title: "Account Added",
-        description: `${accountName} has been added successfully`,
+      
+      setFormData({
+        account_name: "",
+        account_type: "",
+        balance: "",
       });
-
-      // Reset form
-      setAccountName("");
-      setAccountType("");
-      setInitialBalance("");
       setOpen(false);
     } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to create account",
-        variant: "destructive",
-      });
+      console.error('Failed to create account:', error);
     }
   };
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        {trigger || <Button>Add Account</Button>}
+        {trigger || (
+          <Button>
+            <Plus className="h-4 w-4 mr-2" />
+            Add Account
+          </Button>
+        )}
       </DialogTrigger>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
           <DialogTitle>Add New Account</DialogTitle>
-          <DialogDescription>
-            Create a new financial account to track your transactions.
-          </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="accountName">Account Name</Label>
+            <Label htmlFor="account_name">Account Name</Label>
             <Input
-              id="accountName"
-              value={accountName}
-              onChange={(e) => setAccountName(e.target.value)}
+              id="account_name"
               placeholder="e.g., Business Checking"
+              value={formData.account_name}
+              onChange={(e) => setFormData({ ...formData, account_name: e.target.value })}
+              required
             />
           </div>
           
           <div className="space-y-2">
-            <Label htmlFor="accountType">Account Type</Label>
-            <Select value={accountType} onValueChange={setAccountType}>
+            <Label htmlFor="account_type">Account Type</Label>
+            <Select value={formData.account_type} onValueChange={(value) => setFormData({ ...formData, account_type: value })}>
               <SelectTrigger>
                 <SelectValue placeholder="Select account type" />
               </SelectTrigger>
@@ -104,28 +83,32 @@ const AddAccountModal = ({ trigger }: AddAccountModalProps) => {
                 <SelectItem value="checking">Checking</SelectItem>
                 <SelectItem value="savings">Savings</SelectItem>
                 <SelectItem value="credit">Credit Card</SelectItem>
+                <SelectItem value="loan">Loan</SelectItem>
                 <SelectItem value="investment">Investment</SelectItem>
+                <SelectItem value="other">Other</SelectItem>
               </SelectContent>
             </Select>
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="initialBalance">Initial Balance</Label>
+            <Label htmlFor="balance">Initial Balance</Label>
             <Input
-              id="initialBalance"
+              id="balance"
               type="number"
               step="0.01"
-              value={initialBalance}
-              onChange={(e) => setInitialBalance(e.target.value)}
               placeholder="0.00"
+              value={formData.balance}
+              onChange={(e) => setFormData({ ...formData, balance: e.target.value })}
             />
           </div>
 
-          <div className="flex justify-end space-x-2 pt-4">
+          <div className="flex justify-end space-x-2">
             <Button type="button" variant="outline" onClick={() => setOpen(false)}>
               Cancel
             </Button>
-            <Button type="submit">Add Account</Button>
+            <Button type="submit" disabled={createAccount.isPending}>
+              {createAccount.isPending ? "Creating..." : "Create Account"}
+            </Button>
           </div>
         </form>
       </DialogContent>

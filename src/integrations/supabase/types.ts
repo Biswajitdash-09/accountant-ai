@@ -43,22 +43,31 @@ export type Database = {
       }
       profiles: {
         Row: {
+          avatar_url: string | null
           created_at: string | null
+          email: string | null
           full_name: string | null
           id: string
           role: string | null
+          updated_at: string | null
         }
         Insert: {
+          avatar_url?: string | null
           created_at?: string | null
+          email?: string | null
           full_name?: string | null
           id: string
           role?: string | null
+          updated_at?: string | null
         }
         Update: {
+          avatar_url?: string | null
           created_at?: string | null
+          email?: string | null
           full_name?: string | null
           id?: string
           role?: string | null
+          updated_at?: string | null
         }
         Relationships: []
       }
@@ -69,9 +78,11 @@ export type Database = {
           category: string | null
           created_at: string | null
           date: string
+          description: string | null
           id: string
           notes: string | null
           type: string | null
+          updated_at: string | null
           user_id: string
         }
         Insert: {
@@ -80,9 +91,11 @@ export type Database = {
           category?: string | null
           created_at?: string | null
           date?: string
+          description?: string | null
           id?: string
           notes?: string | null
           type?: string | null
+          updated_at?: string | null
           user_id: string
         }
         Update: {
@@ -91,9 +104,11 @@ export type Database = {
           category?: string | null
           created_at?: string | null
           date?: string
+          description?: string | null
           id?: string
           notes?: string | null
           type?: string | null
+          updated_at?: string | null
           user_id?: string
         }
         Relationships: [

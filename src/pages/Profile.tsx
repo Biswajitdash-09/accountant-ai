@@ -1,5 +1,6 @@
 
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import ProfileSettings from "@/components/ProfileSettings";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -9,10 +10,12 @@ import { User, Settings, Shield, LogOut } from "lucide-react";
 
 const Profile = () => {
   const { signOut } = useAuth();
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("profile");
 
   const handleSignOut = async () => {
     await signOut();
+    navigate("/");
   };
 
   return (
