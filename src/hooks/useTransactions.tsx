@@ -1,9 +1,10 @@
-
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/components/ui/use-toast";
 import { useEffect, useMemo } from "react";
+import { useUserPreferences } from "./useUserPreferences";
+import { useCurrencies } from "./useCurrencies";
 
 export interface Transaction {
   id: string;
@@ -19,6 +20,7 @@ export interface Transaction {
   revenue_stream_id?: string;
   cost_center?: string;
   is_recurring?: boolean;
+  currency_id?: string;
   created_at: string;
   updated_at?: string;
 }
@@ -27,6 +29,8 @@ export const useTransactions = () => {
   const { user } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { preferences } = useUserPreferences();
+  const { baseCurrency } = useCurrencies();
 
   // Sample data for testing
   const sampleTransactions = useMemo(() => [
@@ -44,6 +48,7 @@ export const useTransactions = () => {
       revenue_stream_id: "sample-rs-1",
       cost_center: "Sales Department",
       is_recurring: false,
+      currency_id: preferences?.default_currency_id || baseCurrency?.id || "",
       created_at: "2024-07-20T10:00:00Z",
       updated_at: "2024-07-20T10:00:00Z",
     },
@@ -60,6 +65,7 @@ export const useTransactions = () => {
       notes: "Rent payment for Q3 2024",
       cost_center: "Operations",
       is_recurring: true,
+      currency_id: preferences?.default_currency_id || baseCurrency?.id || "",
       created_at: "2024-07-19T09:00:00Z",
       updated_at: "2024-07-19T09:00:00Z",
     },
@@ -76,6 +82,7 @@ export const useTransactions = () => {
       notes: "Adobe Creative Suite, Microsoft Office",
       cost_center: "IT Department",
       is_recurring: true,
+      currency_id: preferences?.default_currency_id || baseCurrency?.id || "",
       created_at: "2024-07-18T14:00:00Z",
       updated_at: "2024-07-18T14:00:00Z",
     },
@@ -93,6 +100,7 @@ export const useTransactions = () => {
       revenue_stream_id: "sample-rs-2",
       cost_center: "Consulting",
       is_recurring: false,
+      currency_id: preferences?.default_currency_id || baseCurrency?.id || "",
       created_at: "2024-07-15T11:00:00Z",
       updated_at: "2024-07-15T11:00:00Z",
     },
@@ -109,6 +117,7 @@ export const useTransactions = () => {
       notes: "Office electricity usage",
       cost_center: "Operations",
       is_recurring: true,
+      currency_id: preferences?.default_currency_id || baseCurrency?.id || "",
       created_at: "2024-07-12T16:00:00Z",
       updated_at: "2024-07-12T16:00:00Z",
     },
@@ -125,6 +134,7 @@ export const useTransactions = () => {
       notes: "Google Ads and Facebook advertising",
       cost_center: "Marketing",
       is_recurring: false,
+      currency_id: preferences?.default_currency_id || baseCurrency?.id || "",
       created_at: "2024-07-10T12:00:00Z",
       updated_at: "2024-07-10T12:00:00Z",
     },
@@ -141,6 +151,7 @@ export const useTransactions = () => {
       notes: "Flight and hotel for client meeting",
       cost_center: "Sales Department",
       is_recurring: false,
+      currency_id: preferences?.default_currency_id || baseCurrency?.id || "",
       created_at: "2024-07-08T13:00:00Z",
       updated_at: "2024-07-08T13:00:00Z",
     },
@@ -158,10 +169,11 @@ export const useTransactions = () => {
       revenue_stream_id: "sample-rs-1",
       cost_center: "Sales Department",
       is_recurring: false,
+      currency_id: preferences?.default_currency_id || baseCurrency?.id || "",
       created_at: "2024-07-05T15:00:00Z",
       updated_at: "2024-07-05T15:00:00Z",
     },
-  ], [user?.id]);
+  ], [user?.id, preferences?.default_currency_id, baseCurrency?.id]);
 
   // Set up real-time subscription
   useEffect(() => {
@@ -222,9 +234,20 @@ export const useTransactions = () => {
     mutationFn: async (newTransaction: Omit<Transaction, 'id' | 'user_id' | 'created_at' | 'updated_at'>) => {
       if (!user) throw new Error('User not authenticated');
 
+      // Ensure currency_id is set
+      const transactionData = {
+        ...newTransaction,
+        user_id: user.id,
+        currency_id: newTransaction.currency_id || preferences?.default_currency_id || baseCurrency?.id
+      };
+
+      if (!transactionData.currency_id) {
+        throw new Error('Currency ID is required');
+      }
+
       const { data, error } = await supabase
         .from('transactions')
-        .insert([{ ...newTransaction, user_id: user.id }])
+        .insert([transactionData])
         .select()
         .single();
 
