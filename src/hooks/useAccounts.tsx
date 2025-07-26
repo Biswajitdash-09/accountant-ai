@@ -11,6 +11,7 @@ export interface Account {
   account_name: string;
   account_type: string;
   balance: number;
+  currency_id?: string;
   created_at: string;
   updated_at?: string;
 }
