@@ -1,3 +1,4 @@
+
 import React, { useState, useCallback } from 'react';
 import { useDropzone } from 'react-dropzone';
 import { useDocuments } from '@/hooks/useDocuments';
@@ -6,6 +7,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Button } from "@/components/ui/button"
 import { Loader2 } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 
 const Upload = () => {
   const { createDocument } = useDocuments();
@@ -75,13 +77,13 @@ const Upload = () => {
         file_type: file.type,
         storage_path: filePath,
         public_url: publicUrl,
-        extracted_text: extractedText,
+        extracted_text: result.text,
         category: 'general',
         tags: [],
-        ai_confidence: confidence,
+        ai_confidence: result.confidence,
         processing_status: 'completed',
         processed_at: new Date().toISOString(),
-        version: 1, // Add the missing version field
+        version: 1,
       };
 
       await createDocument.mutateAsync(documentData);
@@ -97,7 +99,7 @@ const Upload = () => {
       setIsUploading(false);
     }
 
-  }, [createDocument, toast, extractedText, confidence]);
+  }, [createDocument, toast]);
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({ onDrop })
 
