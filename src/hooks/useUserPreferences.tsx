@@ -11,6 +11,13 @@ export interface UserPreferences {
   timezone: string;
   date_format: string;
   fiscal_year_start: string;
+  notification_preferences: {
+    email_notifications: boolean;
+    push_notifications: boolean;
+    tax_reminders: boolean;
+    goal_updates: boolean;
+    security_alerts: boolean;
+  };
   created_at: string;
   updated_at: string;
 }
@@ -42,26 +49,58 @@ export const useUserPreferences = () => {
   });
 
   const updatePreferences = useMutation({
-    mutationFn: async (updates: Partial<UserPreferences>) => {
+    mutationFn: async (updates: Partial<Omit<UserPreferences, 'id' | 'user_id' | 'created_at' | 'updated_at'>>) => {
       if (!user) throw new Error('User not authenticated');
 
-      const { data, error } = await supabase
+      // First try to update existing preferences
+      const { data: existingData, error: checkError } = await supabase
         .from('user_preferences')
-        .upsert([{ user_id: user.id, ...updates }])
-        .select()
+        .select('id')
+        .eq('user_id', user.id)
         .single();
 
-      if (error) throw error;
-      return data;
+      if (existingData) {
+        // Update existing record
+        const { data, error } = await supabase
+          .from('user_preferences')
+          .update(updates)
+          .eq('user_id', user.id)
+          .select()
+          .single();
+
+        if (error) throw error;
+        return data;
+      } else {
+        // Insert new record
+        const { data, error } = await supabase
+          .from('user_preferences')
+          .insert([{ user_id: user.id, ...updates }])
+          .select()
+          .single();
+
+        if (error) throw error;
+        return data;
+      }
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['user_preferences'] });
+      
+      // If currency was changed, invalidate all financial data
+      if (data && 'default_currency_id' in data) {
+        queryClient.invalidateQueries({ queryKey: ['transactions'] });
+        queryClient.invalidateQueries({ queryKey: ['revenue_streams'] });
+        queryClient.invalidateQueries({ queryKey: ['financial_goals'] });
+        queryClient.invalidateQueries({ queryKey: ['balance_sheet_items'] });
+        queryClient.invalidateQueries({ queryKey: ['accounts'] });
+      }
+      
       toast({
         title: "Success",
         description: "Preferences updated successfully",
       });
     },
-    onError: () => {
+    onError: (error) => {
+      console.error('Update preferences error:', error);
       toast({
         title: "Error",
         description: "Failed to update preferences",

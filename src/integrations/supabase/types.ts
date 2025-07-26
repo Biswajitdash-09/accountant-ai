@@ -731,6 +731,39 @@ export type Database = {
           },
         ]
       }
+      security_audit_logs: {
+        Row: {
+          action_description: string
+          action_type: string
+          created_at: string | null
+          id: string
+          ip_address: unknown | null
+          metadata: Json | null
+          user_agent: string | null
+          user_id: string
+        }
+        Insert: {
+          action_description: string
+          action_type: string
+          created_at?: string | null
+          id?: string
+          ip_address?: unknown | null
+          metadata?: Json | null
+          user_agent?: string | null
+          user_id: string
+        }
+        Update: {
+          action_description?: string
+          action_type?: string
+          created_at?: string | null
+          id?: string
+          ip_address?: unknown | null
+          metadata?: Json | null
+          user_agent?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       tasks: {
         Row: {
           completed_at: string | null
@@ -1267,7 +1300,7 @@ export type Database = {
           cost_center: string | null
           cost_center_id: string | null
           created_at: string | null
-          currency_id: string | null
+          currency_id: string
           date: string
           description: string | null
           id: string
@@ -1286,7 +1319,7 @@ export type Database = {
           cost_center?: string | null
           cost_center_id?: string | null
           created_at?: string | null
-          currency_id?: string | null
+          currency_id: string
           date?: string
           description?: string | null
           id?: string
@@ -1305,7 +1338,7 @@ export type Database = {
           cost_center?: string | null
           cost_center_id?: string | null
           created_at?: string | null
-          currency_id?: string | null
+          currency_id?: string
           date?: string
           description?: string | null
           id?: string
@@ -1355,6 +1388,7 @@ export type Database = {
           default_currency_id: string | null
           fiscal_year_start: string | null
           id: string
+          notification_preferences: Json | null
           timezone: string | null
           updated_at: string | null
           user_id: string
@@ -1365,6 +1399,7 @@ export type Database = {
           default_currency_id?: string | null
           fiscal_year_start?: string | null
           id?: string
+          notification_preferences?: Json | null
           timezone?: string | null
           updated_at?: string | null
           user_id: string
@@ -1375,6 +1410,7 @@ export type Database = {
           default_currency_id?: string | null
           fiscal_year_start?: string | null
           id?: string
+          notification_preferences?: Json | null
           timezone?: string | null
           updated_at?: string | null
           user_id?: string
@@ -1389,12 +1425,55 @@ export type Database = {
           },
         ]
       }
+      user_sessions: {
+        Row: {
+          created_at: string | null
+          expires_at: string
+          id: string
+          ip_address: unknown | null
+          last_active: string | null
+          session_token: string
+          user_agent: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          expires_at: string
+          id?: string
+          ip_address?: unknown | null
+          last_active?: string | null
+          session_token: string
+          user_agent?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          expires_at?: string
+          id?: string
+          ip_address?: unknown | null
+          last_active?: string | null
+          session_token?: string
+          user_agent?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      log_security_event: {
+        Args: {
+          p_user_id: string
+          p_action_type: string
+          p_action_description: string
+          p_ip_address?: unknown
+          p_user_agent?: string
+          p_metadata?: Json
+        }
+        Returns: undefined
+      }
     }
     Enums: {
       [_ in never]: never

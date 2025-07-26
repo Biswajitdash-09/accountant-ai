@@ -26,6 +26,7 @@ export const useCurrencyFormatter = () => {
       queryClient.invalidateQueries({ queryKey: ['transactions'] });
       queryClient.invalidateQueries({ queryKey: ['budgets'] });
       queryClient.invalidateQueries({ queryKey: ['balance_sheet_items'] });
+      queryClient.invalidateQueries({ queryKey: ['accounts'] });
     }
   }, [preferredCurrency?.id, queryClient]);
 
@@ -50,13 +51,17 @@ export const useCurrencyFormatter = () => {
       const targetCurrencyId = toCurrencyId || preferredCurrency?.id;
       const sourceCurrencyId = fromCurrencyId || preferredCurrency?.id;
 
-      if (!targetCurrencyId || !sourceCurrencyId) {
+      // Handle null values - fallback to base currency
+      const finalSourceCurrencyId = sourceCurrencyId || baseCurrency?.id;
+      const finalTargetCurrencyId = targetCurrencyId || baseCurrency?.id;
+
+      if (!finalTargetCurrencyId || !finalSourceCurrencyId) {
         return amount.toFixed(decimals);
       }
 
       // Convert amount if needed
-      const convertedAmount = convertAmount(amount, sourceCurrencyId, targetCurrencyId);
-      const targetCurrency = currencies.find(c => c.id === targetCurrencyId);
+      const convertedAmount = convertAmount(amount, finalSourceCurrencyId, finalTargetCurrencyId);
+      const targetCurrency = currencies.find(c => c.id === finalTargetCurrencyId);
 
       if (!targetCurrency) {
         return convertedAmount.toFixed(decimals);
@@ -79,7 +84,7 @@ export const useCurrencyFormatter = () => {
 
       return result;
     };
-  }, [currencies, preferredCurrency, convertAmount]);
+  }, [currencies, preferredCurrency, baseCurrency, convertAmount]);
 
   return {
     formatCurrency,

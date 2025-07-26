@@ -1,61 +1,86 @@
 
-import React from "react";
+import { useState } from "react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Label } from "@/components/ui/label";
 import { useCurrencies } from "@/hooks/useCurrencies";
 import { useUserPreferences } from "@/hooks/useUserPreferences";
-import { useNotificationService } from "@/hooks/useNotificationService";
+import { Loader2 } from "lucide-react";
 
-export const CurrencySelector = () => {
-  const { currencies } = useCurrencies();
+interface CurrencySelectorProps {
+  label?: string;
+  placeholder?: string;
+}
+
+const CurrencySelector = ({ 
+  label = "Default Currency", 
+  placeholder = "Select currency..." 
+}: CurrencySelectorProps) => {
+  const { currencies, isLoading: currenciesLoading } = useCurrencies();
   const { preferences, updatePreferences } = useUserPreferences();
-  const { createNotification } = useNotificationService();
+  const [isUpdating, setIsUpdating] = useState(false);
 
   const handleCurrencyChange = async (currencyId: string) => {
-    const selectedCurrency = currencies.find(c => c.id === currencyId);
-    
+    setIsUpdating(true);
     try {
-      await updatePreferences.mutateAsync({ default_currency_id: currencyId });
-      
-      // Create notification about currency change
-      if (selectedCurrency) {
-        await createNotification(
-          'Currency Updated',
-          `Your default currency has been changed to ${selectedCurrency.name} (${selectedCurrency.code}). All financial data will now be displayed in this currency.`,
-          'system',
-          'medium'
-        );
-      }
+      await updatePreferences.mutateAsync({
+        default_currency_id: currencyId
+      });
     } catch (error) {
-      console.error('Error updating currency:', error);
+      console.error('Failed to update currency:', error);
+    } finally {
+      setIsUpdating(false);
     }
   };
 
-  const selectedCurrency = currencies.find(c => c.id === preferences?.default_currency_id);
+  if (currenciesLoading) {
+    return (
+      <div className="space-y-2">
+        <Label>{label}</Label>
+        <div className="flex items-center gap-2 h-10 px-3 py-2 border border-input bg-background rounded-md">
+          <Loader2 className="h-4 w-4 animate-spin" />
+          <span className="text-sm text-muted-foreground">Loading currencies...</span>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div className="flex items-center gap-2">
-      <Select value={preferences?.default_currency_id || ""} onValueChange={handleCurrencyChange}>
-        <SelectTrigger className="w-32">
-          <SelectValue placeholder="Currency">
-            {selectedCurrency ? (
-              <span className="flex items-center gap-1">
-                {selectedCurrency.symbol} {selectedCurrency.code}
-              </span>
-            ) : (
-              "Select"
-            )}
-          </SelectValue>
-        </SelectTrigger>
-        <SelectContent>
-          {currencies.map((currency) => (
-            <SelectItem key={currency.id} value={currency.id}>
-              <span className="flex items-center gap-2">
-                {currency.symbol} {currency.code} - {currency.name}
-              </span>
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
+    <div className="space-y-2">
+      <Label htmlFor="currency-selector">{label}</Label>
+      <div className="relative">
+        <Select
+          value={preferences?.default_currency_id || ""}
+          onValueChange={handleCurrencyChange}
+          disabled={isUpdating}
+        >
+          <SelectTrigger id="currency-selector">
+            <SelectValue placeholder={placeholder} />
+          </SelectTrigger>
+          <SelectContent>
+            {currencies.map((currency) => (
+              <SelectItem key={currency.id} value={currency.id}>
+                <div className="flex items-center gap-2">
+                  <span className="font-medium">{currency.symbol}</span>
+                  <span>{currency.name}</span>
+                  <span className="text-sm text-muted-foreground">({currency.code})</span>
+                  {currency.is_base && (
+                    <span className="text-xs bg-primary/10 text-primary px-1.5 py-0.5 rounded">
+                      Base
+                    </span>
+                  )}
+                </div>
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        {isUpdating && (
+          <div className="absolute right-8 top-1/2 -translate-y-1/2">
+            <Loader2 className="h-4 w-4 animate-spin" />
+          </div>
+        )}
+      </div>
     </div>
   );
 };
+
+export default CurrencySelector;
