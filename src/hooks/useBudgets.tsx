@@ -3,7 +3,6 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
-import { useMemo } from "react";
 
 export interface Budget {
   id: string;
@@ -25,47 +24,6 @@ export const useBudgets = () => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  // Sample data for testing
-  const sampleBudgets = useMemo(() => [
-    {
-      id: "sample-budget-1",
-      user_id: user?.id || "",
-      name: "Monthly Operating Budget",
-      budget_period: "monthly" as const,
-      start_date: "2024-07-01",
-      end_date: "2024-07-31",
-      total_budget: 5000,
-      actual_spent: 3750,
-      categories: [
-        { name: "Marketing", allocated: 1500, spent: 1200 },
-        { name: "Operations", allocated: 2000, spent: 1800 },
-        { name: "Software", allocated: 1000, spent: 450 },
-        { name: "Travel", allocated: 500, spent: 300 }
-      ],
-      is_active: true,
-      created_at: "2024-07-01T00:00:00Z",
-      updated_at: "2024-07-20T00:00:00Z",
-    },
-    {
-      id: "sample-budget-2",
-      user_id: user?.id || "",
-      name: "Q3 Marketing Budget",
-      budget_period: "quarterly" as const,
-      start_date: "2024-07-01",
-      end_date: "2024-09-30",
-      total_budget: 15000,
-      actual_spent: 8500,
-      categories: [
-        { name: "Digital Advertising", allocated: 8000, spent: 5200 },
-        { name: "Content Creation", allocated: 4000, spent: 2100 },
-        { name: "Events", allocated: 3000, spent: 1200 }
-      ],
-      is_active: true,
-      created_at: "2024-07-01T00:00:00Z",
-      updated_at: "2024-07-20T00:00:00Z",
-    },
-  ], [user?.id]);
-
   const {
     data: budgets = [],
     isLoading,
@@ -81,16 +39,7 @@ export const useBudgets = () => {
         .eq('user_id', user.id)
         .order('created_at', { ascending: false });
 
-      if (error) {
-        console.log('Database error, using sample data:', error);
-        return sampleBudgets;
-      }
-      
-      // If no data in database, return sample data
-      if (data.length === 0) {
-        return sampleBudgets;
-      }
-      
+      if (error) throw error;
       return data as Budget[];
     },
     enabled: !!user,

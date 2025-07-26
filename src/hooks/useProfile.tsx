@@ -3,7 +3,6 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/components/ui/use-toast";
-import { useEffect } from "react";
 
 export interface Profile {
   id: string;
@@ -20,31 +19,6 @@ export const useProfile = () => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  // Set up real-time subscription
-  useEffect(() => {
-    if (!user) return;
-
-    const channel = supabase
-      .channel('profile-changes')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'profiles',
-          filter: `id=eq.${user.id}`
-        },
-        () => {
-          queryClient.invalidateQueries({ queryKey: ['profile'] });
-        }
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [user, queryClient]);
-
   const {
     data: profile,
     isLoading,
@@ -60,14 +34,14 @@ export const useProfile = () => {
         .eq('id', user.id)
         .single();
 
-      if (error) throw error;
-      return data as Profile;
+      if (error && error.code !== 'PGRST116') throw error;
+      return data as Profile | null;
     },
     enabled: !!user,
   });
 
   const updateProfile = useMutation({
-    mutationFn: async (updates: Partial<Profile>) => {
+    mutationFn: async (updates: Partial<Omit<Profile, 'id' | 'created_at' | 'updated_at'>>) => {
       if (!user) throw new Error('User not authenticated');
 
       const { data, error } = await supabase
@@ -87,7 +61,8 @@ export const useProfile = () => {
         description: "Profile updated successfully",
       });
     },
-    onError: () => {
+    onError: (error) => {
+      console.error('Update profile error:', error);
       toast({
         title: "Error",
         description: "Failed to update profile",

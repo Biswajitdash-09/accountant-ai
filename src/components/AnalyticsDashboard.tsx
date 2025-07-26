@@ -6,13 +6,15 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useTransactions } from '@/hooks/useTransactions';
 import { useDocuments } from '@/hooks/useDocuments';
 import { useAnalyticsCache } from '@/hooks/useAnalyticsCache';
+import { useCurrencyFormatter } from '@/hooks/useCurrencyFormatter';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar } from 'recharts';
 
 const AnalyticsDashboard = () => {
   const [timeRange, setTimeRange] = useState('30d');
-  const { transactions } = useTransactions();
+  const { transactions, isLoading: transactionsLoading } = useTransactions();
   const { documents } = useDocuments();
   const { getCacheByKey, setCachedData } = useAnalyticsCache();
+  const { formatCurrency } = useCurrencyFormatter();
 
   const [analytics, setAnalytics] = useState({
     totalIncome: 0,
@@ -108,24 +110,50 @@ const AnalyticsDashboard = () => {
     setAnalytics(result);
 
     // Cache the result for 1 hour
-    const expiresAt = new Date(Date.now() + 60 * 60 * 1000).toISOString();
-    setCachedData.mutate({ cache_key: cacheKey, data: result, expires_at: expiresAt });
+    if (setCachedData && setCachedData.mutate) {
+      const expiresAt = new Date(Date.now() + 60 * 60 * 1000).toISOString();
+      setCachedData.mutate({ cache_key: cacheKey, data: result, expires_at: expiresAt });
+    }
   };
 
   useEffect(() => {
-    calculateAnalytics();
-  }, [timeRange, transactions, documents]);
+    if (!transactionsLoading && transactions.length >= 0) {
+      calculateAnalytics();
+    }
+  }, [timeRange, transactions, documents, transactionsLoading]);
 
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
-    }).format(amount);
+  const CustomTooltip = ({ active, payload, label }: any) => {
+    if (active && payload && payload.length) {
+      return (
+        <div className="bg-background border rounded-lg p-3 shadow-lg">
+          <p className="font-medium mb-2">{label}</p>
+          {payload.map((entry: any, index: number) => (
+            <p key={index} className="text-sm" style={{ color: entry.color }}>
+              {entry.dataKey}: {formatCurrency(entry.value, undefined, undefined, { showSymbol: true, decimals: 2 })}
+            </p>
+          ))}
+        </div>
+      );
+    }
+    return null;
   };
+
+  if (transactionsLoading) {
+    return (
+      <div className="space-y-6">
+        <div className="flex justify-between items-center">
+          <h2 className="text-2xl font-bold">Advanced Analytics</h2>
+        </div>
+        <div className="flex items-center justify-center py-12">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <h2 className="text-2xl font-bold">Advanced Analytics</h2>
         <Select value={timeRange} onValueChange={setTimeRange}>
           <SelectTrigger className="w-32">
@@ -148,7 +176,7 @@ const AnalyticsDashboard = () => {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-green-600">
-              {formatCurrency(analytics.totalIncome)}
+              {formatCurrency(analytics.totalIncome, undefined, undefined, { showSymbol: true, decimals: 2 })}
             </div>
           </CardContent>
         </Card>
@@ -160,7 +188,7 @@ const AnalyticsDashboard = () => {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-red-600">
-              {formatCurrency(analytics.totalExpenses)}
+              {formatCurrency(analytics.totalExpenses, undefined, undefined, { showSymbol: true, decimals: 2 })}
             </div>
           </CardContent>
         </Card>
@@ -172,7 +200,7 @@ const AnalyticsDashboard = () => {
           </CardHeader>
           <CardContent>
             <div className={`text-2xl font-bold ${analytics.netIncome >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-              {formatCurrency(analytics.netIncome)}
+              {formatCurrency(analytics.netIncome, undefined, undefined, { showSymbol: true, decimals: 2 })}
             </div>
           </CardContent>
         </Card>
@@ -203,7 +231,7 @@ const AnalyticsDashboard = () => {
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="month" />
                 <YAxis />
-                <Tooltip formatter={(value) => formatCurrency(Number(value))} />
+                <Tooltip content={<CustomTooltip />} />
                 <Line type="monotone" dataKey="income" stroke="#22c55e" />
                 <Line type="monotone" dataKey="expenses" stroke="#ef4444" />
                 <Line type="monotone" dataKey="net" stroke="#3b82f6" />
@@ -223,7 +251,7 @@ const AnalyticsDashboard = () => {
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="category" />
                 <YAxis />
-                <Tooltip formatter={(value) => formatCurrency(Number(value))} />
+                <Tooltip content={<CustomTooltip />} />
                 <Bar dataKey="amount" fill="#8884d8" />
               </BarChart>
             </ResponsiveContainer>
@@ -241,7 +269,7 @@ const AnalyticsDashboard = () => {
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="month" />
                 <YAxis />
-                <Tooltip formatter={(value) => formatCurrency(Number(value))} />
+                <Tooltip content={<CustomTooltip />} />
                 <Line type="monotone" dataKey="predicted" stroke="#f59e0b" strokeDasharray="5 5" />
               </LineChart>
             </ResponsiveContainer>

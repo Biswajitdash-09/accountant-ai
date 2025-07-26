@@ -2,6 +2,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { useToast } from "@/components/ui/use-toast";
 
 export interface AnalyticsCache {
   id: string;
@@ -14,9 +15,14 @@ export interface AnalyticsCache {
 
 export const useAnalyticsCache = () => {
   const { user } = useAuth();
+  const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  const getCachedData = useQuery({
+  const {
+    data: cacheEntries = [],
+    isLoading,
+    error
+  } = useQuery({
     queryKey: ['analytics_cache'],
     queryFn: async () => {
       if (!user) return [];
@@ -34,49 +40,89 @@ export const useAnalyticsCache = () => {
     enabled: !!user,
   });
 
+  const getCacheByKey = (key: string) => {
+    const entry = cacheEntries.find(entry => entry.cache_key === key);
+    if (entry && new Date(entry.expires_at) > new Date()) {
+      return entry.data;
+    }
+    return null;
+  };
+
   const setCachedData = useMutation({
-    mutationFn: async ({ cache_key, data, expires_at }: { cache_key: string; data: any; expires_at: string }) => {
+    mutationFn: async (params: { cache_key: string; data: any; expires_at: string }) => {
       if (!user) throw new Error('User not authenticated');
 
-      // First, delete any existing cache with the same key
-      await supabase
+      // First, try to update existing cache entry
+      const { data: existingData, error: selectError } = await supabase
+        .from('analytics_cache')
+        .select('id')
+        .eq('user_id', user.id)
+        .eq('cache_key', params.cache_key)
+        .single();
+
+      if (existingData) {
+        // Update existing entry
+        const { data, error } = await supabase
+          .from('analytics_cache')
+          .update({
+            data: params.data,
+            expires_at: params.expires_at
+          })
+          .eq('id', existingData.id)
+          .select()
+          .single();
+
+        if (error) throw error;
+        return data;
+      } else {
+        // Insert new entry
+        const { data, error } = await supabase
+          .from('analytics_cache')
+          .insert([{
+            user_id: user.id,
+            cache_key: params.cache_key,
+            data: params.data,
+            expires_at: params.expires_at
+          }])
+          .select()
+          .single();
+
+        if (error) throw error;
+        return data;
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['analytics_cache'] });
+    },
+    onError: (error) => {
+      console.error('Cache error:', error);
+      // Don't show toast for cache errors as they're not critical
+    },
+  });
+
+  const clearExpiredCache = useMutation({
+    mutationFn: async () => {
+      if (!user) throw new Error('User not authenticated');
+
+      const { error } = await supabase
         .from('analytics_cache')
         .delete()
         .eq('user_id', user.id)
-        .eq('cache_key', cache_key);
-
-      // Then insert the new cache
-      const { data: result, error } = await supabase
-        .from('analytics_cache')
-        .insert([{ 
-          user_id: user.id, 
-          cache_key, 
-          data, 
-          expires_at 
-        }])
-        .select()
-        .single();
+        .lt('expires_at', new Date().toISOString());
 
       if (error) throw error;
-      return result;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['analytics_cache'] });
     },
   });
 
-  const getCacheByKey = (key: string) => {
-    const cached = getCachedData.data?.find(item => item.cache_key === key);
-    if (cached && new Date(cached.expires_at) > new Date()) {
-      return cached.data;
-    }
-    return null;
-  };
-
   return {
-    getCachedData: getCachedData.data,
-    setCachedData,
+    cacheEntries,
+    isLoading,
+    error,
     getCacheByKey,
-    isLoading: getCachedData.isLoading,
+    setCachedData,
+    clearExpiredCache,
   };
 };
