@@ -51,7 +51,8 @@ const BalanceSheetManager = () => {
   const [isEditing, setIsEditing] = useState(false);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value, type, checked } = e.target;
+    const { name, value, type } = e.target;
+    const checked = (e.target as HTMLInputElement).checked;
     setItemForm(prevState => ({
       ...prevState,
       [name]: type === 'checkbox' ? checked : value

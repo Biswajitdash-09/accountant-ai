@@ -20,12 +20,12 @@ const CostAnalysis = () => {
     if (!transactions || !costCenters) return [];
 
     return costCenters.map(center => {
-      // Filter transactions for this cost center
+      // Filter transactions for this cost center (assuming all transactions are expenses for cost center analysis)
       const centerTransactions = transactions.filter(
-        tx => tx.cost_center === center.id && tx.transaction_type === 'expense'
+        tx => tx.cost_center === center.id && Number(tx.amount) < 0
       );
 
-      const totalSpent = centerTransactions.reduce((sum, tx) => sum + Number(tx.amount), 0);
+      const totalSpent = centerTransactions.reduce((sum, tx) => sum + Math.abs(Number(tx.amount)), 0);
       const budgetAllocation = Number(center.budget_allocation);
       const remainingBudget = budgetAllocation - totalSpent;
       const utilizationRate = budgetAllocation > 0 ? (totalSpent / budgetAllocation) * 100 : 0;
