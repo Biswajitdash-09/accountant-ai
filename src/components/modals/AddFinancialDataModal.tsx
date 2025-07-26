@@ -1,11 +1,6 @@
-
 import { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Plus } from "lucide-react";
 import { useRevenueStreams } from "@/hooks/useRevenueStreams";
@@ -14,6 +9,12 @@ import { useBudgets } from "@/hooks/useBudgets";
 import { useBalanceSheet } from "@/hooks/useBalanceSheet";
 import { useTransactions } from "@/hooks/useTransactions";
 import { format } from "date-fns";
+import { TransactionForm } from "./forms/TransactionForm";
+import { RevenueStreamForm } from "./forms/RevenueStreamForm";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
 
 interface AddFinancialDataModalProps {
   children?: React.ReactNode;
@@ -127,122 +128,19 @@ const AddFinancialDataModal = ({ children }: AddFinancialDataModalProps) => {
           </TabsList>
 
           <TabsContent value="transaction">
-            <form onSubmit={(e) => handleSubmit(e, 'transaction')} className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="amount">Amount</Label>
-                  <Input
-                    id="amount"
-                    type="number"
-                    value={transactionData.amount}
-                    onChange={(e) => setTransactionData({ ...transactionData, amount: Number(e.target.value) })}
-                    required
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="type">Type</Label>
-                  <Select value={transactionData.type} onValueChange={(value: 'income' | 'expense') => setTransactionData({ ...transactionData, type: value })}>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="income">Income</SelectItem>
-                      <SelectItem value="expense">Expense</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="category">Category</Label>
-                  <Input
-                    id="category"
-                    value={transactionData.category}
-                    onChange={(e) => setTransactionData({ ...transactionData, category: e.target.value })}
-                    required
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="date">Date</Label>
-                  <Input
-                    id="date"
-                    type="date"
-                    value={transactionData.date}
-                    onChange={(e) => setTransactionData({ ...transactionData, date: e.target.value })}
-                    required
-                  />
-                </div>
-              </div>
-              <div>
-                <Label htmlFor="description">Description</Label>
-                <Textarea
-                  id="description"
-                  value={transactionData.description}
-                  onChange={(e) => setTransactionData({ ...transactionData, description: e.target.value })}
-                  rows={3}
-                />
-              </div>
-              <Button type="submit" className="w-full">Add Transaction</Button>
-            </form>
+            <TransactionForm
+              transactionData={transactionData}
+              setTransactionData={setTransactionData}
+              onSubmit={(e) => handleSubmit(e, 'transaction')}
+            />
           </TabsContent>
 
           <TabsContent value="revenue">
-            <form onSubmit={(e) => handleSubmit(e, 'revenue')} className="space-y-4">
-              <div>
-                <Label htmlFor="stream_name">Stream Name</Label>
-                <Input
-                  id="stream_name"
-                  value={revenueData.stream_name}
-                  onChange={(e) => setRevenueData({ ...revenueData, stream_name: e.target.value })}
-                  required
-                />
-              </div>
-              <div>
-                <Label htmlFor="stream_type">Stream Type</Label>
-                <Select value={revenueData.stream_type} onValueChange={(value: 'sales' | 'donations' | 'loans' | 'grants' | 'other') => setRevenueData({ ...revenueData, stream_type: value })}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="sales">Sales</SelectItem>
-                    <SelectItem value="donations">Donations</SelectItem>
-                    <SelectItem value="loans">Loans</SelectItem>
-                    <SelectItem value="grants">Grants</SelectItem>
-                    <SelectItem value="other">Other</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="target_amount">Target Amount</Label>
-                  <Input
-                    id="target_amount"
-                    type="number"
-                    value={revenueData.target_amount}
-                    onChange={(e) => setRevenueData({ ...revenueData, target_amount: Number(e.target.value) })}
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="actual_amount">Actual Amount</Label>
-                  <Input
-                    id="actual_amount"
-                    type="number"
-                    value={revenueData.actual_amount}
-                    onChange={(e) => setRevenueData({ ...revenueData, actual_amount: Number(e.target.value) })}
-                  />
-                </div>
-              </div>
-              <div>
-                <Label htmlFor="description">Description</Label>
-                <Textarea
-                  id="description"
-                  value={revenueData.description}
-                  onChange={(e) => setRevenueData({ ...revenueData, description: e.target.value })}
-                  rows={3}
-                />
-              </div>
-              <Button type="submit" className="w-full">Add Revenue Stream</Button>
-            </form>
+            <RevenueStreamForm
+              revenueData={revenueData}
+              setRevenueData={setRevenueData}
+              onSubmit={(e) => handleSubmit(e, 'revenue')}
+            />
           </TabsContent>
 
           <TabsContent value="goal">

@@ -1,26 +1,14 @@
 
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Textarea } from "@/components/ui/textarea";
-import { Badge } from "@/components/ui/badge";
-import { Progress } from "@/components/ui/progress";
 import { useFinancialGoals, type FinancialGoal } from "@/hooks/useFinancialGoals";
 import { useCurrencyFormatter } from "@/hooks/useCurrencyFormatter";
 import { useToast } from "@/components/ui/use-toast";
-import { Loader2, Plus, Target, TrendingUp, Calendar, Edit, Trash2 } from "lucide-react";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
+import { Loader2, Plus, Target } from "lucide-react";
+import { FinancialGoalsSummaryCards } from "./goals/FinancialGoalsSummaryCards";
+import { FinancialGoalForm } from "./goals/FinancialGoalForm";
+import { FinancialGoalCard } from "./goals/FinancialGoalCard";
 
 interface GoalFormState {
   id?: string;
@@ -46,16 +34,6 @@ const defaultGoalFormState: GoalFormState = {
   is_achieved: false,
 };
 
-const getPriorityVariant = (priority: string) => {
-  switch (priority) {
-    case 'low': return 'secondary';
-    case 'medium': return 'default';
-    case 'high': return 'destructive';
-    case 'critical': return 'destructive';
-    default: return 'default';
-  }
-};
-
 const FinancialGoalsManager = () => {
   const { financialGoals, createFinancialGoal, updateFinancialGoal, deleteFinancialGoal, isLoading } = useFinancialGoals();
   const { formatCurrency } = useCurrencyFormatter();
@@ -64,22 +42,6 @@ const FinancialGoalsManager = () => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [goalForm, setGoalForm] = useState<GoalFormState>(defaultGoalFormState);
   const [isEditing, setIsEditing] = useState(false);
-
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
-    const { name, value } = e.target;
-    setGoalForm(prevState => ({
-      ...prevState,
-      [name]: value
-    }));
-  };
-
-  const handleCheckboxChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, checked } = e.target;
-    setGoalForm(prevState => ({
-      ...prevState,
-      [name]: checked
-    }));
-  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -177,54 +139,15 @@ const FinancialGoalsManager = () => {
 
   return (
     <div className="space-y-6">
-      {/* Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Goals</CardTitle>
-            <Target className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{totalGoals}</div>
-            <p className="text-xs text-muted-foreground">
-              {achievedGoals} completed
-            </p>
-          </CardContent>
-        </Card>
+      <FinancialGoalsSummaryCards
+        totalGoals={totalGoals}
+        achievedGoals={achievedGoals}
+        totalTargetAmount={totalTargetAmount}
+        totalCurrentAmount={totalCurrentAmount}
+        overallProgress={overallProgress}
+        formatCurrency={formatCurrency}
+      />
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Target Amount</CardTitle>
-            <TrendingUp className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{formatCurrency(totalTargetAmount)}</div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Current Amount</CardTitle>
-            <Calendar className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{formatCurrency(totalCurrentAmount)}</div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Overall Progress</CardTitle>
-            <Target className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{overallProgress.toFixed(1)}%</div>
-            <Progress value={Math.min(overallProgress, 100)} className="mt-2" />
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Goals Management */}
       <Card>
         <CardHeader>
           <div className="flex justify-between items-center">
@@ -234,160 +157,19 @@ const FinancialGoalsManager = () => {
                 Track your progress towards financial objectives
               </CardDescription>
             </div>
-            <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-              <DialogTrigger asChild>
-                <Button>
-                  <Plus className="mr-2 h-4 w-4" />
-                  Add Goal
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="sm:max-w-[425px]">
-                <DialogHeader>
-                  <DialogTitle>{isEditing ? 'Edit Goal' : 'Add New Goal'}</DialogTitle>
-                  <DialogDescription>
-                    {isEditing ? 'Update the details of your financial goal.' : 'Define a new financial goal to track your progress.'}
-                  </DialogDescription>
-                </DialogHeader>
-                <form onSubmit={handleSubmit}>
-                  <div className="grid gap-4 py-4">
-                    <div className="grid grid-cols-4 items-center gap-4">
-                      <Label htmlFor="goal_name" className="text-right">
-                        Goal Name
-                      </Label>
-                      <Input
-                        type="text"
-                        id="goal_name"
-                        name="goal_name"
-                        value={goalForm.goal_name}
-                        onChange={handleInputChange}
-                        className="col-span-3"
-                        required
-                      />
-                    </div>
-
-                    <div className="grid grid-cols-4 items-center gap-4">
-                      <Label htmlFor="goal_type" className="text-right">
-                        Goal Type
-                      </Label>
-                      <Select value={goalForm.goal_type} onValueChange={(value) => setGoalForm(prevState => ({ ...prevState, goal_type: value as GoalFormState['goal_type'] }))} >
-                        <SelectTrigger className="col-span-3">
-                          <SelectValue placeholder="Select type" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="savings">Savings</SelectItem>
-                          <SelectItem value="investment">Investment</SelectItem>
-                          <SelectItem value="debt_reduction">Debt Reduction</SelectItem>
-                          <SelectItem value="revenue">Revenue</SelectItem>
-                          <SelectItem value="expense_reduction">Expense Reduction</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-
-                    <div className="grid grid-cols-4 items-center gap-4">
-                      <Label htmlFor="target_amount" className="text-right">
-                        Target Amount
-                      </Label>
-                      <Input
-                        type="number"
-                        id="target_amount"
-                        name="target_amount"
-                        value={goalForm.target_amount}
-                        onChange={handleInputChange}
-                        className="col-span-3"
-                        required
-                        min="0"
-                        step="0.01"
-                      />
-                    </div>
-
-                    <div className="grid grid-cols-4 items-center gap-4">
-                      <Label htmlFor="current_amount" className="text-right">
-                        Current Amount
-                      </Label>
-                      <Input
-                        type="number"
-                        id="current_amount"
-                        name="current_amount"
-                        value={goalForm.current_amount}
-                        onChange={handleInputChange}
-                        className="col-span-3"
-                        required
-                        min="0"
-                        step="0.01"
-                      />
-                    </div>
-
-                    <div className="grid grid-cols-4 items-center gap-4">
-                      <Label htmlFor="target_date" className="text-right">
-                        Target Date
-                      </Label>
-                      <Input
-                        type="date"
-                        id="target_date"
-                        name="target_date"
-                        value={goalForm.target_date}
-                        onChange={handleInputChange}
-                        className="col-span-3"
-                      />
-                    </div>
-
-                    <div className="grid grid-cols-4 items-center gap-4">
-                      <Label htmlFor="priority" className="text-right">
-                        Priority
-                      </Label>
-                      <Select value={goalForm.priority} onValueChange={(value) => setGoalForm(prevState => ({ ...prevState, priority: value as GoalFormState['priority'] }))}>
-                        <SelectTrigger className="col-span-3">
-                          <SelectValue placeholder="Select priority" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="low">Low</SelectItem>
-                          <SelectItem value="medium">Medium</SelectItem>
-                          <SelectItem value="high">High</SelectItem>
-                          <SelectItem value="critical">Critical</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-
-                    <div className="grid grid-cols-4 items-center gap-4">
-                      <Label htmlFor="description" className="text-right">
-                        Description
-                      </Label>
-                      <Textarea
-                        id="description"
-                        name="description"
-                        value={goalForm.description}
-                        onChange={handleInputChange}
-                        className="col-span-3"
-                      />
-                    </div>
-
-                    <div className="grid grid-cols-4 items-center gap-4">
-                      <Label htmlFor="is_achieved" className="text-right">
-                        Achieved
-                      </Label>
-                      <div className="col-span-3">
-                        <Input
-                          type="checkbox"
-                          id="is_achieved"
-                          name="is_achieved"
-                          checked={goalForm.is_achieved}
-                          onChange={handleCheckboxChange}
-                          className="w-4 h-4"
-                        />
-                      </div>
-                    </div>
-                  </div>
-                  <DialogFooter>
-                    <Button type="button" variant="outline" onClick={closeDialog}>
-                      Cancel
-                    </Button>
-                    <Button type="submit">
-                      {isEditing ? 'Update Goal' : 'Create Goal'}
-                    </Button>
-                  </DialogFooter>
-                </form>
-              </DialogContent>
-            </Dialog>
+            <FinancialGoalForm
+              isOpen={isDialogOpen}
+              setIsOpen={setIsDialogOpen}
+              goalForm={goalForm}
+              setGoalForm={setGoalForm}
+              isEditing={isEditing}
+              onSubmit={handleSubmit}
+            >
+              <Button>
+                <Plus className="mr-2 h-4 w-4" />
+                Add Goal
+              </Button>
+            </FinancialGoalForm>
           </div>
         </CardHeader>
         <CardContent>
@@ -398,63 +180,15 @@ const FinancialGoalsManager = () => {
             </div>
           ) : (
             <div className="space-y-4">
-              {financialGoals.map((goal) => {
-                const progress = goal.target_amount > 0 ? (goal.current_amount / goal.target_amount) * 100 : 0;
-                
-                return (
-                  <Card key={goal.id}>
-                    <CardHeader>
-                      <div className="flex justify-between items-start">
-                        <div className="space-y-1">
-                          <CardTitle className="text-lg">{goal.goal_name}</CardTitle>
-                          <div className="flex gap-2">
-                            <Badge variant="outline">{goal.goal_type.replace('_', ' ')}</Badge>
-                            <Badge variant={getPriorityVariant(goal.priority)}>{goal.priority}</Badge>
-                            {goal.is_achieved && <Badge variant="default">Achieved</Badge>}
-                          </div>
-                          {goal.description && (
-                            <p className="text-sm text-muted-foreground">{goal.description}</p>
-                          )}
-                        </div>
-                        <div className="flex gap-2">
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => handleEditGoal(goal)}
-                          >
-                            <Edit className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => handleDeleteGoal(goal.id)}
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      </div>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="space-y-4">
-                        <div className="flex justify-between text-sm">
-                          <span>Progress</span>
-                          <span>{progress.toFixed(1)}%</span>
-                        </div>
-                        <Progress value={Math.min(progress, 100)} />
-                        <div className="flex justify-between text-sm">
-                          <span>Current: {formatCurrency(goal.current_amount)}</span>
-                          <span>Target: {formatCurrency(goal.target_amount)}</span>
-                        </div>
-                        {goal.target_date && (
-                          <div className="text-sm text-muted-foreground">
-                            Target Date: {new Date(goal.target_date).toLocaleDateString()}
-                          </div>
-                        )}
-                      </div>
-                    </CardContent>
-                  </Card>
-                );
-              })}
+              {financialGoals.map((goal) => (
+                <FinancialGoalCard
+                  key={goal.id}
+                  goal={goal}
+                  formatCurrency={formatCurrency}
+                  onEdit={handleEditGoal}
+                  onDelete={handleDeleteGoal}
+                />
+              ))}
             </div>
           )}
         </CardContent>
