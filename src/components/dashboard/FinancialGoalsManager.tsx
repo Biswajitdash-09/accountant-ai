@@ -7,7 +7,7 @@ import { useCurrencyFormatter } from "@/hooks/useCurrencyFormatter";
 import { useToast } from "@/components/ui/use-toast";
 import { Loader2, Plus, Target } from "lucide-react";
 import { FinancialGoalsSummaryCards } from "./goals/FinancialGoalsSummaryCards";
-import { FinancialGoalForm } from "./goals/FinancialGoalForm";
+import FinancialGoalForm from "./goals/FinancialGoalForm";
 import { FinancialGoalCard } from "./goals/FinancialGoalCard";
 
 interface GoalFormState {
