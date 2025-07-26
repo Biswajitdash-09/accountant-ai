@@ -1,3 +1,4 @@
+
 import { useState, useMemo } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -6,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
 import { useBudgets } from "@/hooks/useBudgets";
 import { useCurrencyFormatter } from "@/hooks/useCurrencyFormatter";
 import { useToast } from "@/components/ui/use-toast";
@@ -21,32 +22,23 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 
-interface Budget {
-  id: string;
-  name: string;
-  category: string;
-  total_budget: number;
-  actual_spent: number;
-  start_date: string;
-  end_date: string;
-  is_active: boolean;
-}
-
 interface BudgetFormState {
   name: string;
-  category: string;
+  budget_period: 'weekly' | 'monthly' | 'quarterly' | 'yearly';
   total_budget: string;
   start_date: string;
   end_date: string;
+  categories: any[];
   is_active: boolean;
 }
 
 const initialFormState: BudgetFormState = {
   name: "",
-  category: "",
+  budget_period: 'monthly',
   total_budget: "",
   start_date: new Date().toISOString().split('T')[0],
   end_date: new Date().toISOString().split('T')[0],
+  categories: [],
   is_active: true,
 };
 
@@ -57,22 +49,29 @@ const BudgetPlanning = () => {
 
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [formState, setFormState] = useState<BudgetFormState>(initialFormState);
-  const [editingBudget, setEditingBudget] = useState<Budget | null>(null);
+  const [editingBudget, setEditingBudget] = useState<any>(null);
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
-    const { name, value, type, checked } = e.target;
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
     setFormState(prevState => ({
       ...prevState,
-      [name]: type === 'checkbox' ? checked : value,
+      [name]: value,
+    }));
+  };
+
+  const handleSwitchChange = (checked: boolean) => {
+    setFormState(prevState => ({
+      ...prevState,
+      is_active: checked,
     }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    const { name, category, total_budget, start_date, end_date, is_active } = formState;
+    const { name, budget_period, total_budget, start_date, end_date, categories, is_active } = formState;
 
-    if (!name || !category || !total_budget || !start_date || !end_date) {
+    if (!name || !total_budget || !start_date || !end_date) {
       toast({
         title: "Error",
         description: "Please fill in all fields",
@@ -83,11 +82,12 @@ const BudgetPlanning = () => {
 
     const budgetData = {
       name,
-      category,
+      budget_period,
       total_budget: parseFloat(total_budget),
       actual_spent: 0,
       start_date,
       end_date,
+      categories,
       is_active,
     };
 
@@ -110,14 +110,15 @@ const BudgetPlanning = () => {
     setIsDialogOpen(false);
   };
 
-  const handleEditBudget = (budget: Budget) => {
+  const handleEditBudget = (budget: any) => {
     setEditingBudget(budget);
     setFormState({
       name: budget.name,
-      category: budget.category,
+      budget_period: budget.budget_period,
       total_budget: budget.total_budget.toString(),
       start_date: budget.start_date,
       end_date: budget.end_date,
+      categories: budget.categories || [],
       is_active: budget.is_active,
     });
     setIsDialogOpen(true);
@@ -239,19 +240,6 @@ const BudgetPlanning = () => {
                     />
                   </div>
                   <div className="grid grid-cols-4 items-center gap-4">
-                    <Label htmlFor="category" className="text-right">
-                      Category
-                    </Label>
-                    <Input
-                      type="text"
-                      id="category"
-                      name="category"
-                      value={formState.category}
-                      onChange={handleInputChange}
-                      className="col-span-3"
-                    />
-                  </div>
-                  <div className="grid grid-cols-4 items-center gap-4">
                     <Label htmlFor="total_budget" className="text-right">
                       Total Budget
                     </Label>
@@ -296,9 +284,8 @@ const BudgetPlanning = () => {
                     </Label>
                     <Switch
                       id="is_active"
-                      name="is_active"
                       checked={formState.is_active}
-                      onCheckedChange={(checked) => setFormState(prevState => ({ ...prevState, is_active: checked }))}
+                      onCheckedChange={handleSwitchChange}
                       className="col-span-3"
                     />
                   </div>
