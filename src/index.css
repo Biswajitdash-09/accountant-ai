@@ -1,11 +1,6 @@
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-
-/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
-All colors MUST be HSL.
-*/
 
 @layer base {
   :root {
@@ -14,11 +9,11 @@ All colors MUST be HSL.
 
     --card: 0 0% 100%;
     --card-foreground: 222.2 84% 4.9%;
-
+ 
     --popover: 0 0% 100%;
     --popover-foreground: 222.2 84% 4.9%;
 
-    --primary: 205 82% 33%;
+    --primary: 222.1 83.2% 9.8%;
     --primary-foreground: 210 40% 98%;
 
     --secondary: 210 40% 96.1%;
@@ -32,41 +27,29 @@ All colors MUST be HSL.
 
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 210 40% 98%;
-
+    
     --border: 214.3 31.8% 91.4%;
     --input: 214.3 31.8% 91.4%;
+ 
     --ring: 222.2 84% 4.9%;
 
     --radius: 0.5rem;
 
-    --sidebar-background: 205 82% 33%;
-    --sidebar-foreground: 0 0% 100%;
-    --sidebar-primary: 0 0% 100%;
-    --sidebar-primary-foreground: 205 82% 33%;
-    --sidebar-accent: 206 83% 45%;
-    --sidebar-accent-foreground: 0 0% 100%;
-    --sidebar-border: 205 82% 38%;
-    --sidebar-ring: 205 82% 45%;
-
-    /* Financial theme colors */
-    --finance-positive: 142 76% 36%;
-    --finance-negative: 0 84% 60%;
-    --finance-neutral: 210 40% 98%;
-    --finance-highlight: 47 100% 50%;
+    --finance-highlight: 142.1 76% 36%;
   }
-
+ 
   .dark {
     --background: 222.2 84% 4.9%;
     --foreground: 210 40% 98%;
 
     --card: 222.2 84% 4.9%;
     --card-foreground: 210 40% 98%;
-
+ 
     --popover: 222.2 84% 4.9%;
     --popover-foreground: 210 40% 98%;
 
-    --primary: 205 82% 43%;
-    --primary-foreground: 222.2 47.4% 11.2%;
+    --primary: 210 40% 98%;
+    --primary-foreground: 222.1 83.2% 9.8%;
 
     --secondary: 217.2 32.6% 17.5%;
     --secondary-foreground: 210 40% 98%;
@@ -79,416 +62,183 @@ All colors MUST be HSL.
 
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 210 40% 98%;
-
+ 
     --border: 217.2 32.6% 17.5%;
     --input: 217.2 32.6% 17.5%;
+ 
     --ring: 212.7 26.8% 83.9%;
 
-    --sidebar-background: 205 82% 23%;
-    --sidebar-foreground: 0 0% 100%;
-    --sidebar-primary: 0 0% 100%;
-    --sidebar-primary-foreground: 205 82% 23%;
-    --sidebar-accent: 206 83% 35%;
-    --sidebar-accent-foreground: 0 0% 100%;
-    --sidebar-border: 205 82% 28%;
-    --sidebar-ring: 205 82% 35%;
-
-    /* Financial theme colors */
-    --finance-positive: 142 76% 46%;
-    --finance-negative: 0 84% 70%;
-    --finance-neutral: 217.2 32.6% 17.5%;
-    --finance-highlight: 47 100% 60%;
+    --finance-highlight: 142.1 76% 36%;
   }
 }
 
-@layer base {
-  * {
-    @apply border-border;
-  }
-
-  body {
-    @apply bg-background text-foreground;
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  }
+/* Global responsive improvements */
+* {
+  box-sizing: border-box;
 }
 
-/* Enhanced Animation utilities */
-@keyframes fade-in {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+html {
+  scroll-behavior: smooth;
+  -webkit-text-size-adjust: 100%;
+  -moz-text-size-adjust: 100%;
+  text-size-adjust: 100%;
 }
 
+body {
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Touch-friendly improvements */
+button, a, [role="button"] {
+  min-height: 44px;
+  min-width: 44px;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Focus improvements for accessibility */
+.focus-ring:focus {
+  outline: none;
+  ring: 2px solid hsl(var(--ring));
+  ring-offset: 2px;
+  ring-offset-color: hsl(var(--background));
+}
+
+/* Animation improvements */
+.hover-scale {
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.hover-scale:hover:not(:disabled) {
+  transform: scale(1.02);
+}
+
+.hover-glow {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.hover-glow:hover {
+  box-shadow: 0 0 20px -5px hsl(var(--primary) / 0.3);
+}
+
+.button-hover {
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.button-hover:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px -2px hsl(var(--foreground) / 0.1);
+}
+
+.card-hover {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.card-hover:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px -5px hsl(var(--foreground) / 0.1);
+}
+
+/* Animation keyframes */
 @keyframes scale-in {
-  from {
+  0% {
     opacity: 0;
     transform: scale(0.95);
   }
-  to {
+  100% {
     opacity: 1;
     transform: scale(1);
   }
 }
 
-@keyframes slide-up {
-  from {
-    opacity: 0;
-    transform: translateY(30px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-@keyframes pulse-glow {
-  0%, 100% {
-    box-shadow: 0 0 5px rgba(59, 130, 246, 0.4);
-  }
-  50% {
-    box-shadow: 0 0 20px rgba(59, 130, 246, 0.6);
-  }
-}
-
-@keyframes float {
-  0%, 100% {
-    transform: translateY(0px);
-  }
-  50% {
-    transform: translateY(-10px);
-  }
-}
-
-@keyframes bounce-gentle {
-  0%, 100% {
-    transform: translateY(0);
-  }
-  50% {
-    transform: translateY(-4px);
-  }
-}
-
-@keyframes wiggle {
-  0%, 100% {
-    transform: rotate(0deg);
-  }
-  25% {
-    transform: rotate(-3deg);
-  }
-  75% {
-    transform: rotate(3deg);
-  }
-}
-
-.animate-fade-in {
-  animation: fade-in 0.6s ease-out forwards;
-}
-
 .animate-scale-in {
-  animation: scale-in 0.4s ease-out forwards;
+  animation: scale-in 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.animate-slide-up {
-  animation: slide-up 0.5s ease-out forwards;
+/* Responsive text sizes */
+@media (max-width: 640px) {
+  .text-responsive {
+    font-size: clamp(0.875rem, 2.5vw, 1rem);
+  }
+  
+  .text-responsive-lg {
+    font-size: clamp(1.125rem, 3vw, 1.5rem);
+  }
+  
+  .text-responsive-xl {
+    font-size: clamp(1.25rem, 4vw, 2rem);
+  }
 }
 
-.animate-pulse-glow {
-  animation: pulse-glow 2s ease-in-out infinite;
-}
-
-.animate-float {
-  animation: float 3s ease-in-out infinite;
-}
-
-.animate-bounce-gentle {
-  animation: bounce-gentle 2s ease-in-out infinite;
-}
-
-.animate-wiggle {
-  animation: wiggle 0.5s ease-in-out;
-}
-
-/* Enhanced cursor and hover animations */
-.hover-scale {
-  @apply transition-all duration-300 ease-out cursor-pointer;
-  transform-origin: center;
-}
-
-.hover-scale:hover {
-  @apply scale-105;
-  filter: brightness(1.05);
-}
-
-.hover-scale:active {
-  @apply scale-95;
-  transition: transform 0.1s ease-out;
-}
-
-.hover-glow:hover {
-  @apply shadow-lg;
-  filter: drop-shadow(0 0 12px rgba(59, 130, 246, 0.25));
-  transform: translateY(-2px);
-}
-
-.interactive-element {
-  @apply hover-scale hover:shadow-lg transition-all duration-300 ease-out cursor-pointer;
-  position: relative;
-}
-
-.interactive-element::after {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
+/* Prevent horizontal overflow */
+.container-responsive {
   width: 100%;
-  height: 100%;
-  border-radius: inherit;
-  background: linear-gradient(45deg, transparent, rgba(255,255,255,0.1), transparent);
-  opacity: 0;
-  transition: opacity 0.3s ease;
-  pointer-events: none;
+  max-width: 100vw;
+  overflow-x: hidden;
 }
 
-.interactive-element:hover::after {
-  opacity: 1;
-}
-
-.button-hover {
-  @apply transition-all duration-300 ease-out cursor-pointer;
-  position: relative;
-  overflow: hidden;
-}
-
-.button-hover::before {
-  content: '';
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 0;
-  height: 0;
-  background: radial-gradient(circle, rgba(255,255,255,0.2) 0%, transparent 70%);
-  border-radius: 50%;
-  transform: translate(-50%, -50%);
-  transition: width 0.6s ease, height 0.6s ease;
-}
-
-.button-hover:hover::before {
-  width: 300px;
-  height: 300px;
-}
-
-.button-hover:hover {
-  @apply scale-105 shadow-lg;
-  transform: translateY(-2px) scale(1.05);
-}
-
-.button-hover:active {
-  @apply scale-95;
-  transform: translateY(0) scale(0.95);
-  transition: transform 0.1s ease-out;
-}
-
-/* Custom cursor styles */
-.cursor-pointer {
-  cursor: pointer;
-}
-
-.cursor-grab {
-  cursor: grab;
-}
-
-.cursor-grab:active {
-  cursor: grabbing;
-}
-
-/* Smooth scrolling */
-html {
-  scroll-behavior: smooth;
-}
-
-/* Enhanced scrollbar */
-::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
-}
-
-::-webkit-scrollbar-track {
-  background: hsl(var(--muted));
-  border-radius: 4px;
-}
-
-::-webkit-scrollbar-thumb {
-  background: hsl(var(--muted-foreground) / 0.3);
-  border-radius: 4px;
-  transition: all 0.3s ease;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: hsl(var(--muted-foreground) / 0.5);
-  transform: scaleY(1.1);
-}
-
-::-webkit-scrollbar-corner {
-  background: hsl(var(--background));
-}
-
-/* Enhanced card hover effects */
-.card-hover {
-  @apply transition-all duration-300 ease-out cursor-pointer;
-  position: relative;
-}
-
-.card-hover::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  border-radius: inherit;
-  background: linear-gradient(135deg, rgba(255,255,255,0.1), rgba(255,255,255,0.05));
-  opacity: 0;
-  transition: opacity 0.3s ease;
-  pointer-events: none;
-}
-
-.card-hover:hover {
-  @apply shadow-xl;
-  transform: translateY(-4px) scale(1.02);
-}
-
-.card-hover:hover::before {
-  opacity: 1;
-}
-
-/* Loading shimmer effect */
-.shimmer {
-  background: linear-gradient(
-    90deg,
-    hsl(var(--muted)) 25%,
-    hsl(var(--muted-foreground) / 0.1) 50%,
-    hsl(var(--muted)) 75%
-  );
-  background-size: 200% 100%;
-  animation: shimmer 2s infinite;
-}
-
-@keyframes shimmer {
-  0% {
-    background-position: -200% 0;
-  }
-  100% {
-    background-position: 200% 0;
-  }
-}
-
-/* Enhanced focus styles */
-.focus-ring {
-  @apply focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:outline-none transition-all duration-200;
-}
-
-.focus-ring:focus {
-  transform: scale(1.02);
-}
-
-/* Mobile touch optimizations */
+/* Improved mobile form styling */
 @media (max-width: 768px) {
-  .mobile-padding {
-    @apply px-4 py-3;
+  .mobile-form-spacing {
+    gap: 1rem;
   }
   
-  .mobile-text {
-    @apply text-sm;
+  .mobile-touch-target {
+    min-height: 48px;
+    min-width: 48px;
   }
   
-  .mobile-spacing {
-    @apply space-y-4;
-  }
-
-  .hover-scale:hover {
-    transform: none;
-    filter: none;
-  }
-
-  .hover-scale:active {
-    @apply scale-95;
-    transition: transform 0.1s ease-out;
-  }
-
-  .button-hover:hover {
-    transform: none;
-    box-shadow: none;
-  }
-
-  .button-hover:active {
-    @apply scale-95;
-    transition: transform 0.1s ease-out;
-  }
-
-  .card-hover:hover {
-    transform: none;
-    box-shadow: none;
-  }
-
-  .card-hover:active {
-    @apply scale-95;
-    transition: transform 0.1s ease-out;
+  /* Improved mobile modal sizes */
+  .mobile-modal {
+    margin: 1rem;
+    max-height: calc(100vh - 2rem);
   }
 }
 
-/* Accessibility improvements */
-@media (prefers-reduced-motion: reduce) {
-  * {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
-  }
+/* Loading spinner improvements */
+.spinner-primary {
+  border-color: hsl(var(--primary) / 0.3);
+  border-top-color: hsl(var(--primary));
+}
 
-  .hover-scale:hover,
-  .button-hover:hover,
-  .card-hover:hover {
-    transform: none;
+/* Better focus states for mobile */
+@media (max-width: 768px) {
+  .focus-ring:focus {
+    ring-width: 3px;
   }
 }
 
-/* High contrast mode support */
-@media (prefers-contrast: high) {
-  :root {
-    --border: 0 0% 0%;
-    --muted: 0 0% 90%;
-    --muted-foreground: 0 0% 20%;
-  }
+/* Improved scrollbar styling */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
 
-  .dark {
-    --border: 0 0% 100%;
-    --muted: 0 0% 10%;
-    --muted-foreground: 0 0% 80%;
-  }
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: hsl(var(--muted));
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: hsl(var(--muted-foreground) / 0.3);
+  border-radius: 3px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: hsl(var(--muted-foreground) / 0.5);
 }
 
 /* Print styles */
 @media print {
-  .hover-scale,
-  .button-hover,
-  .card-hover,
-  .interactive-element {
-    transform: none !important;
-    filter: none !important;
-    box-shadow: none !important;
+  .no-print {
+    display: none !important;
   }
-
-  .animate-fade-in,
-  .animate-scale-in,
-  .animate-slide-up,
-  .animate-pulse-glow,
-  .animate-float,
-  .animate-bounce-gentle,
-  .animate-wiggle {
-    animation: none !important;
+  
+  body {
+    background: white !important;
+    color: black !important;
   }
 }

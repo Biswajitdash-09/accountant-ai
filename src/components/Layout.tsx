@@ -17,15 +17,23 @@ const Layout = ({ children }: LayoutProps) => {
 
   // Close mobile menu when switching to desktop
   useEffect(() => {
-    if (!isMobile) {
+    if (!isMobile && isMobileMenuOpen) {
       setIsMobileMenuOpen(false);
     }
-  }, [isMobile]);
+  }, [isMobile, isMobileMenuOpen]);
 
   // Close mobile menu on route change
   useEffect(() => {
-    setIsMobileMenuOpen(false);
-  }, [location.pathname]);
+    const handleRouteChange = () => {
+      if (isMobileMenuOpen) {
+        setIsMobileMenuOpen(false);
+      }
+    };
+    
+    // Listen for route changes
+    window.addEventListener('popstate', handleRouteChange);
+    return () => window.removeEventListener('popstate', handleRouteChange);
+  }, [isMobileMenuOpen]);
 
   const toggleMobileMenu = () => {
     setIsMobileMenuOpen(prev => !prev);
@@ -36,32 +44,41 @@ const Layout = ({ children }: LayoutProps) => {
   };
 
   return (
-    <div className="min-h-screen bg-background w-full">
+    <div className="min-h-screen bg-background w-full overflow-x-hidden">
       {/* Mobile Overlay */}
       {isMobile && isMobileMenuOpen && (
         <div 
-          className="fixed inset-0 bg-black/50 z-40 lg:hidden"
+          className="fixed inset-0 bg-black/50 z-40 lg:hidden transition-opacity duration-300"
           onClick={() => setIsMobileMenuOpen(false)}
         />
       )}
 
-      {/* Sidebar */}
-      <div className={cn(
-        "fixed inset-y-0 left-0 z-50 transition-transform duration-300 ease-in-out",
-        isMobile ? (
-          isMobileMenuOpen ? "translate-x-0" : "-translate-x-full"
-        ) : "translate-x-0"
-      )}>
+      {/* Sidebar - Desktop */}
+      {!isMobile && (
+        <div className="fixed inset-y-0 left-0 z-50">
+          <Sidebar 
+            isCollapsed={isSidebarCollapsed}
+            onToggle={toggleSidebar}
+            isMobileOpen={false}
+            onMobileToggle={() => {}}
+          />
+        </div>
+      )}
+
+      {/* Sidebar - Mobile */}
+      {isMobile && (
         <Sidebar 
-          isCollapsed={isSidebarCollapsed}
-          onToggle={toggleSidebar}
+          isCollapsed={false}
+          onToggle={() => {}}
+          isMobileOpen={isMobileMenuOpen}
+          onMobileToggle={toggleMobileMenu}
         />
-      </div>
+      )}
 
       {/* Main Content */}
       <div className={cn(
         "transition-all duration-300 ease-in-out w-full",
-        isMobile ? "ml-0" : (isSidebarCollapsed ? "ml-16" : "ml-64")
+        !isMobile ? (isSidebarCollapsed ? "ml-16" : "ml-64") : "ml-0"
       )}>
         <Header onMobileMenuToggle={toggleMobileMenu} />
         
@@ -73,7 +90,8 @@ const Layout = ({ children }: LayoutProps) => {
         <main className={cn(
           "flex-1 overflow-auto",
           "p-4 sm:p-6 lg:p-8",
-          "min-h-[calc(100vh-4rem)]"
+          "min-h-[calc(100vh-4rem)]",
+          "max-w-full" // Prevent horizontal overflow
         )}>
           <div className="max-w-7xl mx-auto w-full">
             {children}

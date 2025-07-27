@@ -114,7 +114,7 @@ const Sidebar = ({ isCollapsed, onToggle, isMobileOpen = false, onMobileToggle }
       <div className="flex items-center gap-2 p-3 sm:p-4 border-b">
         {!isCollapsed && (
           <div className="flex items-center gap-2 min-w-0">
-            <div className="w-7 h-7 sm:w-8 sm:h-8 bg-primary rounded-lg flex items-center justify-center">
+            <div className="w-7 h-7 sm:w-8 sm:h-8 bg-primary rounded-lg flex items-center justify-center shrink-0">
               <LayoutDashboard className="h-3 w-3 sm:h-4 sm:w-4 text-primary-foreground" />
             </div>
             <h2 className="font-semibold text-base sm:text-lg truncate">Accountant AI</h2>
@@ -147,13 +147,17 @@ const Sidebar = ({ isCollapsed, onToggle, isMobileOpen = false, onMobileToggle }
               asChild
               variant="ghost"
               className={cn(
-                "justify-start font-normal h-9 sm:h-10 hover-scale transition-all duration-200 text-sm sm:text-base min-h-[44px]",
+                "justify-start font-normal h-10 sm:h-11 hover-scale transition-all duration-200 text-sm sm:text-base min-h-[44px]",
                 location.pathname === item.href
-                  ? "bg-accent text-accent-foreground hover:bg-accent hover:text-accent-foreground"
+                  ? "bg-primary/10 text-primary hover:bg-primary/15 hover:text-primary border border-primary/20"
                   : "hover:bg-accent hover:text-accent-foreground",
                 isCollapsed && !isMobileSheet ? "px-2 justify-center" : "px-3"
               )}
-              onClick={() => isMobileSheet && onMobileToggle && onMobileToggle()}
+              onClick={() => {
+                if (isMobileSheet && onMobileToggle) {
+                  onMobileToggle();
+                }
+              }}
             >
               <Link to={item.href} className="flex items-center gap-3 w-full">
                 <item.icon className="h-4 w-4 shrink-0" />
@@ -170,7 +174,7 @@ const Sidebar = ({ isCollapsed, onToggle, isMobileOpen = false, onMobileToggle }
       <div className="border-t p-3 sm:p-4">
         <Button
           variant="outline"
-          className="w-full justify-center hover-scale transition-all duration-200 text-sm min-h-[44px]"
+          className="w-full justify-center hover-scale transition-all duration-200 text-sm min-h-[44px] hover:bg-destructive/10 hover:text-destructive hover:border-destructive/30"
           onClick={handleSignOut}
           disabled={isLoggingOut}
         >
@@ -186,7 +190,11 @@ const Sidebar = ({ isCollapsed, onToggle, isMobileOpen = false, onMobileToggle }
   if (isMobile) {
     return (
       <Sheet open={isMobileOpen} onOpenChange={onMobileToggle}>
-        <SheetContent side="left" className="w-72 p-0 bg-background">
+        <SheetContent 
+          side="left" 
+          className="w-72 p-0 bg-background border-r border-border"
+          onClick={(e) => e.stopPropagation()}
+        >
           <SidebarContent isMobileSheet={true} />
         </SheetContent>
       </Sheet>
@@ -197,7 +205,7 @@ const Sidebar = ({ isCollapsed, onToggle, isMobileOpen = false, onMobileToggle }
   return (
     <div
       className={cn(
-        "flex flex-col h-full bg-background border-r border-border transition-all duration-200",
+        "flex flex-col h-full bg-background border-r border-border transition-all duration-200 shadow-sm",
         isCollapsed ? "w-16" : "w-64"
       )}
     >

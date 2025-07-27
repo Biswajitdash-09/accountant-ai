@@ -5,11 +5,10 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { TrendingUp, TrendingDown, Plus, RefreshCw, X } from 'lucide-react';
+import { TrendingUp, TrendingDown, Plus, RefreshCw, X, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
-import { MobileForm, MobileFormSection, MobileFormRow } from '@/components/ui/mobile-form';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { cn } from '@/lib/utils';
 
@@ -46,6 +45,7 @@ export const CryptoPortfolio = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [showAddForm, setShowAddForm] = useState(false);
+  const [isAddingAsset, setIsAddingAsset] = useState(false);
   const [newAsset, setNewAsset] = useState({
     symbol: '',
     quantity: '',
@@ -171,16 +171,36 @@ export const CryptoPortfolio = () => {
   };
 
   const addAsset = async () => {
-    if (!user || !newAsset.symbol || !newAsset.quantity || !newAsset.avgBuyPrice) return;
+    if (!user || !newAsset.symbol || !newAsset.quantity || !newAsset.avgBuyPrice) {
+      toast({
+        title: "Validation Error",
+        description: "Please fill in all required fields",
+        variant: "destructive",
+      });
+      return;
+    }
 
+    const quantity = parseFloat(newAsset.quantity);
+    const price = parseFloat(newAsset.avgBuyPrice);
+
+    if (quantity <= 0 || price <= 0) {
+      toast({
+        title: "Validation Error",
+        description: "Quantity and price must be greater than 0",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsAddingAsset(true);
     try {
       const { error } = await supabase
         .from('crypto_assets')
         .insert([{
           user_id: user.id,
           symbol: newAsset.symbol.toUpperCase(),
-          quantity: parseFloat(newAsset.quantity),
-          avg_buy_price: parseFloat(newAsset.avgBuyPrice)
+          quantity: quantity,
+          avg_buy_price: price
         }]);
 
       if (error) throw error;
@@ -191,18 +211,21 @@ export const CryptoPortfolio = () => {
 
       toast({
         title: "Success",
-        description: "Crypto asset added to portfolio",
+        description: `${newAsset.symbol.toUpperCase()} added to portfolio`,
       });
     } catch (error) {
+      console.error('Error adding asset:', error);
       toast({
         title: "Error",
         description: "Failed to add crypto asset",
         variant: "destructive",
       });
+    } finally {
+      setIsAddingAsset(false);
     }
   };
 
-  const removeAsset = async (assetId: string) => {
+  const removeAsset = async (assetId: string, symbol: string) => {
     try {
       const { error } = await supabase
         .from('crypto_assets')
@@ -214,9 +237,10 @@ export const CryptoPortfolio = () => {
       fetchPortfolio();
       toast({
         title: "Success",
-        description: "Asset removed from portfolio",
+        description: `${symbol} removed from portfolio`,
       });
     } catch (error) {
+      console.error('Error removing asset:', error);
       toast({
         title: "Error",
         description: "Failed to remove asset",
@@ -236,7 +260,7 @@ export const CryptoPortfolio = () => {
 
   return (
     <div className="space-y-4 sm:space-y-6">
-      <Card className="card-hover">
+      <Card className="card-hover transition-all duration-200 border-primary/20">
         <CardHeader className="pb-4">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between space-y-4 sm:space-y-0">
             <CardTitle className="text-lg sm:text-xl">Crypto Portfolio</CardTitle>
@@ -247,7 +271,7 @@ export const CryptoPortfolio = () => {
                 onClick={refreshPrices}
                 disabled={isRefreshing}
                 className={cn(
-                  "button-hover transition-all duration-200 cursor-pointer",
+                  "button-hover transition-all duration-200 cursor-pointer min-h-[44px]",
                   isMobile ? "w-full" : "w-auto"
                 )}
               >
@@ -256,13 +280,13 @@ export const CryptoPortfolio = () => {
                   isRefreshing && "animate-spin",
                   !isMobile && "mr-2"
                 )} />
-                {!isMobile && "Refresh"}
+                {!isMobile && "Refresh Prices"}
               </Button>
               <Button 
                 size="sm" 
                 onClick={() => setShowAddForm(!showAddForm)}
                 className={cn(
-                  "button-hover transition-all duration-200 cursor-pointer",
+                  "button-hover transition-all duration-200 cursor-pointer min-h-[44px]",
                   isMobile ? "w-full" : "w-auto"
                 )}
               >
@@ -275,49 +299,44 @@ export const CryptoPortfolio = () => {
         <CardContent className="space-y-6">
           {/* Portfolio Summary - Mobile Optimized */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
-            <div className="text-center p-3 sm:p-4 bg-muted/30 rounded-lg hover-glow transition-all duration-200 cursor-pointer">
+            <div className="text-center p-4 bg-gradient-to-br from-primary/5 to-primary/10 rounded-lg border border-primary/20 hover-glow transition-all duration-200">
               <p className="text-xs sm:text-sm text-muted-foreground mb-1">Total Value</p>
-              <p className="text-lg sm:text-xl lg:text-2xl font-bold">
+              <p className="text-lg sm:text-xl lg:text-2xl font-bold text-primary">
                 ₹{totalValue.toLocaleString('en-IN', { maximumFractionDigits: 2 })}
               </p>
             </div>
-            <div className="text-center p-3 sm:p-4 bg-muted/30 rounded-lg hover-glow transition-all duration-200 cursor-pointer">
+            <div className="text-center p-4 bg-gradient-to-br from-green-500/5 to-green-500/10 rounded-lg border border-green-500/20 hover-glow transition-all duration-200">
               <p className="text-xs sm:text-sm text-muted-foreground mb-1">Total P&L</p>
               <p className={cn(
-                "text-lg sm:text-xl lg:text-2xl font-bold",
+                "text-lg sm:text-xl lg:text-2xl font-bold flex items-center justify-center gap-1",
                 totalPnL >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'
               )}>
-                {totalPnL >= 0 ? '+' : ''}₹{totalPnL.toLocaleString('en-IN', { maximumFractionDigits: 2 })}
+                {totalPnL >= 0 ? <TrendingUp className="h-4 w-4" /> : <TrendingDown className="h-4 w-4" />}
+                {totalPnL >= 0 ? '+' : ''}₹{Math.abs(totalPnL).toLocaleString('en-IN', { maximumFractionDigits: 2 })}
               </p>
             </div>
-            <div className="text-center p-3 sm:p-4 bg-muted/30 rounded-lg hover-glow transition-all duration-200 cursor-pointer">
+            <div className="text-center p-4 bg-gradient-to-br from-blue-500/5 to-blue-500/10 rounded-lg border border-blue-500/20 hover-glow transition-all duration-200">
               <p className="text-xs sm:text-sm text-muted-foreground mb-1">P&L Percentage</p>
-              <div className="flex items-center justify-center gap-1">
-                {totalPnLPercentage >= 0 ? (
-                  <TrendingUp className="h-4 w-4 text-green-600 dark:text-green-400" />
-                ) : (
-                  <TrendingDown className="h-4 w-4 text-red-600 dark:text-red-400" />
-                )}
-                <p className={cn(
-                  "text-lg sm:text-xl lg:text-2xl font-bold",
-                  totalPnLPercentage >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'
-                )}>
-                  {totalPnLPercentage >= 0 ? '+' : ''}{totalPnLPercentage.toFixed(2)}%
-                </p>
-              </div>
+              <p className={cn(
+                "text-lg sm:text-xl lg:text-2xl font-bold flex items-center justify-center gap-1",
+                totalPnLPercentage >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'
+              )}>
+                {totalPnLPercentage >= 0 ? <TrendingUp className="h-4 w-4" /> : <TrendingDown className="h-4 w-4" />}
+                {totalPnLPercentage >= 0 ? '+' : ''}{Math.abs(totalPnLPercentage).toFixed(2)}%
+              </p>
             </div>
           </div>
 
           {/* Add Asset Form - Mobile Optimized */}
           {showAddForm && (
-            <Card className="border-2 border-dashed border-primary/20 animate-scale-in">
+            <Card className="border-2 border-dashed border-primary/30 bg-primary/5 animate-scale-in">
               <CardHeader className="flex flex-row items-center justify-between pb-3">
                 <CardTitle className="text-base sm:text-lg">Add New Asset</CardTitle>
                 <Button
                   variant="ghost"
                   size="sm"
                   onClick={() => setShowAddForm(false)}
-                  className="hover-scale transition-all duration-200 cursor-pointer"
+                  className="hover-scale transition-all duration-200 cursor-pointer h-8 w-8 p-0"
                 >
                   <X className="h-4 w-4" />
                 </Button>
@@ -347,6 +366,7 @@ export const CryptoPortfolio = () => {
                         placeholder="0.00000001"
                         type="number"
                         step="0.00000001"
+                        min="0"
                         value={newAsset.quantity}
                         onChange={(e) => setNewAsset({ ...newAsset, quantity: e.target.value })}
                         className="focus-ring transition-all duration-200"
@@ -354,11 +374,12 @@ export const CryptoPortfolio = () => {
                     </div>
                     
                     <div className="space-y-2">
-                      <label className="text-sm font-medium">Avg Buy Price (INR)</label>
+                      <label className="text-sm font-medium">Avg Buy Price (₹)</label>
                       <Input
                         placeholder="0.00"
                         type="number"
                         step="0.01"
+                        min="0"
                         value={newAsset.avgBuyPrice}
                         onChange={(e) => setNewAsset({ ...newAsset, avgBuyPrice: e.target.value })}
                         className="focus-ring transition-all duration-200"
@@ -367,10 +388,26 @@ export const CryptoPortfolio = () => {
                   </div>
                   
                   <div className="flex flex-col sm:flex-row gap-2 mt-6">
-                    <Button onClick={addAsset} className="flex-1 button-hover transition-all duration-200 cursor-pointer">
-                      Add Asset
+                    <Button 
+                      onClick={addAsset} 
+                      disabled={isAddingAsset}
+                      className="flex-1 button-hover transition-all duration-200 cursor-pointer min-h-[44px]"
+                    >
+                      {isAddingAsset ? (
+                        <>
+                          <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                          Adding...
+                        </>
+                      ) : (
+                        "Add Asset"
+                      )}
                     </Button>
-                    <Button variant="outline" onClick={() => setShowAddForm(false)} className="flex-1 button-hover transition-all duration-200 cursor-pointer">
+                    <Button 
+                      variant="outline" 
+                      onClick={() => setShowAddForm(false)} 
+                      disabled={isAddingAsset}
+                      className="flex-1 button-hover transition-all duration-200 cursor-pointer min-h-[44px]"
+                    >
                       Cancel
                     </Button>
                   </div>
@@ -392,15 +429,22 @@ export const CryptoPortfolio = () => {
               </div>
               <p className="text-lg font-medium mb-2">No crypto assets in your portfolio</p>
               <p className="text-sm">Add your first asset to get started tracking your investments</p>
+              <Button 
+                onClick={() => setShowAddForm(true)} 
+                className="mt-4 button-hover transition-all duration-200"
+              >
+                <Plus className="h-4 w-4 mr-2" />
+                Add Your First Asset
+              </Button>
             </div>
           ) : (
             <div className="space-y-3 sm:space-y-4">
               {assets.map((asset) => (
-                <Card key={asset.id} className="border card-hover transition-all duration-200">
-                  <CardContent className="p-3 sm:p-4">
+                <Card key={asset.id} className="border card-hover transition-all duration-200 hover:border-primary/30">
+                  <CardContent className="p-4 sm:p-6">
                     <div className="flex items-start justify-between mb-4">
                       <div className="flex items-center gap-3 min-w-0 flex-1">
-                        <Badge variant="outline" className="text-sm font-bold px-3 py-1 hover-scale transition-all duration-200 cursor-pointer">
+                        <Badge variant="outline" className="text-sm font-bold px-3 py-2 hover-scale transition-all duration-200 cursor-pointer">
                           {asset.symbol}
                         </Badge>
                         <div className="min-w-0 flex-1">
@@ -415,10 +459,11 @@ export const CryptoPortfolio = () => {
                       <Button 
                         variant="outline" 
                         size="sm"
-                        onClick={() => removeAsset(asset.id)}
-                        className="hover-scale shrink-0 transition-all duration-200 cursor-pointer"
+                        onClick={() => removeAsset(asset.id, asset.symbol)}
+                        className="hover-scale shrink-0 transition-all duration-200 cursor-pointer hover:bg-destructive/10 hover:text-destructive hover:border-destructive/30"
                       >
-                        Remove
+                        <Trash2 className="h-4 w-4" />
+                        {!isMobile && <span className="ml-2">Remove</span>}
                       </Button>
                     </div>
                     
@@ -439,27 +484,22 @@ export const CryptoPortfolio = () => {
                       <div className="space-y-1">
                         <p className="text-muted-foreground text-xs">P&L</p>
                         <p className={cn(
-                          "font-semibold",
+                          "font-semibold flex items-center gap-1",
                           (asset.pnl || 0) >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'
                         )}>
-                          {(asset.pnl || 0) >= 0 ? '+' : ''}₹{(asset.pnl || 0).toLocaleString('en-IN', { maximumFractionDigits: 2 })}
+                          {(asset.pnl || 0) >= 0 ? <TrendingUp className="h-3 w-3" /> : <TrendingDown className="h-3 w-3" />}
+                          {(asset.pnl || 0) >= 0 ? '+' : ''}₹{Math.abs(asset.pnl || 0).toLocaleString('en-IN', { maximumFractionDigits: 2 })}
                         </p>
                       </div>
                       <div className="space-y-1">
                         <p className="text-muted-foreground text-xs">P&L %</p>
-                        <div className="flex items-center gap-1">
-                          {(asset.pnl_percentage || 0) >= 0 ? (
-                            <TrendingUp className="h-3 w-3 text-green-600 dark:text-green-400" />
-                          ) : (
-                            <TrendingDown className="h-3 w-3 text-red-600 dark:text-red-400" />
-                          )}
-                          <p className={cn(
-                            "font-semibold text-sm",
-                            (asset.pnl_percentage || 0) >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'
-                          )}>
-                            {(asset.pnl_percentage || 0) >= 0 ? '+' : ''}{(asset.pnl_percentage || 0).toFixed(2)}%
-                          </p>
-                        </div>
+                        <p className={cn(
+                          "font-semibold text-sm flex items-center gap-1",
+                          (asset.pnl_percentage || 0) >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'
+                        )}>
+                          {(asset.pnl_percentage || 0) >= 0 ? <TrendingUp className="h-3 w-3" /> : <TrendingDown className="h-3 w-3" />}
+                          {(asset.pnl_percentage || 0) >= 0 ? '+' : ''}{Math.abs(asset.pnl_percentage || 0).toFixed(2)}%
+                        </p>
                       </div>
                     </div>
                   </CardContent>
