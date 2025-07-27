@@ -38,7 +38,8 @@ export const useTaxCalendar = () => {
       if (!user) return [];
       
       try {
-        const { data, error } = await supabase
+        // Use type casting to bypass TypeScript issue until types are regenerated
+        const { data, error } = await (supabase as any)
           .from('tax_calendar_events')
           .select('*')
           .eq('user_id', user.id)
@@ -80,7 +81,7 @@ export const useTaxCalendar = () => {
       if (!user) throw new Error('User not authenticated');
 
       try {
-        const { data, error } = await supabase
+        const { data, error } = await (supabase as any)
           .from('tax_calendar_events')
           .insert({
             ...eventData,
@@ -116,7 +117,7 @@ export const useTaxCalendar = () => {
   const updateCalendarEvent = useMutation({
     mutationFn: async ({ id, ...updates }: Partial<TaxCalendarEvent> & { id: string }) => {
       try {
-        const { data, error } = await supabase
+        const { data, error } = await (supabase as any)
           .from('tax_calendar_events')
           .update(updates)
           .eq('id', id)
@@ -149,7 +150,7 @@ export const useTaxCalendar = () => {
   const deleteCalendarEvent = useMutation({
     mutationFn: async (id: string) => {
       try {
-        const { error } = await supabase
+        const { error } = await (supabase as any)
           .from('tax_calendar_events')
           .delete()
           .eq('id', id);
@@ -251,7 +252,7 @@ export const useTaxCalendar = () => {
           }
         ];
 
-        const { error } = await supabase
+        const { error } = await (supabase as any)
           .from('tax_calendar_events')
           .insert(defaultEvents);
 
