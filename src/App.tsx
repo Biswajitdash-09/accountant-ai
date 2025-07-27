@@ -1,6 +1,7 @@
+
 import React, { useState } from "react";
 import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
-import { QueryClient } from "@tanstack/react-query";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { Toaster } from "@/components/ui/toaster";
 import Landing from "@/pages/Landing";
@@ -20,11 +21,11 @@ import Layout from "@/components/Layout";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import AdvancedFeatures from "@/pages/AdvancedFeatures";
 
-function App() {
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+const queryClient = new QueryClient();
 
+function App() {
   return (
-    <QueryClient>
+    <QueryClientProvider client={queryClient}>
       <AuthProvider>
         <Router>
           <div className="min-h-screen bg-background">
@@ -36,10 +37,7 @@ function App() {
                 path="/*"
                 element={
                   <ProtectedRoute>
-                    <Layout
-                      sidebarCollapsed={sidebarCollapsed}
-                      onSidebarToggle={() => setSidebarCollapsed(!sidebarCollapsed)}
-                    >
+                    <Layout>
                       <Routes>
                         <Route path="/dashboard" element={<Dashboard />} />
                         <Route path="/transactions" element={<Transactions />} />
@@ -62,7 +60,7 @@ function App() {
           </div>
         </Router>
       </AuthProvider>
-    </QueryClient>
+    </QueryClientProvider>
   );
 }
 
