@@ -21,6 +21,12 @@ interface CryptoAsset {
   pnl_percentage?: number;
 }
 
+interface CryptoPrice {
+  symbol: string;
+  price: number;
+  fetched_at: string;
+}
+
 const POPULAR_CRYPTOS = [
   { symbol: 'BTC', name: 'Bitcoin' },
   { symbol: 'ETH', name: 'Ethereum' },
@@ -49,32 +55,54 @@ export const CryptoPortfolio = () => {
     if (!user) return;
 
     try {
-      const { data: portfolioData, error } = await supabase
-        .from('crypto_assets')
-        .select('*')
-        .eq('user_id', user.id);
+      console.log('Fetching crypto portfolio...');
+      
+      // Fetch crypto assets with explicit table name
+      const { data: portfolioData, error: portfolioError } = await supabase
+        .rpc('get_user_crypto_assets', { p_user_id: user.id });
 
-      if (error) throw error;
+      if (portfolioError) {
+        console.warn('RPC call failed, trying direct table query:', portfolioError);
+        
+        // Fallback to direct table query
+        const { data: fallbackData, error: fallbackError } = await (supabase as any)
+          .from('crypto_assets')
+          .select('*')
+          .eq('user_id', user.id);
+        
+        if (fallbackError) throw fallbackError;
+        
+        const enrichedAssets = fallbackData?.map((asset: any) => ({
+          ...asset,
+          current_price: 0,
+          market_value: 0,
+          pnl: 0,
+          pnl_percentage: 0
+        })) || [];
+        
+        setAssets(enrichedAssets);
+        return;
+      }
 
-      // Fetch current prices
-      const symbols = portfolioData?.map(asset => asset.symbol) || [];
+      // Fetch current prices for symbols
+      const symbols = portfolioData?.map((asset: any) => asset.symbol) || [];
       if (symbols.length > 0) {
-        const { data: pricesData } = await supabase
+        const { data: pricesData } = await (supabase as any)
           .from('crypto_prices')
           .select('symbol, price, fetched_at')
           .in('symbol', symbols)
           .order('fetched_at', { ascending: false });
 
         // Get latest price for each symbol
-        const latestPrices = pricesData?.reduce((acc, price) => {
-          if (!acc[price.symbol]) {
-            acc[price.symbol] = price.price;
+        const latestPrices: Record<string, number> = {};
+        pricesData?.forEach((price: CryptoPrice) => {
+          if (!latestPrices[price.symbol]) {
+            latestPrices[price.symbol] = price.price;
           }
-          return acc;
-        }, {} as Record<string, number>) || {};
+        });
 
         // Calculate portfolio metrics
-        const enrichedAssets = portfolioData?.map(asset => {
+        const enrichedAssets = portfolioData?.map((asset: any) => {
           const currentPrice = latestPrices[asset.symbol] || 0;
           const marketValue = asset.quantity * currentPrice;
           const costBasis = asset.quantity * asset.avg_buy_price;
@@ -142,7 +170,7 @@ export const CryptoPortfolio = () => {
     if (!user || !newAsset.symbol || !newAsset.quantity || !newAsset.avgBuyPrice) return;
 
     try {
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from('crypto_assets')
         .insert([{
           user_id: user.id,
@@ -172,7 +200,7 @@ export const CryptoPortfolio = () => {
 
   const removeAsset = async (assetId: string) => {
     try {
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from('crypto_assets')
         .delete()
         .eq('id', assetId);

@@ -351,6 +351,54 @@ export type Database = {
         }
         Relationships: []
       }
+      crypto_assets: {
+        Row: {
+          avg_buy_price: number
+          created_at: string | null
+          id: string
+          quantity: number
+          symbol: string
+          user_id: string
+        }
+        Insert: {
+          avg_buy_price: number
+          created_at?: string | null
+          id?: string
+          quantity: number
+          symbol: string
+          user_id: string
+        }
+        Update: {
+          avg_buy_price?: number
+          created_at?: string | null
+          id?: string
+          quantity?: number
+          symbol?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      crypto_prices: {
+        Row: {
+          fetched_at: string
+          id: number
+          price: number
+          symbol: string
+        }
+        Insert: {
+          fetched_at: string
+          id?: number
+          price: number
+          symbol: string
+        }
+        Update: {
+          fetched_at?: string
+          id?: number
+          price?: number
+          symbol?: string
+        }
+        Relationships: []
+      }
       currencies: {
         Row: {
           code: string

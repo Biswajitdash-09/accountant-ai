@@ -1,3 +1,4 @@
+
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
@@ -24,7 +25,7 @@ serve(async (req) => {
     // Default popular cryptocurrencies to track
     const defaultSymbols = ['bitcoin', 'ethereum', 'binancecoin', 'cardano', 'polkadot', 'matic-network', 'solana', 'chainlink'];
     const cryptoIds = symbols && symbols.length > 0 
-      ? symbols.map(mapSymbolToId).filter(Boolean)
+      ? symbols.map((symbol: string) => mapSymbolToId(symbol)).filter(Boolean)
       : defaultSymbols;
 
     if (cryptoIds.length === 0) {
@@ -47,7 +48,7 @@ serve(async (req) => {
 
     for (const [cryptoId, prices] of Object.entries(priceData)) {
       const symbol = mapIdToSymbol(cryptoId);
-      const price = prices.inr;
+      const price = (prices as any).inr;
 
       if (symbol && price) {
         cryptoPrices.push({
