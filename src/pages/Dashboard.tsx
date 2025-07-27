@@ -3,7 +3,7 @@ import React, { useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { DollarSign, TrendingUp, TrendingDown, PieChart, CheckSquare, Calendar, Bell } from "lucide-react";
+import { DollarSign, TrendingUp, TrendingDown, PieChart, CheckSquare, Calendar, Bell, Bitcoin } from "lucide-react";
 import { MetricCard } from "@/components/dashboard/MetricCard";
 import IncomeExpenseChart from "@/components/dashboard/IncomeExpenseChart";
 import ExpenseChart from "@/components/dashboard/ExpenseChart";
@@ -12,6 +12,8 @@ import FinancialGoalsManager from "@/components/dashboard/FinancialGoalsManager"
 import { TaskManager } from "@/components/TaskManager";
 import { DeadlineTracker } from "@/components/DeadlineTracker";
 import { NotificationCenter } from "@/components/NotificationCenter";
+import { CryptoPortfolio } from "@/components/CryptoPortfolio";
+import { CurrencyConverter } from "@/components/CurrencyConverter";
 import { useCurrencyFormatter } from "@/hooks/useCurrencyFormatter";
 import { useNotificationService } from "@/hooks/useNotificationService";
 import { useDemoMode } from "@/hooks/useDemoMode";
@@ -133,9 +135,13 @@ const Dashboard = () => {
         <DemoAccountBadge />
 
         <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
-          <TabsList className="grid w-full grid-cols-2 sm:grid-cols-4 h-auto">
+          <TabsList className="grid w-full grid-cols-2 sm:grid-cols-5 h-auto">
             <TabsTrigger value="overview" className="text-xs sm:text-sm p-2 sm:p-3">
               Overview
+            </TabsTrigger>
+            <TabsTrigger value="markets" className="text-xs sm:text-sm p-2 sm:p-3">
+              <Bitcoin className="h-4 w-4 mr-1" />
+              Markets
             </TabsTrigger>
             <TabsTrigger value="tasks" className="text-xs sm:text-sm p-2 sm:p-3">
               Tasks
@@ -202,6 +208,41 @@ const Dashboard = () => {
             <div className="grid gap-6 grid-cols-1 xl:grid-cols-2">
               <RecentTransactions transactions={sampleTransactions} />
               <FinancialGoalsManager />
+            </div>
+          </TabsContent>
+
+          <TabsContent value="markets" className="space-y-6">
+            <div className="space-y-8">
+              <div>
+                <h2 className="text-2xl font-bold mb-2 flex items-center gap-2">
+                  <Bitcoin className="h-6 w-6 text-primary" />
+                  Markets & Portfolio Tracking
+                </h2>
+                <p className="text-muted-foreground">
+                  Track your crypto portfolio and convert currencies in real-time.
+                </p>
+              </div>
+
+              <Tabs defaultValue="crypto" className="w-full">
+                <TabsList className="grid w-full grid-cols-2">
+                  <TabsTrigger value="crypto" className="gap-2">
+                    <Bitcoin className="h-4 w-4" />
+                    Crypto Portfolio
+                  </TabsTrigger>
+                  <TabsTrigger value="currency" className="gap-2">
+                    <DollarSign className="h-4 w-4" />
+                    Currency Converter
+                  </TabsTrigger>
+                </TabsList>
+
+                <TabsContent value="crypto" className="space-y-6">
+                  <CryptoPortfolio />
+                </TabsContent>
+
+                <TabsContent value="currency" className="space-y-6">
+                  <CurrencyConverter />
+                </TabsContent>
+              </Tabs>
             </div>
           </TabsContent>
 
