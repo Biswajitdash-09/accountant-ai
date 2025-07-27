@@ -30,22 +30,14 @@ export const useVoiceEntries = () => {
     queryFn: async () => {
       if (!user) return [];
       
-      const { data, error } = await supabase
-        .rpc('get_voice_entries', { p_user_id: user.id });
-
-      if (error) {
-        // Fallback to direct query if RPC doesn't exist
-        console.log('RPC not available, using direct query');
-        const { data: directData, error: directError } = await (supabase as any)
-          .from('voice_entries')
-          .select('*')
-          .eq('user_id', user.id)
-          .order('created_at', { ascending: false });
-        
-        if (directError) throw directError;
-        return (directData || []) as VoiceEntry[];
-      }
+      // Direct query to voice_entries table
+      const { data, error } = await (supabase as any)
+        .from('voice_entries')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false });
       
+      if (error) throw error;
       return (data || []) as VoiceEntry[];
     },
     enabled: !!user,
@@ -65,32 +57,27 @@ export const useVoiceEntries = () => {
 
       if (uploadError) throw uploadError;
 
-      // Create voice entry record using RPC or direct insert
-      try {
-        const { data: voiceEntry, error: insertError } = await (supabase as any)
-          .from('voice_entries')
-          .insert([{
-            user_id: user.id,
-            storage_path: uploadData.path,
-            status: 'uploaded'
-          }])
-          .select()
-          .single();
+      // Create voice entry record
+      const { data: voiceEntry, error: insertError } = await (supabase as any)
+        .from('voice_entries')
+        .insert([{
+          user_id: user.id,
+          storage_path: uploadData.path,
+          status: 'uploaded'
+        }])
+        .select()
+        .single();
 
-        if (insertError) throw insertError;
+      if (insertError) throw insertError;
 
-        // Trigger processing Edge Function
-        const { error: processError } = await supabase.functions.invoke('process-voice', {
-          body: { entry_id: voiceEntry.id }
-        });
+      // Trigger processing Edge Function
+      const { error: processError } = await supabase.functions.invoke('process-voice', {
+        body: { entry_id: voiceEntry.id }
+      });
 
-        if (processError) console.warn('Processing trigger failed:', processError);
+      if (processError) console.warn('Processing trigger failed:', processError);
 
-        return voiceEntry;
-      } catch (dbError) {
-        console.error('Database insert failed:', dbError);
-        throw new Error('Failed to create voice entry record');
-      }
+      return voiceEntry;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['voice-entries'] });
