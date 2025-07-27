@@ -1,337 +1,219 @@
-
-import React, { useState, useCallback } from 'react';
-import { useDropzone } from 'react-dropzone';
-import { useDocuments } from '@/hooks/useDocuments';
-import { useToast } from "@/components/ui/use-toast";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { useState } from "react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Upload as UploadIcon, FileText, Mic, Image } from "lucide-react";
+import { DocumentSearch } from "@/components/DocumentSearch";
+import { useDocuments } from "@/hooks/useDocuments";
+import { VoiceRecording } from "@/components/VoiceRecording";
+import { VoiceEntriesList } from "@/components/VoiceEntriesList";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Progress } from "@/components/ui/progress";
-import { Loader2, Upload as UploadIcon, FileText, AlertCircle, CheckCircle } from "lucide-react";
+import { useToast } from "@/components/ui/use-toast";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { useDemoMode } from "@/hooks/useDemoMode";
-import DemoAccountBadge from "@/components/DemoAccountBadge";
-import { MobileForm } from "@/components/ui/mobile-form";
+import { useAuth } from "@/contexts/AuthContext";
+import { useDropzone } from 'react-dropzone';
 
-const Upload = () => {
-  const { createDocument } = useDocuments();
+const DocumentUploadZone = () => {
   const { toast } = useToast();
-  const { isDemo } = useDemoMode();
-  const [extractedText, setExtractedText] = useState('');
-  const [confidence, setConfidence] = useState(0);
-  const [isUploading, setIsUploading] = useState(false);
-  const [uploadProgress, setUploadProgress] = useState(0);
-  const [uploadedFiles, setUploadedFiles] = useState<Array<{
-    name: string;
-    size: number;
-    status: 'uploading' | 'success' | 'error';
-    extractedText?: string;
-  }>>([]);
+  const { createDocument } = useDocuments();
+  const queryClient = useQueryClient();
+  const { user } = useAuth();
 
-  const onDrop = useCallback(async (acceptedFiles: File[]) => {
-    if (isDemo) {
-      // Demo mode simulation
-      setIsUploading(true);
-      setUploadProgress(0);
-      
-      const simulateUpload = () => {
-        const interval = setInterval(() => {
-          setUploadProgress((prev) => {
-            if (prev >= 100) {
-              clearInterval(interval);
-              setIsUploading(false);
-              setExtractedText("This is a demo extraction. In the full version, this would contain the actual extracted text from your document.");
-              setConfidence(85.5);
-              toast({
-                title: "Demo Upload Complete",
-                description: "Document processed successfully (demo mode)",
-              });
-              return 100;
-            }
-            return prev + 20;
-          });
-        }, 500);
-      };
-      
-      simulateUpload();
+  const onDrop = async (acceptedFiles: File[]) => {
+    if (!user) {
+      toast({
+        title: "Error",
+        description: "User not authenticated",
+        variant: "destructive",
+      });
       return;
     }
 
-    const file = acceptedFiles[0];
-    if (!file) return;
+    for (const file of acceptedFiles) {
+      const file_name = file.name;
+      const file_type = file.type;
+      const file_size = file.size;
 
-    setIsUploading(true);
-    setUploadProgress(0);
-
-    try {
-      // Add file to uploading list
-      const newFile = {
-        name: file.name,
-        size: file.size,
-        status: 'uploading' as const
-      };
-      setUploadedFiles(prev => [...prev, newFile]);
-
-      // Simulate upload progress
-      const progressInterval = setInterval(() => {
-        setUploadProgress((prev) => {
-          if (prev >= 90) {
-            clearInterval(progressInterval);
-            return 90;
-          }
-          return prev + 10;
-        });
-      }, 200);
-
-      // 1. Upload file to Supabase storage
-      const fileName = `${Date.now()}-${file.name}`;
-      const filePath = `uploads/${fileName}`;
-
+      // Upload file to Supabase storage
+      const storagePath = `documents/${user.id}/${Date.now()}-${file_name}`;
       const { data, error: uploadError } = await supabase.storage
         .from('documents')
-        .upload(filePath, file, {
-          cacheControl: '3600',
-          upsert: false
+        .upload(storagePath, file, {
+          contentType: file_type,
         });
 
       if (uploadError) {
-        console.error("File upload error:", uploadError);
-        throw new Error("Failed to upload file");
+        toast({
+          title: "Error",
+          description: `Failed to upload ${file_name}`,
+          variant: "destructive",
+        });
+        console.error('File upload error:', uploadError);
+        continue; // Skip to the next file
       }
 
-      setUploadProgress(100);
-      clearInterval(progressInterval);
+      // Get public URL
+      const { data: publicUrlData } = supabase.storage
+        .from('documents')
+        .getPublicUrl(storagePath);
+      const public_url = publicUrlData.publicUrl;
 
-      const publicUrl = supabase.storage.from('documents').getPublicUrl(filePath).data.publicUrl;
+      // Create document record in Supabase
+      try {
+        await createDocument.mutateAsync({
+          file_name,
+          file_type,
+          file_size,
+          storage_path: storagePath,
+          public_url: public_url,
+          processing_status: 'pending',
+          version: 1,
+        });
+      } catch (error) {
+        toast({
+          title: "Error",
+          description: `Failed to create document record for ${file_name}`,
+          variant: "destructive",
+        });
+        console.error('Create document record error:', error);
 
-      // For now, simulate text extraction since we don't have the edge function
-      const simulatedExtraction = {
-        text: `Extracted text from ${file.name}:\n\nThis is a placeholder for the actual extracted text. In production, this would contain the real OCR results from your document.`,
-        confidence: 85.5
-      };
-
-      setExtractedText(simulatedExtraction.text);
-      setConfidence(simulatedExtraction.confidence);
-
-      // 3. Create a document record in the database
-      const documentData = {
-        file_name: file.name,
-        file_size: file.size,
-        file_type: file.type,
-        storage_path: filePath,
-        public_url: publicUrl,
-        extracted_text: simulatedExtraction.text,
-        category: 'general',
-        tags: [],
-        ai_confidence: simulatedExtraction.confidence,
-        processing_status: 'completed',
-        processed_at: new Date().toISOString(),
-        version: 1,
-      };
-
-      await createDocument.mutateAsync(documentData);
-
-      // Update file status
-      setUploadedFiles(prev => 
-        prev.map(f => 
-          f.name === file.name 
-            ? { ...f, status: 'success' as const, extractedText: simulatedExtraction.text }
-            : f
-        )
-      );
-
-      toast({
-        title: "Upload Successful",
-        description: `${file.name} has been processed successfully.`,
-      });
-
-    } catch (error: any) {
-      console.error("Error during upload and processing:", error);
-      
-      setUploadedFiles(prev => 
-        prev.map(f => 
-          f.name === file.name 
-            ? { ...f, status: 'error' as const }
-            : f
-        )
-      );
-
-      toast({
-        title: "Upload Error",
-        description: error.message || "An error occurred during file upload and processing.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsUploading(false);
-      setUploadProgress(0);
+        // Optionally, delete the file from storage if record creation fails
+        await supabase.storage
+          .from('documents')
+          .remove([storagePath]);
+      }
     }
-  }, [createDocument, toast, isDemo]);
+  };
 
-  const { getRootProps, getInputProps, isDragActive } = useDropzone({ 
-    onDrop,
-    accept: {
-      'image/*': ['.jpeg', '.jpg', '.png', '.gif'],
-      'application/pdf': ['.pdf'],
-      'text/plain': ['.txt']
-    },
-    maxFiles: 1
-  });
+  const { getRootProps, getInputProps, isDragActive } = useDropzone({ onDrop });
 
   return (
-    <div className="container mx-auto p-4 max-w-4xl">
-      <div className="space-y-6">
-        <div>
-          <h1 className="text-2xl sm:text-3xl font-bold">Upload Documents</h1>
-          <p className="text-muted-foreground mt-2">
-            Upload and process your financial documents with AI-powered text extraction
-          </p>
+    <Card>
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2">
+          <UploadIcon className="h-5 w-5" />
+          Upload Documents
+        </CardTitle>
+      </CardHeader>
+      <CardContent>
+        <div {...getRootProps()} className="border-2 border-dashed rounded-md p-6 text-center">
+          <input {...getInputProps()} />
+          {
+            isDragActive ?
+              <p>Drop the files here ...</p> :
+              <>
+                <p>Drag 'n' drop some files here, or click to select files</p>
+                <p className="text-muted-foreground text-sm mt-2">Supported formats: PDF, DOCX, TXT, JPG, PNG</p>
+              </>
+          }
         </div>
+      </CardContent>
+    </Card>
+  );
+};
 
-        <DemoAccountBadge />
+const DocumentsList = () => {
+  const { documents, isLoading, error } = useDocuments();
 
-        <MobileForm>
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <UploadIcon className="h-5 w-5" />
-                Document Upload
-              </CardTitle>
-              <CardDescription>
-                Drag and drop your documents or click to select files
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div 
-                {...getRootProps()} 
-                className={`
-                  relative border-2 border-dashed rounded-lg p-8 sm:p-12 cursor-pointer transition-colors
-                  ${isDragActive ? 'border-primary bg-primary/5' : 'border-muted-foreground/25 hover:border-primary/50'}
-                  ${isUploading ? 'pointer-events-none' : ''}
-                `}
-              >
-                <input {...getInputProps()} />
-                
-                <div className="text-center space-y-4">
-                  <UploadIcon className="h-12 w-12 mx-auto text-muted-foreground" />
-                  
-                  {isDragActive ? (
-                    <p className="text-lg text-primary">Drop the files here...</p>
-                  ) : (
-                    <div className="space-y-2">
-                      <p className="text-lg font-medium">
-                        Drag & drop files here, or click to select
-                      </p>
-                      <p className="text-sm text-muted-foreground">
-                        Supports PDF, images (JPEG, PNG, GIF), and text files
-                      </p>
-                    </div>
-                  )}
-                  
-                  {!isUploading && (
-                    <Button type="button" variant="outline" className="mt-4">
-                      Choose Files
-                    </Button>
-                  )}
-                </div>
+  if (isLoading) {
+    return (
+      <Card>
+        <CardContent className="p-6">
+          <div className="text-center text-muted-foreground">Loading documents...</div>
+        </CardContent>
+      </Card>
+    );
+  }
 
-                {isUploading && (
-                  <div className="absolute inset-0 flex items-center justify-center bg-background/80 rounded-lg">
-                    <div className="text-center space-y-4 w-full max-w-xs mx-auto">
-                      <Loader2 className="h-8 w-8 animate-spin mx-auto" />
-                      <div className="space-y-2">
-                        <p className="font-medium">Uploading...</p>
-                        <Progress value={uploadProgress} className="w-full" />
-                        <p className="text-sm text-muted-foreground">{uploadProgress}%</p>
-                      </div>
-                    </div>
-                  </div>
-                )}
-              </div>
-            </CardContent>
-          </Card>
+  if (error) {
+    return (
+      <Card>
+        <CardContent className="p-6">
+          <div className="text-center text-destructive">Error: {error.message}</div>
+        </CardContent>
+      </Card>
+    );
+  }
 
-          {uploadedFiles.length > 0 && (
-            <Card>
-              <CardHeader>
-                <CardTitle>Upload History</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-3">
-                  {uploadedFiles.map((file, index) => (
-                    <div key={index} className="flex items-center justify-between p-3 border rounded-lg">
-                      <div className="flex items-center gap-3">
-                        <FileText className="h-5 w-5 text-muted-foreground" />
-                        <div>
-                          <p className="font-medium">{file.name}</p>
-                          <p className="text-sm text-muted-foreground">
-                            {(file.size / 1024).toFixed(1)} KB
-                          </p>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        {file.status === 'uploading' && (
-                          <Badge variant="secondary">
-                            <Loader2 className="h-3 w-3 animate-spin mr-1" />
-                            Uploading
-                          </Badge>
-                        )}
-                        {file.status === 'success' && (
-                          <Badge variant="default" className="bg-green-500">
-                            <CheckCircle className="h-3 w-3 mr-1" />
-                            Success
-                          </Badge>
-                        )}
-                        {file.status === 'error' && (
-                          <Badge variant="destructive">
-                            <AlertCircle className="h-3 w-3 mr-1" />
-                            Error
-                          </Badge>
-                        )}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          )}
+  if (documents.length === 0) {
+    return (
+      <Card>
+        <CardContent className="p-6">
+          <div className="text-center text-muted-foreground">No documents uploaded yet</div>
+        </CardContent>
+      </Card>
+    );
+  }
 
-          {extractedText && (
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <FileText className="h-5 w-5" />
-                  Extracted Text
-                </CardTitle>
-                <CardDescription>
-                  AI-powered text extraction results
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  <div className="p-4 bg-muted rounded-lg">
-                    <pre className="whitespace-pre-wrap text-sm font-mono text-foreground overflow-x-auto">
-                      {extractedText}
-                    </pre>
-                  </div>
-                  
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <span className="text-sm font-medium">AI Confidence:</span>
-                      <Badge variant={confidence > 80 ? "default" : confidence > 60 ? "secondary" : "destructive"}>
-                        {confidence.toFixed(1)}%
-                      </Badge>
-                    </div>
-                    
-                    <Button variant="outline" size="sm" onClick={() => navigator.clipboard.writeText(extractedText)}>
-                      Copy Text
-                    </Button>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          )}
-        </MobileForm>
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2">
+          <FileText className="h-5 w-5" />
+          Uploaded Documents ({documents.length})
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-3">
+        {documents.map((doc) => (
+          <div key={doc.id} className="flex items-center justify-between border rounded-md p-3">
+            <div>
+              <p className="font-medium">{doc.file_name}</p>
+              <p className="text-sm text-muted-foreground">
+                {doc.file_type} - {Math.round(doc.file_size / 1024)} KB
+              </p>
+            </div>
+            <a href={doc.public_url} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
+              View
+            </a>
+          </div>
+        ))}
+      </CardContent>
+    </Card>
+  );
+};
+
+const Upload = () => {
+  return (
+    <div className="container mx-auto px-4 py-8 space-y-8">
+      <div>
+        <h1 className="text-3xl font-bold mb-2">Document & Voice Processing</h1>
+        <p className="text-muted-foreground">
+          Upload documents for OCR processing or record voice entries for automatic transaction creation
+        </p>
       </div>
+
+      <Tabs defaultValue="documents" className="w-full">
+        <TabsList className="grid w-full grid-cols-3">
+          <TabsTrigger value="documents" className="gap-2">
+            <FileText className="h-4 w-4" />
+            Documents
+          </TabsTrigger>
+          <TabsTrigger value="voice" className="gap-2">
+            <Mic className="h-4 w-4" />
+            Voice Recording
+          </TabsTrigger>
+          <TabsTrigger value="search" className="gap-2">
+            <Image className="h-4 w-4" />
+            Search & Manage
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="documents" className="space-y-6">
+          <DocumentUploadZone />
+          <DocumentsList />
+        </TabsContent>
+
+        <TabsContent value="voice" className="space-y-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <VoiceRecording />
+            <VoiceEntriesList />
+          </div>
+        </TabsContent>
+
+        <TabsContent value="search" className="space-y-6">
+          <DocumentSearch />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 };
