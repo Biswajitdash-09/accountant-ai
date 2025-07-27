@@ -34,22 +34,39 @@ export const useTaxCalendar = () => {
     error
   } = useQuery({
     queryKey: ['tax_calendar_events'],
-    queryFn: async () => {
+    queryFn: async (): Promise<TaxCalendarEvent[]> => {
       if (!user) return [];
       
       try {
         const { data, error } = await supabase
-          .from('tax_calendar_events' as any)
+          .from('tax_calendar_events')
           .select('*')
           .eq('user_id', user.id)
           .order('event_date', { ascending: true });
 
         if (error) {
           console.error('Error fetching tax calendar events:', error);
-          return [];
+          throw error;
         }
         
-        return (data || []) as TaxCalendarEvent[];
+        return (data || []).map((item: any): TaxCalendarEvent => ({
+          id: item.id,
+          user_id: item.user_id,
+          business_entity_id: item.business_entity_id,
+          event_title: item.event_title,
+          event_type: item.event_type,
+          event_date: item.event_date,
+          due_date: item.due_date,
+          description: item.description,
+          amount: item.amount || 0,
+          status: item.status,
+          reminder_days: item.reminder_days || [30, 7, 1],
+          is_recurring: item.is_recurring || false,
+          recurrence_pattern: item.recurrence_pattern,
+          metadata: item.metadata || {},
+          created_at: item.created_at,
+          updated_at: item.updated_at,
+        }));
       } catch (err) {
         console.error('Tax calendar fetch error:', err);
         return [];
@@ -64,7 +81,7 @@ export const useTaxCalendar = () => {
 
       try {
         const { data, error } = await supabase
-          .from('tax_calendar_events' as any)
+          .from('tax_calendar_events')
           .insert({
             ...eventData,
             user_id: user.id,
@@ -100,7 +117,7 @@ export const useTaxCalendar = () => {
     mutationFn: async ({ id, ...updates }: Partial<TaxCalendarEvent> & { id: string }) => {
       try {
         const { data, error } = await supabase
-          .from('tax_calendar_events' as any)
+          .from('tax_calendar_events')
           .update(updates)
           .eq('id', id)
           .select()
@@ -133,7 +150,7 @@ export const useTaxCalendar = () => {
     mutationFn: async (id: string) => {
       try {
         const { error } = await supabase
-          .from('tax_calendar_events' as any)
+          .from('tax_calendar_events')
           .delete()
           .eq('id', id);
 
@@ -164,7 +181,6 @@ export const useTaxCalendar = () => {
       if (!user) throw new Error('User not authenticated');
 
       try {
-        // Create default events manually since RPC might not be available yet
         const currentYear = new Date().getFullYear();
         const defaultEvents = [
           {
@@ -236,7 +252,7 @@ export const useTaxCalendar = () => {
         ];
 
         const { error } = await supabase
-          .from('tax_calendar_events' as any)
+          .from('tax_calendar_events')
           .insert(defaultEvents);
 
         if (error) throw error;
