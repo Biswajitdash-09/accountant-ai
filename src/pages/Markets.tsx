@@ -4,6 +4,7 @@ import { TrendingUp, DollarSign, Bitcoin } from "lucide-react";
 import { CryptoPortfolio } from "@/components/CryptoPortfolio";
 import { CurrencyConverter } from "@/components/CurrencyConverter";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { cn } from "@/lib/utils";
 
 const Markets = () => {
   const isMobile = useIsMobile();
