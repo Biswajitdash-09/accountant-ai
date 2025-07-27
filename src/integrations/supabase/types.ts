@@ -542,6 +542,30 @@ export type Database = {
           },
         ]
       }
+      exchange_rates: {
+        Row: {
+          base: string
+          fetched_at: string
+          id: string
+          quote: string
+          rate: number
+        }
+        Insert: {
+          base: string
+          fetched_at?: string
+          id?: string
+          quote: string
+          rate: number
+        }
+        Update: {
+          base?: string
+          fetched_at?: string
+          id?: string
+          quote?: string
+          rate?: number
+        }
+        Relationships: []
+      }
       financial_goals: {
         Row: {
           business_entity_id: string | null
@@ -1547,6 +1571,17 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      get_user_crypto_assets: {
+        Args: { p_user_id: string }
+        Returns: {
+          id: string
+          user_id: string
+          symbol: string
+          quantity: number
+          avg_buy_price: number
+          created_at: string
+        }[]
+      }
       log_security_event: {
         Args: {
           p_user_id: string
