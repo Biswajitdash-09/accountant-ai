@@ -3,14 +3,9 @@ import React, { useState } from "react";
 import {
   Sheet,
   SheetContent,
-  SheetDescription,
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger,
 } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Separator } from "@/components/ui/separator";
 import {
   LayoutDashboard,
   FileText,
@@ -23,12 +18,11 @@ import {
   TrendingUp,
   User,
   Zap,
-  Settings,
   Menu,
   ChevronLeft,
   ChevronRight,
 } from "lucide-react";
-import { Link, useLocation, useNavigate } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { cn } from "@/lib/utils";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -36,13 +30,14 @@ import { useIsMobile } from "@/hooks/use-mobile";
 interface SidebarProps {
   isCollapsed: boolean;
   onToggle: () => void;
+  isMobileOpen?: boolean;
+  onMobileToggle?: () => void;
 }
 
-const Sidebar = ({ isCollapsed, onToggle }: SidebarProps) => {
+const Sidebar = ({ isCollapsed, onToggle, isMobileOpen = false, onMobileToggle }: SidebarProps) => {
   const location = useLocation();
-  const { signOut, user } = useAuth();
+  const { signOut } = useAuth();
   const [isLoggingOut, setIsLoggingOut] = useState(false);
-  const [mobileSheetOpen, setMobileSheetOpen] = useState(false);
   const isMobile = useIsMobile();
 
   const handleSignOut = async () => {
@@ -128,12 +123,12 @@ const Sidebar = ({ isCollapsed, onToggle }: SidebarProps) => {
         )}
         
         {/* Collapse toggle - only show on desktop */}
-        {!isMobileSheet && (
+        {!isMobileSheet && !isMobile && (
           <Button
             variant="ghost"
             size="icon"
             onClick={onToggle}
-            className="ml-auto shrink-0"
+            className="ml-auto shrink-0 hover-scale transition-all duration-200"
           >
             {isCollapsed ? (
               <ChevronRight className="h-4 w-4" />
@@ -153,13 +148,13 @@ const Sidebar = ({ isCollapsed, onToggle }: SidebarProps) => {
               asChild
               variant="ghost"
               className={cn(
-                "justify-start font-normal h-10",
+                "justify-start font-normal h-10 hover-scale transition-all duration-200",
                 location.pathname === item.href
                   ? "bg-accent text-accent-foreground hover:bg-accent hover:text-accent-foreground"
                   : "hover:bg-accent hover:text-accent-foreground",
                 isCollapsed && !isMobileSheet ? "px-2 justify-center" : "px-3"
               )}
-              onClick={() => isMobileSheet && setMobileSheetOpen(false)}
+              onClick={() => isMobileSheet && onMobileToggle && onMobileToggle()}
             >
               <Link to={item.href} className="flex items-center gap-3 w-full">
                 <item.icon className="h-4 w-4 shrink-0" />
@@ -176,7 +171,7 @@ const Sidebar = ({ isCollapsed, onToggle }: SidebarProps) => {
       <div className="border-t p-4">
         <Button
           variant="outline"
-          className="w-full justify-center"
+          className="w-full justify-center hover-scale transition-all duration-200"
           onClick={handleSignOut}
           disabled={isLoggingOut}
         >
@@ -191,16 +186,7 @@ const Sidebar = ({ isCollapsed, onToggle }: SidebarProps) => {
   // Mobile view with Sheet
   if (isMobile) {
     return (
-      <Sheet open={mobileSheetOpen} onOpenChange={setMobileSheetOpen}>
-        <SheetTrigger asChild>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="md:hidden"
-          >
-            <Menu className="h-5 w-5" />
-          </Button>
-        </SheetTrigger>
+      <Sheet open={isMobileOpen} onOpenChange={onMobileToggle}>
         <SheetContent side="left" className="w-72 p-0">
           <SidebarContent isMobileSheet={true} />
         </SheetContent>

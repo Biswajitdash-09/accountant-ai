@@ -1,4 +1,5 @@
-import { Bell, User } from "lucide-react";
+
+import { Bell, User, Sun, Moon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -7,11 +8,12 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useAuth } from "@/contexts/AuthContext";
+import { useTheme } from "@/hooks/useTheme";
 import { Link } from "react-router-dom";
 import CurrencySelector from "./CurrencySelector";
-import Sidebar from "./Sidebar";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { cn } from "@/lib/utils";
+import { Menu } from "lucide-react";
 
 interface HeaderProps {
   onMobileMenuToggle: () => void;
@@ -19,22 +21,29 @@ interface HeaderProps {
 
 const Header = ({ onMobileMenuToggle }: HeaderProps) => {
   const { signOut } = useAuth();
+  const { theme, toggleTheme } = useTheme();
   const isMobile = useIsMobile();
 
   return (
     <header className="flex items-center justify-between p-4 bg-background border-b">
       {/* Mobile menu button / Logo */}
       <div className="flex items-center gap-4">
-        {isMobile && <Sidebar isCollapsed={false} onToggle={onMobileMenuToggle} />}
+        {isMobile && (
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={onMobileMenuToggle}
+            className="hover-scale transition-all duration-200"
+          >
+            <Menu className="h-5 w-5" />
+          </Button>
+        )}
         
-        {/* Show logo on mobile when sidebar is closed */}
-        <div className={cn("lg:hidden", !isMobile && "hidden")}>
-          <h1 className="text-lg font-semibold">Accountant AI</h1>
-        </div>
-
-        {/* Show logo on desktop */}
-        <div className="hidden lg:block">
-          <h1 className="text-xl font-semibold">Accountant AI</h1>
+        {/* Show logo */}
+        <div className={cn(isMobile ? "block" : "hidden lg:block")}>
+          <h1 className={cn("font-semibold", isMobile ? "text-lg" : "text-xl")}>
+            Accountant AI
+          </h1>
         </div>
       </div>
 
@@ -44,13 +53,35 @@ const Header = ({ onMobileMenuToggle }: HeaderProps) => {
           <CurrencySelector />
         </div>
         
-        <Button variant="ghost" size="icon" className="hidden sm:flex">
+        {/* Dark mode toggle */}
+        <Button 
+          variant="ghost" 
+          size="icon" 
+          onClick={toggleTheme}
+          className="hover-scale transition-all duration-200"
+        >
+          {theme === 'dark' ? (
+            <Sun className="h-5 w-5" />
+          ) : (
+            <Moon className="h-5 w-5" />
+          )}
+        </Button>
+        
+        <Button 
+          variant="ghost" 
+          size="icon" 
+          className="hidden sm:flex hover-scale transition-all duration-200"
+        >
           <Bell className="h-5 w-5" />
         </Button>
 
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="icon">
+            <Button 
+              variant="ghost" 
+              size="icon"
+              className="hover-scale transition-all duration-200"
+            >
               <User className="h-5 w-5" />
             </Button>
           </DropdownMenuTrigger>

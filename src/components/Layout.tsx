@@ -11,17 +11,27 @@ interface LayoutProps {
 const Layout = ({ children }: LayoutProps) => {
   const location = useLocation();
   const [isCollapsed, setIsCollapsed] = useState(false);
+  const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
 
   const toggleSidebar = () => {
     setIsCollapsed(!isCollapsed);
   };
+
+  const toggleMobileSidebar = () => {
+    setIsMobileSidebarOpen(!isMobileSidebarOpen);
+  };
   
   return (
     <div className="flex h-screen bg-background">
-      <Sidebar isCollapsed={isCollapsed} onToggle={toggleSidebar} />
+      <Sidebar 
+        isCollapsed={isCollapsed} 
+        onToggle={toggleSidebar}
+        isMobileOpen={isMobileSidebarOpen}
+        onMobileToggle={toggleMobileSidebar}
+      />
       
       <div className="flex-1 flex flex-col">
-        <Header onMobileMenuToggle={toggleSidebar} />
+        <Header onMobileMenuToggle={toggleMobileSidebar} />
         <main className="flex-1 p-4 lg:p-6 overflow-auto">
           {children}
         </main>
