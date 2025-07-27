@@ -71,7 +71,7 @@ const Notifications = () => {
         {unreadCount > 0 && (
           <Button
             variant="outline"
-            onClick={markAllAsRead}
+            onClick={() => markAllAsRead.mutate()}
             className="hidden sm:flex items-center gap-2"
           >
             <Check className="h-4 w-4" />
@@ -132,7 +132,7 @@ const Notifications = () => {
                       <Button
                         variant="ghost"
                         size="sm"
-                        onClick={() => markAsRead(notification.id)}
+                        onClick={() => markAsRead.mutate(notification.id)}
                         className="text-xs"
                       >
                         <Check className="h-3 w-3" />
@@ -142,7 +142,7 @@ const Notifications = () => {
                     <Button
                       variant="ghost"
                       size="sm"
-                      onClick={() => deleteNotification(notification.id)}
+                      onClick={() => deleteNotification.mutate(notification.id)}
                       className="text-xs text-destructive hover:text-destructive"
                     >
                       <Trash2 className="h-3 w-3" />

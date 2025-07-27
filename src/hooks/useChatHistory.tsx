@@ -51,17 +51,17 @@ export const useChatHistory = (conversationId?: string) => {
     mutationFn: async (messageData: {
       message_content: string;
       message_type: 'user' | 'assistant';
-      conversation_id?: string;
+      conversation_id: string;
       metadata?: any;
     }) => {
       if (!user) throw new Error('User not authenticated');
 
       const { data, error } = await supabase
         .from('chat_history')
-        .insert([{
+        .insert({
           ...messageData,
           user_id: user.id,
-        }])
+        })
         .select()
         .single();
 
