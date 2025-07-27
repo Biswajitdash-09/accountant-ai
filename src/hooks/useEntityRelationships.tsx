@@ -114,6 +114,34 @@ export const useEntityRelationships = () => {
     },
   });
 
+  const deleteRelationship = useMutation({
+    mutationFn: async (relationshipId: string) => {
+      if (!user) throw new Error('User not authenticated');
+
+      const { error } = await supabase
+        .from('entity_relationships')
+        .delete()
+        .eq('id', relationshipId)
+        .eq('user_id', user.id);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['entity_relationships'] });
+      toast({
+        title: "Success",
+        description: "Entity relationship deleted successfully.",
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: "Error",
+        description: "Failed to delete entity relationship.",
+        variant: "destructive",
+      });
+    },
+  });
+
   const createInterEntityTransaction = useMutation({
     mutationFn: async (transactionData: {
       from_entity_id?: string;
@@ -162,6 +190,7 @@ export const useEntityRelationships = () => {
     transactionsLoading,
     error,
     createRelationship,
+    deleteRelationship,
     createInterEntityTransaction,
   };
 };
