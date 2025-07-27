@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Upload as UploadIcon, FileText, Mic, Image } from "lucide-react";
-import { DocumentSearch } from "@/components/DocumentSearch";
+import { Upload as UploadIcon, FileText, Mic, Search } from "lucide-react";
+import DocumentSearch from "@/components/DocumentSearch";
 import { useDocuments } from "@/hooks/useDocuments";
 import { VoiceRecording } from "@/components/VoiceRecording";
 import { VoiceEntriesList } from "@/components/VoiceEntriesList";
@@ -114,6 +114,7 @@ const DocumentUploadZone = () => {
 
 const DocumentsList = () => {
   const { documents, isLoading, error } = useDocuments();
+  const [searchResults, setSearchResults] = useState(documents);
 
   if (isLoading) {
     return (
@@ -135,7 +136,9 @@ const DocumentsList = () => {
     );
   }
 
-  if (documents.length === 0) {
+  const displayDocuments = searchResults.length > 0 ? searchResults : documents;
+
+  if (displayDocuments.length === 0) {
     return (
       <Card>
         <CardContent className="p-6">
@@ -150,11 +153,11 @@ const DocumentsList = () => {
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <FileText className="h-5 w-5" />
-          Uploaded Documents ({documents.length})
+          Uploaded Documents ({displayDocuments.length})
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-3">
-        {documents.map((doc) => (
+        {displayDocuments.map((doc) => (
           <div key={doc.id} className="flex items-center justify-between border rounded-md p-3">
             <div>
               <p className="font-medium">{doc.file_name}</p>
@@ -173,6 +176,8 @@ const DocumentsList = () => {
 };
 
 const Upload = () => {
+  const { documents } = useDocuments();
+
   return (
     <div className="container mx-auto px-4 py-8 space-y-8">
       <div>
@@ -193,7 +198,7 @@ const Upload = () => {
             Voice Recording
           </TabsTrigger>
           <TabsTrigger value="search" className="gap-2">
-            <Image className="h-4 w-4" />
+            <Search className="h-4 w-4" />
             Search & Manage
           </TabsTrigger>
         </TabsList>
@@ -211,7 +216,13 @@ const Upload = () => {
         </TabsContent>
 
         <TabsContent value="search" className="space-y-6">
-          <DocumentSearch />
+          <DocumentSearch 
+            documents={documents}
+            onSearchResults={(results) => {
+              // This will be handled by the DocumentsList component
+            }}
+          />
+          <DocumentsList />
         </TabsContent>
       </Tabs>
     </div>
