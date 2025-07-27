@@ -7,6 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Document } from '@/hooks/useDocuments';
+import { MobileFormRow } from '@/components/ui/mobile-form';
 
 interface DocumentSearchProps {
   documents: Document[];
@@ -78,24 +79,28 @@ const DocumentSearch = ({ documents, onSearchResults }: DocumentSearchProps) => 
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
-        <div className="flex gap-2">
+        {/* Search Input */}
+        <MobileFormRow>
           <div className="flex-1">
             <Input
               placeholder="Search documents..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && performSearch()}
+              className="h-12"
             />
           </div>
-          <Button onClick={performSearch}>
+          <Button onClick={performSearch} className="h-12 px-6">
             <Search className="h-4 w-4" />
+            <span className="ml-2 hidden sm:inline">Search</span>
           </Button>
-        </div>
+        </MobileFormRow>
 
-        <div className="flex gap-4">
+        {/* Filters */}
+        <div className="flex flex-col sm:flex-row gap-3">
           <div className="flex-1">
             <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-              <SelectTrigger>
+              <SelectTrigger className="h-12">
                 <SelectValue placeholder="Category" />
               </SelectTrigger>
               <SelectContent>
@@ -109,8 +114,8 @@ const DocumentSearch = ({ documents, onSearchResults }: DocumentSearchProps) => 
           </div>
 
           <div className="flex-1">
-            <Select onValueChange={addTag}>
-              <SelectTrigger>
+            <Select onValueChange={addTag} value="">
+              <SelectTrigger className="h-12">
                 <SelectValue placeholder="Add tag filter" />
               </SelectTrigger>
               <SelectContent>
@@ -123,19 +128,20 @@ const DocumentSearch = ({ documents, onSearchResults }: DocumentSearchProps) => 
             </Select>
           </div>
 
-          <Button variant="outline" onClick={clearFilters}>
-            <Filter className="h-4 w-4 mr-2" />
-            Clear
+          <Button variant="outline" onClick={clearFilters} className="h-12 px-6">
+            <Filter className="h-4 w-4" />
+            <span className="ml-2 hidden sm:inline">Clear</span>
           </Button>
         </div>
 
+        {/* Selected Tags */}
         {selectedTags.length > 0 && (
           <div className="flex flex-wrap gap-2">
             {selectedTags.map(tag => (
-              <Badge key={tag} variant="secondary" className="flex items-center gap-1">
+              <Badge key={tag} variant="secondary" className="flex items-center gap-1 text-sm py-1 px-2">
                 {tag}
                 <X 
-                  className="h-3 w-3 cursor-pointer" 
+                  className="h-3 w-3 cursor-pointer hover:text-destructive" 
                   onClick={() => removeTag(tag)}
                 />
               </Badge>

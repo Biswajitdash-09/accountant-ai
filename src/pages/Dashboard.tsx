@@ -14,10 +14,14 @@ import { DeadlineTracker } from "@/components/DeadlineTracker";
 import { NotificationCenter } from "@/components/NotificationCenter";
 import { useCurrencyFormatter } from "@/hooks/useCurrencyFormatter";
 import { useNotificationService } from "@/hooks/useNotificationService";
+import { useDemoMode } from "@/hooks/useDemoMode";
+import { getDemoData } from "@/utils/demoData";
+import DemoAccountBadge from "@/components/DemoAccountBadge";
 
 const Dashboard = () => {
   const { formatCurrency } = useCurrencyFormatter();
   const { createNotification } = useNotificationService();
+  const { isDemo } = useDemoMode();
   const [searchParams, setSearchParams] = useSearchParams();
   const [activeTab, setActiveTab] = useState(searchParams.get('tab') || 'overview');
 
@@ -34,6 +38,42 @@ const Dashboard = () => {
     setActiveTab(value);
     setSearchParams(value === 'overview' ? {} : { tab: value });
   };
+
+  // Use demo data if in demo mode
+  const demoTransactions = isDemo ? getDemoData('transactions') : [];
+  const demoAccounts = isDemo ? getDemoData('accounts') : [];
+
+  // Calculate metrics from demo data or use sample data
+  const calculateMetrics = () => {
+    if (isDemo && demoTransactions.length > 0) {
+      const totalIncome = demoTransactions
+        .filter(t => t.type === 'income')
+        .reduce((sum, t) => sum + t.amount, 0);
+      
+      const totalExpenses = demoTransactions
+        .filter(t => t.type === 'expense')
+        .reduce((sum, t) => sum + Math.abs(t.amount), 0);
+      
+      const totalBalance = demoAccounts.reduce((sum, acc) => sum + acc.balance, 0);
+      
+      return {
+        totalBalance,
+        monthlyIncome: totalIncome,
+        monthlyExpenses: totalExpenses,
+        savingsRate: totalIncome > 0 ? ((totalIncome - totalExpenses) / totalIncome * 100).toFixed(0) : '0'
+      };
+    }
+    
+    // Fallback sample data
+    return {
+      totalBalance: 25000,
+      monthlyIncome: 8500,
+      monthlyExpenses: 6200,
+      savingsRate: '27'
+    };
+  };
+
+  const metrics = calculateMetrics();
 
   // Sample data for charts
   const incomeExpenseData = [
@@ -53,7 +93,7 @@ const Dashboard = () => {
     { name: "Entertainment", value: 300 },
   ];
 
-  const sampleTransactions = [
+  const sampleTransactions = isDemo ? demoTransactions.slice(0, 3) : [
     {
       id: "1",
       date: "2024-01-15",
@@ -81,94 +121,103 @@ const Dashboard = () => {
   ];
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold">Dashboard</h1>
-        <p className="text-muted-foreground">
-          Welcome back! Here's an overview of your financial activity.
-        </p>
+    <div className="container mx-auto p-4 max-w-7xl">
+      <div className="space-y-6">
+        <div>
+          <h1 className="text-2xl sm:text-3xl font-bold">Dashboard</h1>
+          <p className="text-muted-foreground">
+            Welcome back! Here's an overview of your financial activity.
+          </p>
+        </div>
+
+        <DemoAccountBadge />
+
+        <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
+          <TabsList className="grid w-full grid-cols-2 sm:grid-cols-4 h-auto">
+            <TabsTrigger value="overview" className="text-xs sm:text-sm p-2 sm:p-3">
+              Overview
+            </TabsTrigger>
+            <TabsTrigger value="tasks" className="text-xs sm:text-sm p-2 sm:p-3">
+              Tasks
+            </TabsTrigger>
+            <TabsTrigger value="deadlines" className="text-xs sm:text-sm p-2 sm:p-3">
+              Deadlines
+            </TabsTrigger>
+            <TabsTrigger value="notifications" className="text-xs sm:text-sm p-2 sm:p-3">
+              Notifications
+            </TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="overview" className="space-y-6">
+            {/* Financial Metrics */}
+            <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
+              <MetricCard
+                title="Total Balance"
+                value={formatCurrency(metrics.totalBalance)}
+                icon={DollarSign}
+                trend={{
+                  value: 12,
+                  isPositive: true,
+                  period: "from last month"
+                }}
+              />
+              <MetricCard
+                title="Monthly Income"
+                value={formatCurrency(metrics.monthlyIncome)}
+                icon={TrendingUp}
+                trend={{
+                  value: 8,
+                  isPositive: true,
+                  period: "from last month"
+                }}
+              />
+              <MetricCard
+                title="Monthly Expenses"
+                value={formatCurrency(metrics.monthlyExpenses)}
+                icon={TrendingDown}
+                trend={{
+                  value: 3,
+                  isPositive: false,
+                  period: "from last month"
+                }}
+              />
+              <MetricCard
+                title="Savings Rate"
+                value={`${metrics.savingsRate}%`}
+                icon={PieChart}
+                trend={{
+                  value: 4,
+                  isPositive: true,
+                  period: "from last month"
+                }}
+              />
+            </div>
+
+            {/* Charts and Financial Goals */}
+            <div className="grid gap-6 grid-cols-1 xl:grid-cols-2">
+              <IncomeExpenseChart data={incomeExpenseData} />
+              <ExpenseChart data={expenseData} />
+            </div>
+
+            <div className="grid gap-6 grid-cols-1 xl:grid-cols-2">
+              <RecentTransactions transactions={sampleTransactions} />
+              <FinancialGoalsManager />
+            </div>
+          </TabsContent>
+
+          <TabsContent value="tasks" className="space-y-6">
+            <TaskManager />
+          </TabsContent>
+
+          <TabsContent value="deadlines" className="space-y-6">
+            <DeadlineTracker />
+          </TabsContent>
+
+          <TabsContent value="notifications" className="space-y-6">
+            <NotificationCenter />
+          </TabsContent>
+        </Tabs>
       </div>
-
-      <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
-        <TabsList className="grid w-full grid-cols-4">
-          <TabsTrigger value="overview">Overview</TabsTrigger>
-          <TabsTrigger value="tasks">Tasks</TabsTrigger>
-          <TabsTrigger value="deadlines">Deadlines</TabsTrigger>
-          <TabsTrigger value="notifications">Notifications</TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="overview" className="space-y-6">
-          {/* Financial Metrics */}
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-            <MetricCard
-              title="Total Balance"
-              value={25000}
-              currency={true}
-              icon={DollarSign}
-              trend={{
-                value: 12,
-                isPositive: true,
-                period: "from last month"
-              }}
-            />
-            <MetricCard
-              title="Monthly Income"
-              value={8500}
-              currency={true}
-              icon={TrendingUp}
-              trend={{
-                value: 8,
-                isPositive: true,
-                period: "from last month"
-              }}
-            />
-            <MetricCard
-              title="Monthly Expenses"
-              value={6200}
-              currency={true}
-              icon={TrendingDown}
-              trend={{
-                value: 3,
-                isPositive: false,
-                period: "from last month"
-              }}
-            />
-            <MetricCard
-              title="Savings Rate"
-              value="27%"
-              icon={PieChart}
-              trend={{
-                value: 4,
-                isPositive: true,
-                period: "from last month"
-              }}
-            />
-          </div>
-
-          {/* Charts and Financial Goals */}
-          <div className="grid gap-6 md:grid-cols-2">
-            <IncomeExpenseChart data={incomeExpenseData} />
-            <ExpenseChart data={expenseData} />
-          </div>
-
-          <div className="grid gap-6 md:grid-cols-2">
-            <RecentTransactions transactions={sampleTransactions} />
-            <FinancialGoalsManager />
-          </div>
-        </TabsContent>
-
-        <TabsContent value="tasks" className="space-y-6">
-          <TaskManager />
-        </TabsContent>
-
-        <TabsContent value="deadlines" className="space-y-6">
-          <DeadlineTracker />
-        </TabsContent>
-
-        <TabsContent value="notifications" className="space-y-6">
-          <NotificationCenter />
-        </TabsContent>
-      </Tabs>
     </div>
   );
 };
