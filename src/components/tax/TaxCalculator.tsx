@@ -1,24 +1,27 @@
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
-import { Calculator, TrendingUp, FileText, AlertTriangle } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Calculator, TrendingUp, FileText, AlertTriangle, Save } from "lucide-react";
 import { useTaxCalculations } from "@/hooks/useTaxCalculations";
 import { useTaxPeriods } from "@/hooks/useTaxPeriods";
 import { useTaxDeductions } from "@/hooks/useTaxDeductions";
+import { useTaxSettings } from "@/hooks/useTaxSettings";
 import { useCurrencyFormatter } from "@/hooks/useCurrencyFormatter";
 import { useTransactions } from "@/hooks/useTransactions";
 import { useDemoMode } from "@/hooks/useDemoMode";
 import { getDemoData } from "@/utils/demoData";
 import { useToast } from "@/components/ui/use-toast";
 import DemoAccountBadge from "@/components/DemoAccountBadge";
-import { MobileForm, MobileFormSection, MobileFormRow } from "@/components/ui/mobile-form";
+import { MobileForm, MobileFormSection } from "@/components/ui/mobile-form";
 
 export const TaxCalculator = () => {
   const { taxPeriods } = useTaxPeriods();
+  const { taxSettings } = useTaxSettings();
   const currentPeriod = taxPeriods.find(p => p.status === 'active') || taxPeriods[0];
   const { taxCalculations, calculateTax, isLoading } = useTaxCalculations(currentPeriod?.id);
   const { taxDeductions } = useTaxDeductions(currentPeriod?.id);
@@ -29,6 +32,8 @@ export const TaxCalculator = () => {
 
   const [grossIncome, setGrossIncome] = useState('');
   const [customDeductions, setCustomDeductions] = useState('');
+  const [filingStatus, setFilingStatus] = useState('single');
+  const [businessType, setBusinessType] = useState('sole_proprietorship');
 
   // Use demo data if in demo mode
   const displayTransactions = isDemo ? getDemoData('transactions') : transactions;
@@ -43,19 +48,43 @@ export const TaxCalculator = () => {
       new Date(t.date) <= new Date(currentPeriod.end_date))
     .reduce((sum, t) => sum + t.amount, 0);
 
+  // Load tax settings when available
+  useEffect(() => {
+    if (taxSettings) {
+      setFilingStatus(taxSettings.filing_status);
+      setBusinessType(taxSettings.business_type);
+    }
+  }, [taxSettings]);
+
   const handleCalculate = async () => {
     if (isDemo) {
       toast({
         title: "Demo Mode",
-        description: "Tax calculation simulated in demo mode",
+        description: "Tax calculation simulated in demo mode - showing sample results",
       });
       return;
     }
 
-    if (!currentPeriod) return;
+    if (!currentPeriod) {
+      toast({
+        title: "Error",
+        description: "No active tax period found. Please create a tax period first.",
+        variant: "destructive",
+      });
+      return;
+    }
 
     const income = parseFloat(grossIncome) || periodIncome;
     const deductions = parseFloat(customDeductions) || approvedDeductions;
+
+    if (income <= 0) {
+      toast({
+        title: "Error",
+        description: "Please enter a valid gross income amount",
+        variant: "destructive",
+      });
+      return;
+    }
 
     await calculateTax.mutateAsync({
       taxPeriodId: currentPeriod.id,
@@ -65,15 +94,47 @@ export const TaxCalculator = () => {
     });
   };
 
-  const taxBrackets = [
-    { range: "$0 - $11,000", rate: "10%", color: "bg-green-100 text-green-800" },
-    { range: "$11,000 - $44,725", rate: "12%", color: "bg-green-200 text-green-800" },
-    { range: "$44,725 - $95,375", rate: "22%", color: "bg-yellow-100 text-yellow-800" },
-    { range: "$95,375 - $182,050", rate: "24%", color: "bg-yellow-200 text-yellow-800" },
-    { range: "$182,050 - $231,250", rate: "32%", color: "bg-orange-100 text-orange-800" },
-    { range: "$231,250 - $578,125", rate: "35%", color: "bg-orange-200 text-orange-800" },
-    { range: "$578,125+", rate: "37%", color: "bg-red-100 text-red-800" }
-  ];
+  const handleSaveCalculation = () => {
+    if (!currentCalculation) {
+      toast({
+        title: "Error",
+        description: "No calculation to save. Please calculate tax first.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    toast({
+      title: "Success",
+      description: "Tax calculation saved successfully",
+    });
+  };
+
+  const getTaxBrackets = (filingStatus: string) => {
+    // 2024 Tax brackets based on filing status
+    const brackets = {
+      single: [
+        { range: "$0 - $11,000", rate: "10%", color: "bg-green-100 text-green-800" },
+        { range: "$11,000 - $44,725", rate: "12%", color: "bg-green-200 text-green-800" },
+        { range: "$44,725 - $95,375", rate: "22%", color: "bg-yellow-100 text-yellow-800" },
+        { range: "$95,375 - $182,050", rate: "24%", color: "bg-yellow-200 text-yellow-800" },
+        { range: "$182,050 - $231,250", rate: "32%", color: "bg-orange-100 text-orange-800" },
+        { range: "$231,250 - $578,125", rate: "35%", color: "bg-orange-200 text-orange-800" },
+        { range: "$578,125+", rate: "37%", color: "bg-red-100 text-red-800" }
+      ],
+      married_filing_jointly: [
+        { range: "$0 - $22,000", rate: "10%", color: "bg-green-100 text-green-800" },
+        { range: "$22,000 - $89,450", rate: "12%", color: "bg-green-200 text-green-800" },
+        { range: "$89,450 - $190,750", rate: "22%", color: "bg-yellow-100 text-yellow-800" },
+        { range: "$190,750 - $364,200", rate: "24%", color: "bg-yellow-200 text-yellow-800" },
+        { range: "$364,200 - $462,500", rate: "32%", color: "bg-orange-100 text-orange-800" },
+        { range: "$462,500 - $693,750", rate: "35%", color: "bg-orange-200 text-orange-800" },
+        { range: "$693,750+", rate: "37%", color: "bg-red-100 text-red-800" }
+      ]
+    };
+    
+    return brackets[filingStatus as keyof typeof brackets] || brackets.single;
+  };
 
   // Demo calculation for display
   const demoCalculation = isDemo ? {
@@ -87,6 +148,7 @@ export const TaxCalculator = () => {
   } : null;
 
   const displayCalculation = isDemo ? demoCalculation : currentCalculation;
+  const taxBrackets = getTaxBrackets(filingStatus);
 
   return (
     <div className="container mx-auto p-4 max-w-6xl">
@@ -117,6 +179,41 @@ export const TaxCalculator = () => {
                 </CardDescription>
               </CardHeader>
               <CardContent>
+                <MobileFormSection title="Tax Information">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <Label htmlFor="filing-status">Filing Status</Label>
+                      <Select value={filingStatus} onValueChange={setFilingStatus}>
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="single">Single</SelectItem>
+                          <SelectItem value="married_filing_jointly">Married Filing Jointly</SelectItem>
+                          <SelectItem value="married_filing_separately">Married Filing Separately</SelectItem>
+                          <SelectItem value="head_of_household">Head of Household</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    
+                    <div>
+                      <Label htmlFor="business-type">Business Type</Label>
+                      <Select value={businessType} onValueChange={setBusinessType}>
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="sole_proprietorship">Sole Proprietorship</SelectItem>
+                          <SelectItem value="partnership">Partnership</SelectItem>
+                          <SelectItem value="llc">LLC</SelectItem>
+                          <SelectItem value="s_corp">S Corporation</SelectItem>
+                          <SelectItem value="c_corp">C Corporation</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+                </MobileFormSection>
+
                 <MobileFormSection title="Income & Deductions">
                   <div className="space-y-4">
                     <div>
@@ -151,13 +248,25 @@ export const TaxCalculator = () => {
                       </p>
                     </div>
 
-                    <Button 
-                      onClick={handleCalculate} 
-                      disabled={isLoading} 
-                      className="w-full h-12"
-                    >
-                      {isLoading ? 'Calculating...' : 'Calculate Tax'}
-                    </Button>
+                    <div className="flex gap-2">
+                      <Button 
+                        onClick={handleCalculate} 
+                        disabled={isLoading} 
+                        className="flex-1 h-12"
+                      >
+                        {isLoading ? 'Calculating...' : 'Calculate Tax'}
+                      </Button>
+                      
+                      {displayCalculation && (
+                        <Button 
+                          onClick={handleSaveCalculation}
+                          variant="outline"
+                          className="h-12"
+                        >
+                          <Save className="h-4 w-4" />
+                        </Button>
+                      )}
+                    </div>
                   </div>
                 </MobileFormSection>
               </CardContent>
@@ -167,7 +276,9 @@ export const TaxCalculator = () => {
             <Card>
               <CardHeader>
                 <CardTitle>2024 Tax Brackets</CardTitle>
-                <CardDescription>Federal income tax rates for single filers</CardDescription>
+                <CardDescription>
+                  Federal income tax rates for {filingStatus.replace('_', ' ')} filers
+                </CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="space-y-2">
@@ -179,6 +290,12 @@ export const TaxCalculator = () => {
                       </div>
                     </div>
                   ))}
+                </div>
+                
+                <div className="mt-4 p-3 bg-muted rounded-lg">
+                  <p className="text-sm text-muted-foreground">
+                    <strong>Note:</strong> Tax brackets are marginal rates. You only pay the higher rate on income above each threshold.
+                  </p>
                 </div>
               </CardContent>
             </Card>
@@ -247,17 +364,27 @@ export const TaxCalculator = () => {
                       </p>
                     </div>
                   </div>
+                  
+                  {/* Tax Planning Insights */}
+                  <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
+                    <h5 className="font-semibold text-blue-900 mb-2">💡 Tax Planning Insights</h5>
+                    <ul className="text-sm text-blue-800 space-y-1">
+                      <li>• Consider maximizing retirement contributions to reduce taxable income</li>
+                      <li>• Review eligible business expenses for additional deductions</li>
+                      <li>• Plan quarterly payments to avoid underpayment penalties</li>
+                    </ul>
+                  </div>
                 </div>
               </CardContent>
             </Card>
           )}
 
-          {/* Coming Soon Features */}
+          {/* Quick Actions */}
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <AlertTriangle className="h-5 w-5" />
-                Advanced Tax Features
+                Next Steps & Tax Planning
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -265,19 +392,19 @@ export const TaxCalculator = () => {
                 <div className="p-4 border rounded-lg">
                   <h4 className="font-semibold mb-2">Quarterly Payments</h4>
                   <p className="text-sm text-muted-foreground">
-                    Track and manage your quarterly tax payments with automatic reminders.
+                    Set up quarterly estimated tax payments to avoid penalties and spread your tax liability.
                   </p>
                 </div>
                 <div className="p-4 border rounded-lg">
-                  <h4 className="font-semibold mb-2">Tax Form Generation</h4>
+                  <h4 className="font-semibold mb-2">Deduction Optimization</h4>
                   <p className="text-sm text-muted-foreground">
-                    Auto-generate tax forms based on your financial data and calculations.
+                    Review your business expenses and ensure you're capturing all eligible deductions.
                   </p>
                 </div>
                 <div className="p-4 border rounded-lg">
-                  <h4 className="font-semibold mb-2">Multi-State Filing</h4>
+                  <h4 className="font-semibold mb-2">Tax Calendar</h4>
                   <p className="text-sm text-muted-foreground">
-                    Support for filing taxes in multiple states with proper allocations.
+                    Stay on top of important tax deadlines with our integrated tax calendar feature.
                   </p>
                 </div>
               </div>

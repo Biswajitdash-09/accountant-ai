@@ -4,6 +4,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { TaxDashboard } from "@/components/tax/TaxDashboard";
 import { TaxDeductionManager } from "@/components/tax/TaxDeductionManager";
 import { TaxCalculator } from "@/components/tax/TaxCalculator";
+import { TaxCalendar } from "@/components/tax/TaxCalendar";
+import { TaxSettings } from "@/components/tax/TaxSettings";
 import { FileText, Calculator, TrendingUp, Settings, Calendar } from "lucide-react";
 
 const Tax = () => {
@@ -55,23 +57,11 @@ const Tax = () => {
         </TabsContent>
 
         <TabsContent value="calendar" className="space-y-6">
-          <div className="text-center py-12">
-            <Calendar className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-            <h3 className="text-lg font-semibold mb-2">Tax Calendar</h3>
-            <p className="text-muted-foreground">
-              Tax deadline calendar and compliance tracking coming soon
-            </p>
-          </div>
+          <TaxCalendar />
         </TabsContent>
 
         <TabsContent value="settings" className="space-y-6">
-          <div className="text-center py-12">
-            <Settings className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-            <h3 className="text-lg font-semibold mb-2">Tax Settings</h3>
-            <p className="text-muted-foreground">
-              Configure your tax preferences and business information
-            </p>
-          </div>
+          <TaxSettings />
         </TabsContent>
       </Tabs>
     </div>
