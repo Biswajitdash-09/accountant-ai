@@ -1,4 +1,3 @@
-
 import { Bell, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -12,6 +11,7 @@ import { Link } from "react-router-dom";
 import CurrencySelector from "./CurrencySelector";
 import Sidebar from "./Sidebar";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { cn } from "@/lib/utils";
 
 interface HeaderProps {
   onMobileMenuToggle: () => void;
