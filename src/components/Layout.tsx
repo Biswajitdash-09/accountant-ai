@@ -1,39 +1,65 @@
 
-import { useState } from "react";
-import { useLocation } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { Outlet } from "react-router-dom";
 import Sidebar from "./Sidebar";
 import Header from "./Header";
+import { useIsMobile } from "@/hooks/use-mobile";
+import { cn } from "@/lib/utils";
 
-interface LayoutProps {
-  children: React.ReactNode;
-}
+const Layout = () => {
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const isMobile = useIsMobile();
 
-const Layout = ({ children }: LayoutProps) => {
-  const location = useLocation();
-  const [isCollapsed, setIsCollapsed] = useState(false);
-  const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
+  // Close mobile menu when switching to desktop
+  useEffect(() => {
+    if (!isMobile) {
+      setIsMobileMenuOpen(false);
+    }
+  }, [isMobile]);
 
-  const toggleSidebar = () => {
-    setIsCollapsed(!isCollapsed);
+  // Close mobile menu on route change
+  useEffect(() => {
+    setIsMobileMenuOpen(false);
+  }, [location.pathname]);
+
+  const toggleMobileMenu = () => {
+    setIsMobileMenuOpen(prev => !prev);
   };
 
-  const toggleMobileSidebar = () => {
-    setIsMobileSidebarOpen(!isMobileSidebarOpen);
-  };
-  
   return (
-    <div className="flex h-screen bg-background">
-      <Sidebar 
-        isCollapsed={isCollapsed} 
-        onToggle={toggleSidebar}
-        isMobileOpen={isMobileSidebarOpen}
-        onMobileToggle={toggleMobileSidebar}
-      />
-      
-      <div className="flex-1 flex flex-col">
-        <Header onMobileMenuToggle={toggleMobileSidebar} />
-        <main className="flex-1 p-4 lg:p-6 overflow-auto">
-          {children}
+    <div className="min-h-screen bg-background">
+      {/* Mobile Overlay */}
+      {isMobile && isMobileMenuOpen && (
+        <div 
+          className="fixed inset-0 bg-black/50 z-40 lg:hidden"
+          onClick={() => setIsMobileMenuOpen(false)}
+        />
+      )}
+
+      {/* Sidebar - Only show one sidebar */}
+      <div className={cn(
+        "fixed inset-y-0 left-0 z-50 transition-transform duration-300 ease-in-out",
+        isMobile ? (
+          isMobileMenuOpen ? "translate-x-0" : "-translate-x-full"
+        ) : "translate-x-0"
+      )}>
+        <Sidebar />
+      </div>
+
+      {/* Main Content */}
+      <div className={cn(
+        "transition-all duration-300 ease-in-out",
+        isMobile ? "ml-0" : "ml-64"
+      )}>
+        <Header onMobileMenuToggle={toggleMobileMenu} />
+        <main className={cn(
+          "flex-1 overflow-auto",
+          "p-4 sm:p-6 lg:p-8",
+          "min-h-[calc(100vh-4rem)]"
+        )}>
+          <div className="max-w-7xl mx-auto">
+            <Outlet />
+          </div>
         </main>
       </div>
     </div>

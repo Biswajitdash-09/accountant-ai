@@ -7,8 +7,10 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/contexts/AuthContext";
 import { useTheme } from "@/hooks/useTheme";
+import { useNotifications } from "@/hooks/useNotifications";
 import { Link } from "react-router-dom";
 import CurrencySelector from "./CurrencySelector";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -22,10 +24,11 @@ interface HeaderProps {
 const Header = ({ onMobileMenuToggle }: HeaderProps) => {
   const { signOut } = useAuth();
   const { theme, toggleTheme } = useTheme();
+  const { unreadCount } = useNotifications();
   const isMobile = useIsMobile();
 
   return (
-    <header className="flex items-center justify-between p-4 bg-background border-b">
+    <header className="flex items-center justify-between p-4 bg-background border-b backdrop-blur-sm">
       {/* Mobile menu button / Logo */}
       <div className="flex items-center gap-4">
         {isMobile && (
@@ -33,7 +36,7 @@ const Header = ({ onMobileMenuToggle }: HeaderProps) => {
             variant="ghost"
             size="icon"
             onClick={onMobileMenuToggle}
-            className="hover-scale transition-all duration-200"
+            className="hover-scale transition-all duration-200 cursor-pointer"
           >
             <Menu className="h-5 w-5" />
           </Button>
@@ -58,29 +61,43 @@ const Header = ({ onMobileMenuToggle }: HeaderProps) => {
           variant="ghost" 
           size="icon" 
           onClick={toggleTheme}
-          className="hover-scale transition-all duration-200"
+          className="hover-scale transition-all duration-200 cursor-pointer"
         >
           {theme === 'dark' ? (
-            <Sun className="h-5 w-5" />
+            <Sun className="h-5 w-5 transition-all duration-200" />
           ) : (
-            <Moon className="h-5 w-5" />
+            <Moon className="h-5 w-5 transition-all duration-200" />
           )}
         </Button>
         
-        <Button 
-          variant="ghost" 
-          size="icon" 
-          className="hidden sm:flex hover-scale transition-all duration-200"
-        >
-          <Bell className="h-5 w-5" />
-        </Button>
+        {/* Notifications */}
+        <div className="relative">
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            className="hidden sm:flex hover-scale transition-all duration-200 cursor-pointer"
+            asChild
+          >
+            <Link to="/notifications">
+              <Bell className="h-5 w-5" />
+              {unreadCount > 0 && (
+                <Badge 
+                  variant="destructive" 
+                  className="absolute -top-1 -right-1 h-5 w-5 rounded-full p-0 flex items-center justify-center text-xs animate-pulse"
+                >
+                  {unreadCount > 99 ? '99+' : unreadCount}
+                </Badge>
+              )}
+            </Link>
+          </Button>
+        </div>
 
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button 
               variant="ghost" 
               size="icon"
-              className="hover-scale transition-all duration-200"
+              className="hover-scale transition-all duration-200 cursor-pointer"
             >
               <User className="h-5 w-5" />
             </Button>
@@ -91,10 +108,20 @@ const Header = ({ onMobileMenuToggle }: HeaderProps) => {
                 <CurrencySelector />
               </div>
             </DropdownMenuItem>
-            <DropdownMenuItem asChild>
-              <Link to="/profile">Profile</Link>
+            <DropdownMenuItem asChild className="sm:hidden">
+              <Link to="/notifications" className="flex items-center justify-between w-full cursor-pointer">
+                <span>Notifications</span>
+                {unreadCount > 0 && (
+                  <Badge variant="destructive" className="ml-2">
+                    {unreadCount > 99 ? '99+' : unreadCount}
+                  </Badge>
+                )}
+              </Link>
             </DropdownMenuItem>
-            <DropdownMenuItem onClick={signOut}>
+            <DropdownMenuItem asChild>
+              <Link to="/profile" className="cursor-pointer">Profile</Link>
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={signOut} className="cursor-pointer">
               Sign Out
             </DropdownMenuItem>
           </DropdownMenuContent>

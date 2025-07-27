@@ -1,6 +1,6 @@
 
 import { useState, useRef, useEffect } from "react";
-import { Send, User, Bot, FileText, CornerDownLeft, Loader2 } from "lucide-react";
+import { Send, User, Bot, FileText, CornerDownLeft, Loader2, History, Trash2, MessageSquare } from "lucide-react";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -8,6 +8,9 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAI } from "@/hooks/useAI";
+import { useChatHistory } from "@/hooks/useChatHistory";
+import { useIsMobile } from "@/hooks/use-mobile";
+import { cn } from "@/lib/utils";
 
 interface Message {
   id: string;
@@ -27,8 +30,13 @@ const Assistant = () => {
     },
   ]);
   const [input, setInput] = useState("");
+  const [currentConversationId, setCurrentConversationId] = useState<string>(() => 
+    crypto.randomUUID ? crypto.randomUUID() : Date.now().toString()
+  );
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { generateResponse, isLoading } = useAI();
+  const { chatHistory, saveMessage, conversations, deleteConversation } = useChatHistory();
+  const isMobile = useIsMobile();
 
   useEffect(() => {
     scrollToBottom();
@@ -50,6 +58,13 @@ const Assistant = () => {
 
     // Add user message
     setMessages(prev => [...prev, userMessage]);
+    
+    // Save user message to database
+    await saveMessage.mutateAsync({
+      message_content: input,
+      message_type: 'user',
+      conversation_id: currentConversationId,
+    });
     
     // Add loading message
     const loadingMessage: Message = {
@@ -78,16 +93,31 @@ const Assistant = () => {
           timestamp: new Date(),
         }];
       });
+
+      // Save AI response to database
+      await saveMessage.mutateAsync({
+        message_content: aiResponse.text,
+        message_type: 'assistant',
+        conversation_id: currentConversationId,
+      });
     } catch (error) {
       // Remove loading message and add error message
+      const errorMessage = "I apologize, but I'm experiencing technical difficulties. Please try again in a moment.";
       setMessages(prev => {
         const filteredMessages = prev.filter(msg => !msg.isLoading);
         return [...filteredMessages, {
           id: (Date.now() + 2).toString(),
-          content: "I apologize, but I'm experiencing technical difficulties. Please try again in a moment.",
+          content: errorMessage,
           sender: "assistant" as const,
           timestamp: new Date(),
         }];
+      });
+
+      // Save error message to database
+      await saveMessage.mutateAsync({
+        message_content: errorMessage,
+        message_type: 'assistant',
+        conversation_id: currentConversationId,
       });
     }
   };
@@ -107,18 +137,66 @@ const Assistant = () => {
     setInput(question);
   };
 
+  const startNewConversation = () => {
+    const newId = crypto.randomUUID ? crypto.randomUUID() : Date.now().toString();
+    setCurrentConversationId(newId);
+    setMessages([{
+      id: "welcome",
+      content: "Hello! I'm your AI accounting assistant. I can help you with accounting, tax, finance, bookkeeping, audit, and business compliance questions. How can I assist you today?",
+      sender: "assistant",
+      timestamp: new Date(),
+    }]);
+  };
+
+  const loadConversation = (conversationId: string) => {
+    // Load messages from chat history
+    const conversationMessages = chatHistory.filter(msg => msg.conversation_id === conversationId);
+    const formattedMessages: Message[] = conversationMessages.map(msg => ({
+      id: msg.id,
+      content: msg.message_content,
+      sender: msg.message_type,
+      timestamp: new Date(msg.created_at),
+    }));
+    
+    setCurrentConversationId(conversationId);
+    setMessages(formattedMessages);
+  };
+
+  const handleDeleteConversation = (conversationId: string) => {
+    deleteConversation.mutate(conversationId);
+    if (currentConversationId === conversationId) {
+      startNewConversation();
+    }
+  };
+
   return (
     <div className="space-y-6">
       <h1 className="text-3xl font-bold">AI Assistant</h1>
       
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-        <div className="lg:col-span-3">
+      <div className={cn(
+        "grid gap-6",
+        isMobile ? "grid-cols-1" : "grid-cols-1 lg:grid-cols-4"
+      )}>
+        <div className={cn(isMobile ? "order-2" : "lg:col-span-3")}>
           <Card className="h-[calc(100vh-12rem)]">
             <CardHeader className="pb-4">
-              <CardTitle>Accounting Assistant</CardTitle>
-              <CardDescription>
-                Ask questions about accounting, taxes, finance, bookkeeping, and business compliance
-              </CardDescription>
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle>Accounting Assistant</CardTitle>
+                  <CardDescription>
+                    Ask questions about accounting, taxes, finance, bookkeeping, and business compliance
+                  </CardDescription>
+                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={startNewConversation}
+                  className="button-hover transition-all duration-200 cursor-pointer"
+                >
+                  <MessageSquare className="h-4 w-4 mr-2" />
+                  New Chat
+                </Button>
+              </div>
             </CardHeader>
             <CardContent className="p-0">
               <ScrollArea className="h-[calc(100vh-18rem)] px-4 py-2">
@@ -135,7 +213,7 @@ const Assistant = () => {
                           message.sender === "user" ? "flex-row-reverse" : ""
                         }`}
                       >
-                        <Avatar>
+                        <Avatar className="hover-scale transition-all duration-200">
                           {message.sender === "user" ? (
                             <>
                               <AvatarImage src="/placeholder.svg" />
@@ -153,11 +231,12 @@ const Assistant = () => {
                           )}
                         </Avatar>
                         <div
-                          className={`rounded-lg p-3 ${
+                          className={cn(
+                            "rounded-lg p-3 transition-all duration-200 cursor-pointer",
                             message.sender === "user"
                               ? "bg-primary text-primary-foreground"
-                              : "bg-muted"
-                          }`}
+                              : "bg-muted hover:bg-muted/80"
+                          )}
                         >
                           <div className="mb-1 text-sm">
                             {message.sender === "user" ? "You" : "AI Assistant"}
@@ -186,7 +265,7 @@ const Assistant = () => {
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
                   onKeyDown={handleKeyDown}
-                  className="flex-1"
+                  className="flex-1 focus-ring transition-all duration-200"
                   rows={1}
                   disabled={isLoading}
                 />
@@ -194,6 +273,7 @@ const Assistant = () => {
                   onClick={handleSend} 
                   size="icon"
                   disabled={isLoading || input.trim() === ""}
+                  className="button-hover transition-all duration-200 cursor-pointer"
                 >
                   {isLoading ? (
                     <Loader2 className="h-4 w-4 animate-spin" />
@@ -206,21 +286,24 @@ const Assistant = () => {
           </Card>
         </div>
 
-        <div>
+        <div className={cn(isMobile ? "order-1" : "")}>
           <Card className="h-[calc(100vh-12rem)]">
             <CardHeader>
-              <CardTitle>Quick Actions</CardTitle>
+              <CardTitle className="flex items-center gap-2">
+                <History className="h-5 w-5" />
+                Quick Actions & History
+              </CardTitle>
             </CardHeader>
             <CardContent className="p-0">
               <Tabs defaultValue="questions">
                 <TabsList className="grid w-full grid-cols-2">
-                  <TabsTrigger value="questions">Questions</TabsTrigger>
-                  <TabsTrigger value="documents">Documents</TabsTrigger>
+                  <TabsTrigger value="questions" className="cursor-pointer">Questions</TabsTrigger>
+                  <TabsTrigger value="history" className="cursor-pointer">History</TabsTrigger>
                 </TabsList>
                 <TabsContent value="questions" className="p-4 space-y-2">
                   <Button
                     variant="outline"
-                    className="justify-start w-full"
+                    className="justify-start w-full button-hover transition-all duration-200 cursor-pointer"
                     onClick={() => handleQuickQuestion("What are my estimated quarterly taxes based on my current income?")}
                   >
                     <CornerDownLeft className="mr-2 h-4 w-4" />
@@ -228,7 +311,7 @@ const Assistant = () => {
                   </Button>
                   <Button
                     variant="outline"
-                    className="justify-start w-full"
+                    className="justify-start w-full button-hover transition-all duration-200 cursor-pointer"
                     onClick={() => handleQuickQuestion("What business expenses can I deduct this year?")}
                   >
                     <CornerDownLeft className="mr-2 h-4 w-4" />
@@ -236,7 +319,7 @@ const Assistant = () => {
                   </Button>
                   <Button
                     variant="outline"
-                    className="justify-start w-full"
+                    className="justify-start w-full button-hover transition-all duration-200 cursor-pointer"
                     onClick={() => handleQuickQuestion("How should I categorize my business transactions?")}
                   >
                     <CornerDownLeft className="mr-2 h-4 w-4" />
@@ -244,7 +327,7 @@ const Assistant = () => {
                   </Button>
                   <Button
                     variant="outline"
-                    className="justify-start w-full"
+                    className="justify-start w-full button-hover transition-all duration-200 cursor-pointer"
                     onClick={() => handleQuickQuestion("What accounting method should I use for my business?")}
                   >
                     <CornerDownLeft className="mr-2 h-4 w-4" />
@@ -252,30 +335,50 @@ const Assistant = () => {
                   </Button>
                   <Button
                     variant="outline"
-                    className="justify-start w-full"
+                    className="justify-start w-full button-hover transition-all duration-200 cursor-pointer"
                     onClick={() => handleQuickQuestion("How do I prepare for a tax audit?")}
                   >
                     <CornerDownLeft className="mr-2 h-4 w-4" />
                     <span>Tax audit preparation</span>
                   </Button>
                 </TabsContent>
-                <TabsContent value="documents" className="p-4 space-y-2">
-                  <Button variant="outline" className="justify-start w-full">
-                    <FileText className="mr-2 h-4 w-4" />
-                    <span>Latest Tax Return</span>
-                  </Button>
-                  <Button variant="outline" className="justify-start w-full">
-                    <FileText className="mr-2 h-4 w-4" />
-                    <span>Monthly Financial Statement</span>
-                  </Button>
-                  <Button variant="outline" className="justify-start w-full">
-                    <FileText className="mr-2 h-4 w-4" />
-                    <span>Quarterly P&L Report</span>
-                  </Button>
-                  <Button variant="outline" className="justify-start w-full">
-                    <FileText className="mr-2 h-4 w-4" />
-                    <span>Cash Flow Forecast</span>
-                  </Button>
+                <TabsContent value="history" className="p-4 space-y-2">
+                  <ScrollArea className="h-[400px]">
+                    {conversations.length === 0 ? (
+                      <div className="text-center py-8 text-muted-foreground">
+                        <MessageSquare className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                        <p>No chat history yet</p>
+                        <p className="text-sm">Start a conversation to see history</p>
+                      </div>
+                    ) : (
+                      <div className="space-y-2">
+                        {conversations.map((conversation) => (
+                          <div key={conversation.conversation_id} className="flex items-center justify-between group">
+                            <Button
+                              variant="ghost"
+                              className="flex-1 justify-start text-left p-2 h-auto button-hover transition-all duration-200 cursor-pointer"
+                              onClick={() => loadConversation(conversation.conversation_id)}
+                            >
+                              <div className="truncate">
+                                <p className="text-sm font-medium truncate">{conversation.title}</p>
+                                <p className="text-xs text-muted-foreground">
+                                  {new Date(conversation.created_at).toLocaleDateString()}
+                                </p>
+                              </div>
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 cursor-pointer"
+                              onClick={() => handleDeleteConversation(conversation.conversation_id)}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </ScrollArea>
                 </TabsContent>
               </Tabs>
             </CardContent>
