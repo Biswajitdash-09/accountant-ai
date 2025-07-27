@@ -30,8 +30,7 @@ export const useVoiceEntries = () => {
     queryFn: async () => {
       if (!user) return [];
       
-      // Direct query to voice_entries table
-      const { data, error } = await (supabase as any)
+      const { data, error } = await supabase
         .from('voice_entries')
         .select('*')
         .eq('user_id', user.id)
@@ -47,18 +46,30 @@ export const useVoiceEntries = () => {
     mutationFn: async ({ audioBlob, fileName }: { audioBlob: Blob; fileName: string }) => {
       if (!user) throw new Error('User not authenticated');
 
-      // Upload audio file to Supabase Storage
-      const storagePath = `voice/${user.id}/${Date.now()}-${fileName}`;
+      console.log('Starting voice upload for user:', user.id);
+      console.log('File size:', audioBlob.size, 'bytes');
+      console.log('File type:', audioBlob.type);
+
+      // Upload audio file to Supabase Storage with correct path structure
+      const storagePath = `${user.id}/${Date.now()}-${fileName}`;
+      console.log('Storage path:', storagePath);
+
       const { data: uploadData, error: uploadError } = await supabase.storage
         .from('voice')
         .upload(storagePath, audioBlob, {
-          contentType: 'audio/webm',
+          contentType: audioBlob.type || 'audio/webm',
+          upsert: false
         });
 
-      if (uploadError) throw uploadError;
+      if (uploadError) {
+        console.error('Storage upload error:', uploadError);
+        throw uploadError;
+      }
+
+      console.log('Storage upload successful:', uploadData);
 
       // Create voice entry record
-      const { data: voiceEntry, error: insertError } = await (supabase as any)
+      const { data: voiceEntry, error: insertError } = await supabase
         .from('voice_entries')
         .insert([{
           user_id: user.id,
@@ -68,14 +79,21 @@ export const useVoiceEntries = () => {
         .select()
         .single();
 
-      if (insertError) throw insertError;
+      if (insertError) {
+        console.error('Database insert error:', insertError);
+        throw insertError;
+      }
+
+      console.log('Voice entry created:', voiceEntry);
 
       // Trigger processing Edge Function
       const { error: processError } = await supabase.functions.invoke('process-voice', {
         body: { entry_id: voiceEntry.id }
       });
 
-      if (processError) console.warn('Processing trigger failed:', processError);
+      if (processError) {
+        console.warn('Processing trigger failed:', processError);
+      }
 
       return voiceEntry;
     },
@@ -87,18 +105,18 @@ export const useVoiceEntries = () => {
       });
     },
     onError: (error) => {
+      console.error('Upload voice entry error:', error);
       toast({
-        title: "Error",
-        description: "Failed to upload voice recording",
+        title: "Error", 
+        description: `Failed to upload voice recording: ${error.message}`,
         variant: "destructive",
       });
-      console.error('Upload voice entry error:', error);
     },
   });
 
   const deleteVoiceEntry = useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await (supabase as any)
+      const { error } = await supabase
         .from('voice_entries')
         .delete()
         .eq('id', id);
