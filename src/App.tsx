@@ -1,61 +1,69 @@
-
-import React from "react";
-import { Toaster } from "@/components/ui/toaster";
-import { Toaster as Sonner } from "@/components/ui/sonner";
-import { TooltipProvider } from "@/components/ui/tooltip";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import React, { useState } from "react";
+import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
+import { QueryClient } from "@tanstack/react-query";
 import { AuthProvider } from "@/contexts/AuthContext";
-import { ThemeProvider } from "@/hooks/useTheme";
-import { useAuthProfile } from "@/hooks/useAuthProfile";
-import Index from "./pages/Index";
-import Landing from "./pages/Landing";
-import Auth from "./pages/Auth";
-import Analytics from "./pages/Analytics";
-import NotFound from "./pages/NotFound";
+import { Toaster } from "@/components/ui/toaster";
+import Landing from "@/pages/Landing";
+import Auth from "@/pages/Auth";
+import Dashboard from "@/pages/Dashboard";
+import Transactions from "@/pages/Transactions";
+import Accounts from "@/pages/Accounts";
+import Reports from "@/pages/Reports";
+import Analytics from "@/pages/Analytics";
+import Tax from "@/pages/Tax";
+import Upload from "@/pages/Upload";
+import Assistant from "@/pages/Assistant";
+import Markets from "@/pages/Markets";
+import Profile from "@/pages/Profile";
+import NotFound from "@/pages/NotFound";
+import Layout from "@/components/Layout";
+import ProtectedRoute from "@/components/ProtectedRoute";
+import AdvancedFeatures from "@/pages/AdvancedFeatures";
 
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      retry: (failureCount, error: any) => {
-        // Don't retry on 4xx errors
-        if (error?.status >= 400 && error?.status < 500) {
-          return false;
-        }
-        return failureCount < 3;
-      },
-    },
-  },
-});
+function App() {
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
-const AppContent = () => {
-  useAuthProfile(); // Set up profile handling for OAuth users
-  
   return (
-    <BrowserRouter>
-      <Routes>
-        <Route path="/" element={<Landing />} />
-        <Route path="/auth" element={<Auth />} />
-        <Route path="/analytics" element={<Analytics />} />
-        <Route path="/*" element={<Index />} />
-        <Route path="*" element={<NotFound />} />
-      </Routes>
-    </BrowserRouter>
-  );
-};
-
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <ThemeProvider defaultTheme="light" storageKey="accountant-ai-theme">
+    <QueryClient>
       <AuthProvider>
-        <TooltipProvider>
-          <Toaster />
-          <Sonner />
-          <AppContent />
-        </TooltipProvider>
+        <Router>
+          <div className="min-h-screen bg-background">
+            <Toaster />
+            <Routes>
+              <Route path="/" element={<Landing />} />
+              <Route path="/auth" element={<Auth />} />
+              <Route
+                path="/*"
+                element={
+                  <ProtectedRoute>
+                    <Layout
+                      sidebarCollapsed={sidebarCollapsed}
+                      onSidebarToggle={() => setSidebarCollapsed(!sidebarCollapsed)}
+                    >
+                      <Routes>
+                        <Route path="/dashboard" element={<Dashboard />} />
+                        <Route path="/transactions" element={<Transactions />} />
+                        <Route path="/accounts" element={<Accounts />} />
+                        <Route path="/reports" element={<Reports />} />
+                        <Route path="/analytics" element={<Analytics />} />
+                        <Route path="/advanced-features" element={<AdvancedFeatures />} />
+                        <Route path="/tax" element={<Tax />} />
+                        <Route path="/upload" element={<Upload />} />
+                        <Route path="/assistant" element={<Assistant />} />
+                        <Route path="/markets" element={<Markets />} />
+                        <Route path="/profile" element={<Profile />} />
+                        <Route path="*" element={<NotFound />} />
+                      </Routes>
+                    </Layout>
+                  </ProtectedRoute>
+                }
+              />
+            </Routes>
+          </div>
+        </Router>
       </AuthProvider>
-    </ThemeProvider>
-  </QueryClientProvider>
-);
+    </QueryClient>
+  );
+}
 
 export default App;

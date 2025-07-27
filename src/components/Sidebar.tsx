@@ -1,157 +1,211 @@
-
-import { useState, useEffect } from "react";
-import { Link, useLocation } from "react-router-dom";
+import React, { useState } from "react";
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
-import { 
-  LayoutDashboard, 
-  ArrowLeftRight, 
-  CreditCard, 
-  FileText, 
-  Calculator, 
-  Upload, 
-  Bot, 
-  User,
-  TrendingUp,
+import {
+  LayoutDashboard,
+  FileText,
+  Receipt,
+  Wallet,
   BarChart3,
-  X,
-  ChevronLeft
+  Calculator,
+  Upload,
+  Bot,
+  TrendingUp,
+  User,
+  Zap,
+  Settings,
+  Menu,
 } from "lucide-react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
-import { useDemoMode } from "@/hooks/useDemoMode";
+import { cn } from "@/lib/utils";
 
 interface SidebarProps {
-  isOpen: boolean;
-  onClose: () => void;
+  isCollapsed: boolean;
+  onToggle: () => void;
 }
 
-const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
+const Sidebar = ({ isCollapsed, onToggle }: SidebarProps) => {
   const location = useLocation();
-  const { user } = useAuth();
-  const { isDemo } = useDemoMode();
-  const [isCollapsed, setIsCollapsed] = useState(false);
+  const { signOut, user } = useAuth();
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
 
-  const navigationItems = [
-    { icon: LayoutDashboard, label: "Dashboard", href: "/dashboard" },
-    { icon: ArrowLeftRight, label: "Transactions", href: "/transactions" },
-    { icon: CreditCard, label: "Accounts", href: "/accounts" },
-    { icon: BarChart3, label: "Analytics", href: "/analytics" },
-    { icon: FileText, label: "Reports", href: "/reports" },
-    { icon: Calculator, label: "Tax", href: "/tax" },
-    { icon: TrendingUp, label: "Financial Mgmt", href: "/financial-management" },
-    { icon: Upload, label: "Upload", href: "/upload" },
-    { icon: Bot, label: "Assistant", href: "/assistant" },
-    { icon: User, label: "Profile", href: "/profile" },
-  ];
-
-  const isActive = (href: string) => {
-    if (href === "/dashboard") {
-      return location.pathname === "/" || location.pathname === "/dashboard";
+  const handleSignOut = async () => {
+    setIsLoggingOut(true);
+    try {
+      await signOut();
+    } catch (error) {
+      console.error("Error signing out:", error);
+    } finally {
+      setIsLoggingOut(false);
     }
-    return location.pathname === href;
   };
 
-  // Close sidebar when clicking outside on mobile
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      const sidebar = document.getElementById('sidebar');
-      const target = event.target as Node;
-      
-      if (isOpen && sidebar && !sidebar.contains(target)) {
-        onClose();
-      }
-    };
-
-    if (isOpen) {
-      document.addEventListener('mousedown', handleClickOutside);
-      return () => document.removeEventListener('mousedown', handleClickOutside);
-    }
-  }, [isOpen, onClose]);
+  const menuItems = [
+    {
+      href: "/dashboard",
+      label: "Dashboard",
+      icon: LayoutDashboard,
+    },
+    {
+      href: "/transactions",
+      label: "Transactions",
+      icon: Receipt,
+    },
+    {
+      href: "/accounts",
+      label: "Accounts",
+      icon: Wallet,
+    },
+    {
+      href: "/reports",
+      label: "Reports",
+      icon: FileText,
+    },
+    {
+      href: "/analytics",
+      label: "Analytics",
+      icon: BarChart3,
+    },
+    {
+      href: "/advanced-features",
+      label: "Advanced",
+      icon: Zap,
+    },
+    {
+      href: "/tax",
+      label: "Tax Center",
+      icon: Calculator,
+    },
+    {
+      href: "/upload",
+      label: "Document Upload",
+      icon: Upload,
+    },
+    {
+      href: "/assistant",
+      label: "AI Assistant",
+      icon: Bot,
+    },
+    {
+      href: "/markets",
+      label: "Markets",
+      icon: TrendingUp,
+    },
+    {
+      href: "/profile",
+      label: "Profile",
+      icon: User,
+    },
+  ];
 
   return (
-    <div 
-      id="sidebar"
-      className={`
-        flex flex-col h-full bg-card border-r border-border
-        ${isCollapsed ? 'w-16' : 'w-64'}
-        transition-all duration-200 ease-in-out
-      `}
+    <div
+      className={cn(
+        "flex flex-col h-screen bg-secondary border-r border-muted/50",
+        isCollapsed ? "w-16" : "w-60"
+      )}
     >
-      {/* Header */}
-      <div className="p-4 border-b border-border">
-        <div className="flex items-center justify-between">
-          <div className={`flex items-center gap-2 ${isCollapsed ? 'justify-center' : ''}`}>
-            <div className="h-8 w-8 bg-primary rounded-lg flex items-center justify-center">
-              <span className="text-primary-foreground font-bold text-sm">FM</span>
-            </div>
-            {!isCollapsed && (
-              <span className="font-semibold text-lg">FinanceManager</span>
-            )}
-          </div>
-          
-          {/* Desktop collapse button */}
+      {/* Mobile Menu */}
+      <Sheet>
+        <SheetTrigger asChild>
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => setIsCollapsed(!isCollapsed)}
-            className="hidden lg:flex h-8 w-8 p-0"
+            className="md:hidden absolute top-2 right-2"
+            onClick={onToggle}
           >
-            <ChevronLeft className={`h-4 w-4 transition-transform ${isCollapsed ? 'rotate-180' : ''}`} />
+            <Menu className="h-4 w-4" />
           </Button>
-          
-          {/* Mobile close button */}
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={onClose}
-            className="lg:hidden h-8 w-8 p-0"
-          >
-            <X className="h-4 w-4" />
-          </Button>
-        </div>
-      </div>
-
-      {/* Navigation */}
-      <ScrollArea className="flex-1 px-3">
-        <div className="space-y-2 py-4">
-          {navigationItems.map((item) => {
-            const Icon = item.icon;
-            const active = isActive(item.href);
-            
-            return (
-              <Link key={item.href} to={item.href} onClick={onClose}>
+        </SheetTrigger>
+        <SheetContent side="left" className="w-60 p-0">
+          <SheetHeader className="pl-6 pr-4 pt-4 pb-2">
+            <SheetTitle>Menu</SheetTitle>
+            <SheetDescription>Navigate your dashboard</SheetDescription>
+          </SheetHeader>
+          <Separator />
+          <ScrollArea className="h-[calc(100vh-100px)]">
+            <div className="flex flex-col space-y-1 py-4">
+              {menuItems.map((item) => (
                 <Button
-                  variant={active ? "secondary" : "ghost"}
-                  className={`
-                    w-full justify-start gap-3 h-10
-                    ${isCollapsed ? 'px-2' : 'px-3'}
-                    ${active ? 'bg-secondary text-secondary-foreground' : 'hover:bg-accent hover:text-accent-foreground'}
-                  `}
+                  key={item.href}
+                  asChild
+                  variant="ghost"
+                  className={cn(
+                    "w-full justify-start pl-6 font-normal",
+                    location.pathname === item.href
+                      ? "bg-accent text-accent-foreground hover:bg-accent hover:text-accent-foreground"
+                      : "hover:bg-secondary-foreground hover:text-secondary-foreground"
+                  )}
                 >
-                  <Icon className={`h-4 w-4 ${isCollapsed ? 'mx-auto' : ''}`} />
-                  {!isCollapsed && <span>{item.label}</span>}
+                  <Link to={item.href} className="flex items-center gap-2 w-full">
+                    <item.icon className="h-4 w-4" />
+                    <span>{item.label}</span>
+                  </Link>
                 </Button>
+              ))}
+            </div>
+          </ScrollArea>
+          <Separator />
+          <div className="p-4">
+            <Button
+              variant="outline"
+              className="w-full justify-center"
+              onClick={handleSignOut}
+              disabled={isLoggingOut}
+            >
+              {isLoggingOut ? "Signing Out..." : "Sign Out"}
+            </Button>
+          </div>
+        </SheetContent>
+      </Sheet>
+
+      {/* Desktop Menu */}
+      <ScrollArea className="h-[calc(100vh-80px)] md:block hidden">
+        <div className="flex flex-col space-y-1 py-4">
+          {menuItems.map((item) => (
+            <Button
+              key={item.href}
+              asChild
+              variant="ghost"
+              className={cn(
+                "w-full justify-start pl-6 font-normal",
+                location.pathname === item.href
+                  ? "bg-accent text-accent-foreground hover:bg-accent hover:text-accent-foreground"
+                  : "hover:bg-secondary-foreground hover:text-secondary-foreground",
+                isCollapsed ? "justify-center" : "justify-start"
+              )}
+            >
+              <Link to={item.href} className="flex items-center gap-2 w-full">
+                <item.icon className="h-4 w-4" />
+                {!isCollapsed && <span>{item.label}</span>}
               </Link>
-            );
-          })}
+            </Button>
+          ))}
         </div>
       </ScrollArea>
 
-      {/* Footer */}
-      {!isCollapsed && (
-        <div className="p-4 border-t border-border">
-          <div className="text-xs text-muted-foreground space-y-1">
-            {isDemo && (
-              <div className="text-orange-600 font-medium">Demo Mode Active</div>
-            )}
-            {user && (
-              <div className="truncate">{user.email}</div>
-            )}
-            <div>Finance Manager v2.0</div>
-          </div>
-        </div>
-      )}
+      <Separator />
+
+      <div className="p-4">
+        <Button
+          variant="outline"
+          className="w-full justify-center"
+          onClick={handleSignOut}
+          disabled={isLoggingOut}
+        >
+          {isLoggingOut ? "Signing Out..." : "Sign Out"}
+        </Button>
+      </div>
     </div>
   );
 };

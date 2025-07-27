@@ -52,6 +52,50 @@ export type Database = {
           },
         ]
       }
+      activity_feeds: {
+        Row: {
+          action_description: string
+          action_type: string
+          affected_resource_id: string | null
+          affected_resource_type: string | null
+          created_at: string | null
+          entity_id: string | null
+          id: string
+          metadata: Json | null
+          user_id: string
+        }
+        Insert: {
+          action_description: string
+          action_type: string
+          affected_resource_id?: string | null
+          affected_resource_type?: string | null
+          created_at?: string | null
+          entity_id?: string | null
+          id?: string
+          metadata?: Json | null
+          user_id: string
+        }
+        Update: {
+          action_description?: string
+          action_type?: string
+          affected_resource_id?: string | null
+          affected_resource_type?: string | null
+          created_at?: string | null
+          entity_id?: string | null
+          id?: string
+          metadata?: Json | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "activity_feeds_entity_id_fkey"
+            columns: ["entity_id"]
+            isOneToOne: false
+            referencedRelation: "business_entities"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       analytics_cache: {
         Row: {
           cache_key: string
@@ -318,6 +362,56 @@ export type Database = {
         }
         Relationships: []
       }
+      collaboration_invites: {
+        Row: {
+          accepted_at: string | null
+          created_at: string | null
+          entity_id: string | null
+          expires_at: string
+          id: string
+          invite_token: string
+          invitee_email: string
+          inviter_id: string
+          permissions: Json
+          role_type: string
+          status: string | null
+        }
+        Insert: {
+          accepted_at?: string | null
+          created_at?: string | null
+          entity_id?: string | null
+          expires_at: string
+          id?: string
+          invite_token: string
+          invitee_email: string
+          inviter_id: string
+          permissions?: Json
+          role_type: string
+          status?: string | null
+        }
+        Update: {
+          accepted_at?: string | null
+          created_at?: string | null
+          entity_id?: string | null
+          expires_at?: string
+          id?: string
+          invite_token?: string
+          invitee_email?: string
+          inviter_id?: string
+          permissions?: Json
+          role_type?: string
+          status?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "collaboration_invites_entity_id_fkey"
+            columns: ["entity_id"]
+            isOneToOne: false
+            referencedRelation: "business_entities"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       cost_centers: {
         Row: {
           budget_allocation: number | null
@@ -429,6 +523,51 @@ export type Database = {
         }
         Relationships: []
       }
+      custom_reports: {
+        Row: {
+          business_entity_id: string | null
+          created_at: string | null
+          filters: Json | null
+          id: string
+          is_active: boolean | null
+          is_scheduled: boolean | null
+          report_config: Json
+          report_name: string
+          report_type: string
+          schedule_config: Json | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          business_entity_id?: string | null
+          created_at?: string | null
+          filters?: Json | null
+          id?: string
+          is_active?: boolean | null
+          is_scheduled?: boolean | null
+          report_config?: Json
+          report_name: string
+          report_type: string
+          schedule_config?: Json | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          business_entity_id?: string | null
+          created_at?: string | null
+          filters?: Json | null
+          id?: string
+          is_active?: boolean | null
+          is_scheduled?: boolean | null
+          report_config?: Json
+          report_name?: string
+          report_type?: string
+          schedule_config?: Json | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       deadlines: {
         Row: {
           completed_at: string | null
@@ -473,6 +612,50 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      document_ai_analysis: {
+        Row: {
+          analysis_type: string
+          confidence_score: number | null
+          created_at: string | null
+          document_id: string | null
+          extracted_data: Json | null
+          id: string
+          suggested_categorization: Json | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          analysis_type: string
+          confidence_score?: number | null
+          created_at?: string | null
+          document_id?: string | null
+          extracted_data?: Json | null
+          id?: string
+          suggested_categorization?: Json | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          analysis_type?: string
+          confidence_score?: number | null
+          created_at?: string | null
+          document_id?: string | null
+          extracted_data?: Json | null
+          id?: string
+          suggested_categorization?: Json | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "document_ai_analysis_document_id_fkey"
+            columns: ["document_id"]
+            isOneToOne: false
+            referencedRelation: "documents"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       documents: {
         Row: {
@@ -538,6 +721,54 @@ export type Database = {
             columns: ["parent_document_id"]
             isOneToOne: false
             referencedRelation: "documents"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      entity_relationships: {
+        Row: {
+          child_entity_id: string | null
+          created_at: string | null
+          id: string
+          ownership_percentage: number | null
+          parent_entity_id: string | null
+          relationship_type: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          child_entity_id?: string | null
+          created_at?: string | null
+          id?: string
+          ownership_percentage?: number | null
+          parent_entity_id?: string | null
+          relationship_type: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          child_entity_id?: string | null
+          created_at?: string | null
+          id?: string
+          ownership_percentage?: number | null
+          parent_entity_id?: string | null
+          relationship_type?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "entity_relationships_child_entity_id_fkey"
+            columns: ["child_entity_id"]
+            isOneToOne: false
+            referencedRelation: "business_entities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "entity_relationships_parent_entity_id_fkey"
+            columns: ["parent_entity_id"]
+            isOneToOne: false
+            referencedRelation: "business_entities"
             referencedColumns: ["id"]
           },
         ]
@@ -632,6 +863,114 @@ export type Database = {
           },
         ]
       }
+      integration_connections: {
+        Row: {
+          configuration: Json | null
+          connection_name: string
+          created_at: string | null
+          credentials: Json
+          id: string
+          integration_type: string
+          last_sync_at: string | null
+          next_sync_at: string | null
+          status: string | null
+          sync_frequency: string | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          configuration?: Json | null
+          connection_name: string
+          created_at?: string | null
+          credentials?: Json
+          id?: string
+          integration_type: string
+          last_sync_at?: string | null
+          next_sync_at?: string | null
+          status?: string | null
+          sync_frequency?: string | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          configuration?: Json | null
+          connection_name?: string
+          created_at?: string | null
+          credentials?: Json
+          id?: string
+          integration_type?: string
+          last_sync_at?: string | null
+          next_sync_at?: string | null
+          status?: string | null
+          sync_frequency?: string | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      inter_entity_transactions: {
+        Row: {
+          amount: number
+          created_at: string | null
+          currency_id: string | null
+          description: string | null
+          from_entity_id: string | null
+          id: string
+          reference_number: string | null
+          status: string | null
+          to_entity_id: string | null
+          transaction_date: string
+          transaction_type: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string | null
+          currency_id?: string | null
+          description?: string | null
+          from_entity_id?: string | null
+          id?: string
+          reference_number?: string | null
+          status?: string | null
+          to_entity_id?: string | null
+          transaction_date?: string
+          transaction_type: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string | null
+          currency_id?: string | null
+          description?: string | null
+          from_entity_id?: string | null
+          id?: string
+          reference_number?: string | null
+          status?: string | null
+          to_entity_id?: string | null
+          transaction_date?: string
+          transaction_type?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "inter_entity_transactions_from_entity_id_fkey"
+            columns: ["from_entity_id"]
+            isOneToOne: false
+            referencedRelation: "business_entities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "inter_entity_transactions_to_entity_id_fkey"
+            columns: ["to_entity_id"]
+            isOneToOne: false
+            referencedRelation: "business_entities"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       notifications: {
         Row: {
           created_at: string
@@ -671,6 +1010,36 @@ export type Database = {
         }
         Relationships: []
       }
+      performance_metrics: {
+        Row: {
+          id: string
+          metadata: Json | null
+          metric_name: string
+          metric_type: string
+          metric_value: number | null
+          recorded_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          id?: string
+          metadata?: Json | null
+          metric_name: string
+          metric_type: string
+          metric_value?: number | null
+          recorded_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          id?: string
+          metadata?: Json | null
+          metric_name?: string
+          metric_type?: string
+          metric_value?: number | null
+          recorded_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -698,6 +1067,39 @@ export type Database = {
           id?: string
           role?: string | null
           updated_at?: string | null
+        }
+        Relationships: []
+      }
+      query_cache: {
+        Row: {
+          access_count: number | null
+          cache_data: Json
+          cache_key: string
+          created_at: string | null
+          expires_at: string
+          id: string
+          last_accessed: string | null
+          user_id: string | null
+        }
+        Insert: {
+          access_count?: number | null
+          cache_data: Json
+          cache_key: string
+          created_at?: string | null
+          expires_at: string
+          id?: string
+          last_accessed?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          access_count?: number | null
+          cache_data?: Json
+          cache_key?: string
+          created_at?: string | null
+          expires_at?: string
+          id?: string
+          last_accessed?: string | null
+          user_id?: string | null
         }
         Relationships: []
       }
@@ -736,6 +1138,47 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      report_executions: {
+        Row: {
+          error_message: string | null
+          execution_status: string | null
+          execution_time_ms: number | null
+          file_path: string | null
+          generated_at: string | null
+          id: string
+          report_id: string | null
+          user_id: string
+        }
+        Insert: {
+          error_message?: string | null
+          execution_status?: string | null
+          execution_time_ms?: number | null
+          file_path?: string | null
+          generated_at?: string | null
+          id?: string
+          report_id?: string | null
+          user_id: string
+        }
+        Update: {
+          error_message?: string | null
+          execution_status?: string | null
+          execution_time_ms?: number | null
+          file_path?: string | null
+          generated_at?: string | null
+          id?: string
+          report_id?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "report_executions_report_id_fkey"
+            columns: ["report_id"]
+            isOneToOne: false
+            referencedRelation: "custom_reports"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       revenue_streams: {
         Row: {
@@ -835,6 +1278,53 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      sync_logs: {
+        Row: {
+          completed_at: string | null
+          errors_count: number | null
+          id: string
+          integration_id: string | null
+          records_processed: number | null
+          started_at: string | null
+          status: string
+          sync_details: Json | null
+          sync_type: string
+          user_id: string
+        }
+        Insert: {
+          completed_at?: string | null
+          errors_count?: number | null
+          id?: string
+          integration_id?: string | null
+          records_processed?: number | null
+          started_at?: string | null
+          status: string
+          sync_details?: Json | null
+          sync_type: string
+          user_id: string
+        }
+        Update: {
+          completed_at?: string | null
+          errors_count?: number | null
+          id?: string
+          integration_id?: string | null
+          records_processed?: number | null
+          started_at?: string | null
+          status?: string
+          sync_details?: Json | null
+          sync_type?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sync_logs_integration_id_fkey"
+            columns: ["integration_id"]
+            isOneToOne: false
+            referencedRelation: "integration_connections"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       tasks: {
         Row: {
@@ -952,6 +1442,42 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      tax_compliance_checks: {
+        Row: {
+          business_entity_id: string | null
+          check_type: string
+          checked_at: string | null
+          id: string
+          issues_found: Json | null
+          recommendations: Json | null
+          resolved_at: string | null
+          status: string | null
+          user_id: string
+        }
+        Insert: {
+          business_entity_id?: string | null
+          check_type: string
+          checked_at?: string | null
+          id?: string
+          issues_found?: Json | null
+          recommendations?: Json | null
+          resolved_at?: string | null
+          status?: string | null
+          user_id: string
+        }
+        Update: {
+          business_entity_id?: string | null
+          check_type?: string
+          checked_at?: string | null
+          id?: string
+          issues_found?: Json | null
+          recommendations?: Json | null
+          resolved_at?: string | null
+          status?: string | null
+          user_id?: string
+        }
+        Relationships: []
       }
       tax_deductions: {
         Row: {
@@ -1305,6 +1831,48 @@ export type Database = {
           },
         ]
       }
+      tax_rules: {
+        Row: {
+          actions: Json
+          business_entity_id: string | null
+          conditions: Json
+          created_at: string | null
+          id: string
+          is_active: boolean | null
+          priority: number | null
+          rule_name: string
+          rule_type: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          actions?: Json
+          business_entity_id?: string | null
+          conditions?: Json
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          priority?: number | null
+          rule_name: string
+          rule_type: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          actions?: Json
+          business_entity_id?: string | null
+          conditions?: Json
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          priority?: number | null
+          rule_name?: string
+          rule_type?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       tax_settings: {
         Row: {
           auto_categorize_expenses: boolean | null
@@ -1493,6 +2061,50 @@ export type Database = {
             columns: ["default_currency_id"]
             isOneToOne: false
             referencedRelation: "currencies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_roles: {
+        Row: {
+          entity_id: string | null
+          expires_at: string | null
+          granted_at: string | null
+          granted_by: string
+          id: string
+          is_active: boolean | null
+          permissions: Json
+          role_type: string
+          user_id: string
+        }
+        Insert: {
+          entity_id?: string | null
+          expires_at?: string | null
+          granted_at?: string | null
+          granted_by: string
+          id?: string
+          is_active?: boolean | null
+          permissions?: Json
+          role_type: string
+          user_id: string
+        }
+        Update: {
+          entity_id?: string | null
+          expires_at?: string | null
+          granted_at?: string | null
+          granted_by?: string
+          id?: string
+          is_active?: boolean | null
+          permissions?: Json
+          role_type?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_roles_entity_id_fkey"
+            columns: ["entity_id"]
+            isOneToOne: false
+            referencedRelation: "business_entities"
             referencedColumns: ["id"]
           },
         ]
