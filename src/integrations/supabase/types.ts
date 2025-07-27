@@ -362,6 +362,39 @@ export type Database = {
         }
         Relationships: []
       }
+      chat_history: {
+        Row: {
+          conversation_id: string
+          created_at: string
+          id: string
+          message_content: string
+          message_type: string
+          metadata: Json | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          conversation_id: string
+          created_at?: string
+          id?: string
+          message_content: string
+          message_type: string
+          metadata?: Json | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          conversation_id?: string
+          created_at?: string
+          id?: string
+          message_content?: string
+          message_type?: string
+          metadata?: Json | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       collaboration_invites: {
         Row: {
           accepted_at: string | null

@@ -1,13 +1,17 @@
 
-import { useState, useEffect } from "react";
-import { Outlet } from "react-router-dom";
+import { useState, useEffect, ReactNode } from "react";
 import Sidebar from "./Sidebar";
 import Header from "./Header";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { cn } from "@/lib/utils";
 
-const Layout = () => {
+interface LayoutProps {
+  children: ReactNode;
+}
+
+const Layout = ({ children }: LayoutProps) => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const isMobile = useIsMobile();
 
   // Close mobile menu when switching to desktop
@@ -26,6 +30,10 @@ const Layout = () => {
     setIsMobileMenuOpen(prev => !prev);
   };
 
+  const toggleSidebar = () => {
+    setIsSidebarCollapsed(prev => !prev);
+  };
+
   return (
     <div className="min-h-screen bg-background">
       {/* Mobile Overlay */}
@@ -36,20 +44,23 @@ const Layout = () => {
         />
       )}
 
-      {/* Sidebar - Only show one sidebar */}
+      {/* Sidebar */}
       <div className={cn(
         "fixed inset-y-0 left-0 z-50 transition-transform duration-300 ease-in-out",
         isMobile ? (
           isMobileMenuOpen ? "translate-x-0" : "-translate-x-full"
         ) : "translate-x-0"
       )}>
-        <Sidebar />
+        <Sidebar 
+          isCollapsed={isSidebarCollapsed}
+          onToggle={toggleSidebar}
+        />
       </div>
 
       {/* Main Content */}
       <div className={cn(
         "transition-all duration-300 ease-in-out",
-        isMobile ? "ml-0" : "ml-64"
+        isMobile ? "ml-0" : (isSidebarCollapsed ? "ml-16" : "ml-64")
       )}>
         <Header onMobileMenuToggle={toggleMobileMenu} />
         <main className={cn(
@@ -58,7 +69,7 @@ const Layout = () => {
           "min-h-[calc(100vh-4rem)]"
         )}>
           <div className="max-w-7xl mx-auto">
-            <Outlet />
+            {children}
           </div>
         </main>
       </div>

@@ -6,11 +6,15 @@ import Dashboard from "./Dashboard";
 import Transactions from "./Transactions";
 import Accounts from "./Accounts";
 import Reports from "./Reports";
+import Analytics from "./Analytics";
+import AdvancedFeatures from "./AdvancedFeatures";
 import Tax from "./Tax";
 import Upload from "./Upload";
 import Assistant from "./Assistant";
+import Markets from "./Markets";
 import Profile from "./Profile";
-import FinancialManagement from "./FinancialManagement";
+import Notifications from "./Notifications";
+import NotFound from "./NotFound";
 
 const Index = () => {
   return (
@@ -21,12 +25,16 @@ const Index = () => {
           <Route path="/transactions" element={<Transactions />} />
           <Route path="/accounts" element={<Accounts />} />
           <Route path="/reports" element={<Reports />} />
+          <Route path="/analytics" element={<Analytics />} />
+          <Route path="/advanced-features" element={<AdvancedFeatures />} />
           <Route path="/tax" element={<Tax />} />
           <Route path="/upload" element={<Upload />} />
           <Route path="/assistant" element={<Assistant />} />
+          <Route path="/markets" element={<Markets />} />
           <Route path="/profile" element={<Profile />} />
-          <Route path="/financial-management" element={<FinancialManagement />} />
+          <Route path="/notifications" element={<Notifications />} />
           <Route path="/" element={<Navigate to="/dashboard" replace />} />
+          <Route path="*" element={<NotFound />} />
         </Routes>
       </Layout>
     </ProtectedRoute>
