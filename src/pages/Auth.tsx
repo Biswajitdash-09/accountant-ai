@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -15,6 +14,7 @@ import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Bot, Moon, Sun } from "lucide-react";
 import { useTheme } from "@/hooks/useTheme";
+import { seedDemoData } from "@/utils/demoData";
 import AuthForm from "@/components/auth/AuthForm";
 import OAuthProviders from "@/components/auth/OAuthProviders";
 
@@ -46,9 +46,10 @@ const Auth = () => {
 
   const handleGuestLogin = async () => {
     localStorage.setItem('isGuest', 'true');
+    seedDemoData(); // Seed demo data immediately
     toast({
       title: "Demo Mode",
-      description: "You're now exploring Accountant AI in demo mode.",
+      description: "You're now exploring Accountant AI with sample data!",
     });
     navigate("/dashboard");
   };
