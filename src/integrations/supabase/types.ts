@@ -1458,6 +1458,42 @@ export type Database = {
         }
         Relationships: []
       }
+      voice_entries: {
+        Row: {
+          created_at: string | null
+          error_message: string | null
+          id: string
+          parsed: Json | null
+          processed_at: string | null
+          status: string | null
+          storage_path: string
+          transcript: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          error_message?: string | null
+          id?: string
+          parsed?: Json | null
+          processed_at?: string | null
+          status?: string | null
+          storage_path: string
+          transcript?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          error_message?: string | null
+          id?: string
+          parsed?: Json | null
+          processed_at?: string | null
+          status?: string | null
+          storage_path?: string
+          transcript?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
