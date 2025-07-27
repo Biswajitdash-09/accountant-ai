@@ -3,9 +3,11 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
-import { ArrowRightLeft, RefreshCw } from 'lucide-react';
+import { ArrowRightLeft, RefreshCw, ArrowUpDown } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
 import { supabase } from '@/integrations/supabase/client';
+import { useIsMobile } from '@/hooks/use-mobile';
+import { MobileForm, MobileFormSection, MobileFormRow } from '@/components/ui/mobile-form';
 
 interface ExchangeRate {
   base: string;
@@ -36,6 +38,7 @@ export const CurrencyConverter = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [lastUpdated, setLastUpdated] = useState<string>('');
   const { toast } = useToast();
+  const isMobile = useIsMobile();
 
   const fetchExchangeRates = async () => {
     try {
@@ -175,91 +178,105 @@ export const CurrencyConverter = () => {
 
   return (
     <Card>
-      <CardHeader className="flex flex-row items-center justify-between">
-        <CardTitle>Currency Converter</CardTitle>
+      <CardHeader className="flex flex-col sm:flex-row sm:items-center justify-between space-y-4 sm:space-y-0">
+        <CardTitle className="text-lg sm:text-xl">Currency Converter</CardTitle>
         <Button 
           variant="outline" 
           size="sm" 
           onClick={refreshRates}
           disabled={isLoading}
+          className="w-full sm:w-auto"
         >
-          <RefreshCw className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
-          Refresh
+          <RefreshCw className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''} ${isMobile ? '' : 'mr-2'}`} />
+          {!isMobile && 'Refresh'}
         </Button>
       </CardHeader>
       <CardContent className="space-y-6">
-        <div className="grid grid-cols-1 md:grid-cols-5 gap-4 items-end">
-          <div className="md:col-span-2">
-            <label className="text-sm font-medium mb-2 block">From</label>
-            <div className="flex gap-2">
-              <Input
-                type="number"
-                step="0.01"
-                value={amount}
-                onChange={(e) => setAmount(e.target.value)}
-                placeholder="Amount"
-                className="flex-1"
-              />
-              <Select value={fromCurrency} onValueChange={setFromCurrency}>
-                <SelectTrigger className="w-20">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {POPULAR_CURRENCIES.map(currency => (
-                    <SelectItem key={currency.code} value={currency.code}>
-                      {currency.code}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
+        <MobileForm>
+          <MobileFormSection title="">
+            {/* From Currency Section */}
+            <MobileFormRow>
+              <div className="space-y-2 flex-1">
+                <label className="text-sm font-medium">From</label>
+                <div className="flex gap-2">
+                  <Input
+                    type="number"
+                    step="0.01"
+                    value={amount}
+                    onChange={(e) => setAmount(e.target.value)}
+                    placeholder="Amount"
+                    className="flex-1"
+                  />
+                  <Select value={fromCurrency} onValueChange={setFromCurrency}>
+                    <SelectTrigger className="w-24">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {POPULAR_CURRENCIES.map(currency => (
+                        <SelectItem key={currency.code} value={currency.code}>
+                          {currency.code}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+            </MobileFormRow>
 
-          <div className="flex justify-center">
-            <Button
-              variant="outline"
-              size="icon"
-              onClick={swapCurrencies}
-              className="rounded-full"
-            >
-              <ArrowRightLeft className="h-4 w-4" />
-            </Button>
-          </div>
-
-          <div className="md:col-span-2">
-            <label className="text-sm font-medium mb-2 block">To</label>
-            <div className="flex gap-2">
-              <Input
-                type="text"
-                value={convertedAmount !== null ? convertedAmount.toFixed(4) : ''}
-                readOnly
-                placeholder="Converted amount"
-                className="flex-1"
-              />
-              <Select value={toCurrency} onValueChange={setToCurrency}>
-                <SelectTrigger className="w-20">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {POPULAR_CURRENCIES.map(currency => (
-                    <SelectItem key={currency.code} value={currency.code}>
-                      {currency.code}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+            {/* Swap Button */}
+            <div className="flex justify-center">
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={swapCurrencies}
+                className="rounded-full"
+              >
+                {isMobile ? (
+                  <ArrowUpDown className="h-4 w-4" />
+                ) : (
+                  <ArrowRightLeft className="h-4 w-4" />
+                )}
+              </Button>
             </div>
-          </div>
-        </div>
+
+            {/* To Currency Section */}
+            <MobileFormRow>
+              <div className="space-y-2 flex-1">
+                <label className="text-sm font-medium">To</label>
+                <div className="flex gap-2">
+                  <Input
+                    type="text"
+                    value={convertedAmount !== null ? Math.abs(convertedAmount).toFixed(4) : ''}
+                    readOnly
+                    placeholder="Converted amount"
+                    className="flex-1 bg-muted"
+                  />
+                  <Select value={toCurrency} onValueChange={setToCurrency}>
+                    <SelectTrigger className="w-24">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {POPULAR_CURRENCIES.map(currency => (
+                        <SelectItem key={currency.code} value={currency.code}>
+                          {currency.code}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+            </MobileFormRow>
+          </MobileFormSection>
+        </MobileForm>
 
         {convertedAmount !== null && (
           <div className="bg-muted p-4 rounded-lg">
-            <div className="text-center">
-              <p className="text-2xl font-bold">
-                {fromCurrencyInfo?.symbol}{amount} {fromCurrency} = {toCurrencyInfo?.symbol}{convertedAmount.toFixed(2)} {toCurrency}
+            <div className="text-center space-y-2">
+              <p className="text-lg sm:text-2xl font-bold">
+                {fromCurrencyInfo?.symbol}{amount} {fromCurrency} = {toCurrencyInfo?.symbol}{Math.abs(convertedAmount).toFixed(2)} {toCurrency}
               </p>
-              <p className="text-sm text-muted-foreground mt-2">
-                1 {fromCurrency} = {toCurrencyInfo?.symbol}{getExchangeRate(fromCurrency, toCurrency).toFixed(4)} {toCurrency}
+              <p className="text-xs sm:text-sm text-muted-foreground">
+                1 {fromCurrency} = {toCurrencyInfo?.symbol}{Math.abs(getExchangeRate(fromCurrency, toCurrency)).toFixed(4)} {toCurrency}
               </p>
             </div>
           </div>
@@ -271,22 +288,23 @@ export const CurrencyConverter = () => {
           </p>
         )}
 
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-          <div className="text-center">
-            <p className="text-muted-foreground">USD/INR</p>
-            <p className="font-semibold">{getExchangeRate('USD', 'INR').toFixed(2)}</p>
+        {/* Popular Exchange Rates */}
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-sm">
+          <div className="text-center p-3 bg-muted/30 rounded-lg">
+            <p className="text-muted-foreground text-xs mb-1">USD/INR</p>
+            <p className="font-semibold">{Math.abs(getExchangeRate('USD', 'INR')).toFixed(2)}</p>
           </div>
-          <div className="text-center">
-            <p className="text-muted-foreground">EUR/INR</p>
-            <p className="font-semibold">{getExchangeRate('EUR', 'INR').toFixed(2)}</p>
+          <div className="text-center p-3 bg-muted/30 rounded-lg">
+            <p className="text-muted-foreground text-xs mb-1">EUR/INR</p>
+            <p className="font-semibold">{Math.abs(getExchangeRate('EUR', 'INR')).toFixed(2)}</p>
           </div>
-          <div className="text-center">
-            <p className="text-muted-foreground">GBP/INR</p>
-            <p className="font-semibold">{getExchangeRate('GBP', 'INR').toFixed(2)}</p>
+          <div className="text-center p-3 bg-muted/30 rounded-lg">
+            <p className="text-muted-foreground text-xs mb-1">GBP/INR</p>
+            <p className="font-semibold">{Math.abs(getExchangeRate('GBP', 'INR')).toFixed(2)}</p>
           </div>
-          <div className="text-center">
-            <p className="text-muted-foreground">JPY/INR</p>
-            <p className="font-semibold">{getExchangeRate('JPY', 'INR').toFixed(4)}</p>
+          <div className="text-center p-3 bg-muted/30 rounded-lg">
+            <p className="text-muted-foreground text-xs mb-1">JPY/INR</p>
+            <p className="font-semibold">{Math.abs(getExchangeRate('JPY', 'INR')).toFixed(4)}</p>
           </div>
         </div>
       </CardContent>

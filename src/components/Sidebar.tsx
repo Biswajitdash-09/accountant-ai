@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import {
   Sheet,
@@ -24,10 +25,13 @@ import {
   Zap,
   Settings,
   Menu,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { cn } from "@/lib/utils";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface SidebarProps {
   isCollapsed: boolean;
@@ -38,6 +42,8 @@ const Sidebar = ({ isCollapsed, onToggle }: SidebarProps) => {
   const location = useLocation();
   const { signOut, user } = useAuth();
   const [isLoggingOut, setIsLoggingOut] = useState(false);
+  const [mobileSheetOpen, setMobileSheetOpen] = useState(false);
+  const isMobile = useIsMobile();
 
   const handleSignOut = async () => {
     setIsLoggingOut(true);
@@ -88,7 +94,7 @@ const Sidebar = ({ isCollapsed, onToggle }: SidebarProps) => {
     },
     {
       href: "/upload",
-      label: "Document Upload",
+      label: "Documents",
       icon: Upload,
     },
     {
@@ -108,69 +114,38 @@ const Sidebar = ({ isCollapsed, onToggle }: SidebarProps) => {
     },
   ];
 
-  return (
-    <div
-      className={cn(
-        "flex flex-col h-screen bg-secondary border-r border-muted/50",
-        isCollapsed ? "w-16" : "w-60"
-      )}
-    >
-      {/* Mobile Menu */}
-      <Sheet>
-        <SheetTrigger asChild>
+  const SidebarContent = ({ isMobileSheet = false }: { isMobileSheet?: boolean }) => (
+    <div className="flex flex-col h-full">
+      {/* Logo/Header */}
+      <div className="flex items-center gap-2 p-4 border-b">
+        {!isCollapsed && (
+          <div className="flex items-center gap-2 min-w-0">
+            <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
+              <LayoutDashboard className="h-4 w-4 text-primary-foreground" />
+            </div>
+            <h2 className="font-semibold text-lg truncate">Accountant AI</h2>
+          </div>
+        )}
+        
+        {/* Collapse toggle - only show on desktop */}
+        {!isMobileSheet && (
           <Button
             variant="ghost"
-            size="sm"
-            className="md:hidden absolute top-2 right-2"
+            size="icon"
             onClick={onToggle}
+            className="ml-auto shrink-0"
           >
-            <Menu className="h-4 w-4" />
+            {isCollapsed ? (
+              <ChevronRight className="h-4 w-4" />
+            ) : (
+              <ChevronLeft className="h-4 w-4" />
+            )}
           </Button>
-        </SheetTrigger>
-        <SheetContent side="left" className="w-60 p-0">
-          <SheetHeader className="pl-6 pr-4 pt-4 pb-2">
-            <SheetTitle>Menu</SheetTitle>
-            <SheetDescription>Navigate your dashboard</SheetDescription>
-          </SheetHeader>
-          <Separator />
-          <ScrollArea className="h-[calc(100vh-100px)]">
-            <div className="flex flex-col space-y-1 py-4">
-              {menuItems.map((item) => (
-                <Button
-                  key={item.href}
-                  asChild
-                  variant="ghost"
-                  className={cn(
-                    "w-full justify-start pl-6 font-normal",
-                    location.pathname === item.href
-                      ? "bg-accent text-accent-foreground hover:bg-accent hover:text-accent-foreground"
-                      : "hover:bg-secondary-foreground hover:text-secondary-foreground"
-                  )}
-                >
-                  <Link to={item.href} className="flex items-center gap-2 w-full">
-                    <item.icon className="h-4 w-4" />
-                    <span>{item.label}</span>
-                  </Link>
-                </Button>
-              ))}
-            </div>
-          </ScrollArea>
-          <Separator />
-          <div className="p-4">
-            <Button
-              variant="outline"
-              className="w-full justify-center"
-              onClick={handleSignOut}
-              disabled={isLoggingOut}
-            >
-              {isLoggingOut ? "Signing Out..." : "Sign Out"}
-            </Button>
-          </div>
-        </SheetContent>
-      </Sheet>
+        )}
+      </div>
 
-      {/* Desktop Menu */}
-      <ScrollArea className="h-[calc(100vh-80px)] md:block hidden">
+      {/* Navigation */}
+      <ScrollArea className="flex-1 px-2">
         <div className="flex flex-col space-y-1 py-4">
           {menuItems.map((item) => (
             <Button
@@ -178,34 +153,70 @@ const Sidebar = ({ isCollapsed, onToggle }: SidebarProps) => {
               asChild
               variant="ghost"
               className={cn(
-                "w-full justify-start pl-6 font-normal",
+                "justify-start font-normal h-10",
                 location.pathname === item.href
                   ? "bg-accent text-accent-foreground hover:bg-accent hover:text-accent-foreground"
-                  : "hover:bg-secondary-foreground hover:text-secondary-foreground",
-                isCollapsed ? "justify-center" : "justify-start"
+                  : "hover:bg-accent hover:text-accent-foreground",
+                isCollapsed && !isMobileSheet ? "px-2 justify-center" : "px-3"
               )}
+              onClick={() => isMobileSheet && setMobileSheetOpen(false)}
             >
-              <Link to={item.href} className="flex items-center gap-2 w-full">
-                <item.icon className="h-4 w-4" />
-                {!isCollapsed && <span>{item.label}</span>}
+              <Link to={item.href} className="flex items-center gap-3 w-full">
+                <item.icon className="h-4 w-4 shrink-0" />
+                {(!isCollapsed || isMobileSheet) && (
+                  <span className="truncate">{item.label}</span>
+                )}
               </Link>
             </Button>
           ))}
         </div>
       </ScrollArea>
 
-      <Separator />
-
-      <div className="p-4">
+      {/* Footer */}
+      <div className="border-t p-4">
         <Button
           variant="outline"
           className="w-full justify-center"
           onClick={handleSignOut}
           disabled={isLoggingOut}
         >
-          {isLoggingOut ? "Signing Out..." : "Sign Out"}
+          <span className={cn(isCollapsed && !isMobileSheet ? "sr-only" : "")}>
+            {isLoggingOut ? "Signing Out..." : "Sign Out"}
+          </span>
         </Button>
       </div>
+    </div>
+  );
+
+  // Mobile view with Sheet
+  if (isMobile) {
+    return (
+      <Sheet open={mobileSheetOpen} onOpenChange={setMobileSheetOpen}>
+        <SheetTrigger asChild>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="md:hidden"
+          >
+            <Menu className="h-5 w-5" />
+          </Button>
+        </SheetTrigger>
+        <SheetContent side="left" className="w-72 p-0">
+          <SidebarContent isMobileSheet={true} />
+        </SheetContent>
+      </Sheet>
+    );
+  }
+
+  // Desktop view
+  return (
+    <div
+      className={cn(
+        "flex flex-col h-full bg-background border-r border-border transition-all duration-200",
+        isCollapsed ? "w-16" : "w-64"
+      )}
+    >
+      <SidebarContent />
     </div>
   );
 };
