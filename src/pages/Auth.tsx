@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -17,46 +18,75 @@ import { useTheme } from "@/hooks/useTheme";
 import { seedDemoData } from "@/utils/demoData";
 import AuthForm from "@/components/auth/AuthForm";
 import OAuthProviders from "@/components/auth/OAuthProviders";
+import { useAuth } from "@/contexts/AuthContext";
 
 const Auth = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { toast } = useToast();
   const { theme, toggleTheme } = useTheme();
+  const { user, loading } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [activeTab, setActiveTab] = useState<"login" | "signup">("login");
   
   useEffect(() => {
+    // Redirect authenticated users to dashboard
+    if (!loading && user) {
+      console.log('User already authenticated, redirecting to dashboard');
+      navigate("/dashboard", { replace: true });
+      return;
+    }
+
     // Check for signup parameter in URL
     const params = new URLSearchParams(location.search);
     if (params.get("signup") === "true") {
       setActiveTab("signup");
     }
-
-    // Check if user is already logged in
-    const checkUser = async () => {
-      const { data, error } = await supabase.auth.getSession();
-      if (data.session) {
-        navigate("/dashboard");
-      }
-    };
-
-    checkUser();
-  }, [location.search, navigate]);
+  }, [user, loading, location.search, navigate]);
 
   const handleGuestLogin = async () => {
-    localStorage.setItem('isGuest', 'true');
-    seedDemoData(); // Seed demo data immediately
-    toast({
-      title: "Demo Mode",
-      description: "You're now exploring Accountant AI with sample data!",
-    });
-    navigate("/dashboard");
+    try {
+      setIsLoading(true);
+      console.log('Starting guest login...');
+      
+      localStorage.setItem('isGuest', 'true');
+      await seedDemoData(); // Seed demo data immediately
+      
+      toast({
+        title: "Demo Mode",
+        description: "You're now exploring Accountant AI with sample data!",
+      });
+      
+      console.log('Guest login successful, navigating to dashboard');
+      navigate("/dashboard");
+    } catch (error) {
+      console.error('Error setting up guest mode:', error);
+      toast({
+        title: "Error",
+        description: "Failed to set up demo mode. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleAuthSuccess = () => {
+    console.log('Auth success, navigating to dashboard');
     navigate("/dashboard");
   };
+
+  // Show loading while checking auth state
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/5 via-background to-accent/5">
+        <div className="flex flex-col items-center space-y-4">
+          <Bot className="h-12 w-12 text-primary animate-pulse" />
+          <p className="text-muted-foreground">Loading...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/5 via-background to-accent/5 px-4 relative">
@@ -65,7 +95,7 @@ const Auth = () => {
         variant="ghost"
         size="icon"
         onClick={toggleTheme}
-        className="absolute top-4 right-4"
+        className="absolute top-4 right-4 z-10"
       >
         {theme === 'dark' ? (
           <Sun className="h-[1.2rem] w-[1.2rem]" />
@@ -98,11 +128,9 @@ const Auth = () => {
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                <AuthForm
-                  type="login"
+                <OAuthProviders
                   isLoading={isLoading}
                   setIsLoading={setIsLoading}
-                  onSuccess={handleAuthSuccess}
                 />
                 
                 <div className="relative">
@@ -111,14 +139,16 @@ const Auth = () => {
                   </div>
                   <div className="relative flex justify-center text-xs uppercase">
                     <span className="bg-background px-2 text-muted-foreground">
-                      or continue with
+                      or continue with email
                     </span>
                   </div>
                 </div>
                 
-                <OAuthProviders
+                <AuthForm
+                  type="login"
                   isLoading={isLoading}
                   setIsLoading={setIsLoading}
+                  onSuccess={handleAuthSuccess}
                 />
               </CardContent>
               <CardFooter>
@@ -144,12 +174,9 @@ const Auth = () => {
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                <AuthForm
-                  type="signup"
+                <OAuthProviders
                   isLoading={isLoading}
                   setIsLoading={setIsLoading}
-                  onSuccess={handleAuthSuccess}
-                  onSwitchMode={() => setActiveTab("login")}
                 />
                 
                 <div className="relative">
@@ -158,14 +185,17 @@ const Auth = () => {
                   </div>
                   <div className="relative flex justify-center text-xs uppercase">
                     <span className="bg-background px-2 text-muted-foreground">
-                      or continue with
+                      or continue with email
                     </span>
                   </div>
                 </div>
                 
-                <OAuthProviders
+                <AuthForm
+                  type="signup"
                   isLoading={isLoading}
                   setIsLoading={setIsLoading}
+                  onSuccess={handleAuthSuccess}
+                  onSwitchMode={() => setActiveTab("login")}
                 />
               </CardContent>
             </Card>

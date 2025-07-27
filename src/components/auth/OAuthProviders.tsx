@@ -19,14 +19,18 @@ const OAuthProviders = ({ isLoading, setIsLoading }: OAuthProvidersProps) => {
   const [oauthError, setOauthError] = useState<string | null>(null);
 
   const handleOAuthLogin = async (provider: Provider) => {
+    console.log(`Starting ${provider} OAuth login...`);
     setIsLoading(true);
     setOauthError(null);
 
     try {
+      const redirectTo = `${window.location.origin}/dashboard`;
+      console.log(`Redirect URL: ${redirectTo}`);
+
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider,
         options: {
-          redirectTo: `${window.location.origin}/dashboard`,
+          redirectTo,
           queryParams: {
             access_type: 'offline',
             prompt: 'consent',
@@ -34,11 +38,13 @@ const OAuthProviders = ({ isLoading, setIsLoading }: OAuthProvidersProps) => {
         }
       });
 
+      console.log('OAuth response:', { data, error });
+
       if (error) {
         throw error;
       }
 
-      // If we get here and there's no error, OAuth flow has started
+      // OAuth flow initiated successfully
       toast({
         title: "Redirecting...",
         description: `Redirecting to ${provider === 'linkedin_oidc' ? 'LinkedIn' : 'Google'} for authentication.`,
@@ -47,7 +53,6 @@ const OAuthProviders = ({ isLoading, setIsLoading }: OAuthProvidersProps) => {
     } catch (error: any) {
       console.error(`${provider} OAuth error:`, error);
       
-      // Handle specific error cases
       let errorMessage = "Authentication failed. Please try again.";
       
       if (error.message?.includes('unauthorized_client')) {
@@ -56,6 +61,8 @@ const OAuthProviders = ({ isLoading, setIsLoading }: OAuthProvidersProps) => {
         errorMessage = "Access was denied. Please try again and grant the necessary permissions.";
       } else if (error.message?.includes('network')) {
         errorMessage = "Network error. Please check your connection and try again.";
+      } else if (error.message) {
+        errorMessage = error.message;
       }
 
       setOauthError(errorMessage);
@@ -85,12 +92,12 @@ const OAuthProviders = ({ isLoading, setIsLoading }: OAuthProvidersProps) => {
           type="button"
           onClick={() => handleOAuthLogin("google")}
           disabled={isLoading}
-          className="transition-all duration-200 hover:scale-105"
+          className="transition-all duration-200 hover:scale-105 h-12 text-sm"
         >
           {isLoading ? (
             <Loader2 className="mr-2 h-4 w-4 animate-spin" />
           ) : (
-            <FcGoogle className="mr-2 h-4 w-4" />
+            <FcGoogle className="mr-2 h-5 w-5" />
           )}
           Google
         </Button>
@@ -100,12 +107,12 @@ const OAuthProviders = ({ isLoading, setIsLoading }: OAuthProvidersProps) => {
           type="button"
           onClick={() => handleOAuthLogin("linkedin_oidc")}
           disabled={isLoading}
-          className="transition-all duration-200 hover:scale-105"
+          className="transition-all duration-200 hover:scale-105 h-12 text-sm"
         >
           {isLoading ? (
             <Loader2 className="mr-2 h-4 w-4 animate-spin" />
           ) : (
-            <FaLinkedin className="mr-2 h-4 w-4 text-blue-600" />
+            <FaLinkedin className="mr-2 h-5 w-5 text-blue-600" />
           )}
           LinkedIn
         </Button>
