@@ -18,7 +18,6 @@ import {
   TrendingUp,
   User,
   Zap,
-  Menu,
   ChevronLeft,
   ChevronRight,
 } from "lucide-react";
@@ -110,15 +109,15 @@ const Sidebar = ({ isCollapsed, onToggle, isMobileOpen = false, onMobileToggle }
   ];
 
   const SidebarContent = ({ isMobileSheet = false }: { isMobileSheet?: boolean }) => (
-    <div className="flex flex-col h-full">
+    <div className="flex flex-col h-full bg-background">
       {/* Logo/Header */}
-      <div className="flex items-center gap-2 p-4 border-b">
+      <div className="flex items-center gap-2 p-3 sm:p-4 border-b">
         {!isCollapsed && (
           <div className="flex items-center gap-2 min-w-0">
-            <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
-              <LayoutDashboard className="h-4 w-4 text-primary-foreground" />
+            <div className="w-7 h-7 sm:w-8 sm:h-8 bg-primary rounded-lg flex items-center justify-center">
+              <LayoutDashboard className="h-3 w-3 sm:h-4 sm:w-4 text-primary-foreground" />
             </div>
-            <h2 className="font-semibold text-lg truncate">Accountant AI</h2>
+            <h2 className="font-semibold text-base sm:text-lg truncate">Accountant AI</h2>
           </div>
         )}
         
@@ -128,7 +127,7 @@ const Sidebar = ({ isCollapsed, onToggle, isMobileOpen = false, onMobileToggle }
             variant="ghost"
             size="icon"
             onClick={onToggle}
-            className="ml-auto shrink-0 hover-scale transition-all duration-200"
+            className="ml-auto shrink-0 hover-scale transition-all duration-200 h-8 w-8"
           >
             {isCollapsed ? (
               <ChevronRight className="h-4 w-4" />
@@ -141,14 +140,14 @@ const Sidebar = ({ isCollapsed, onToggle, isMobileOpen = false, onMobileToggle }
 
       {/* Navigation */}
       <ScrollArea className="flex-1 px-2">
-        <div className="flex flex-col space-y-1 py-4">
+        <div className="flex flex-col space-y-1 py-3 sm:py-4">
           {menuItems.map((item) => (
             <Button
               key={item.href}
               asChild
               variant="ghost"
               className={cn(
-                "justify-start font-normal h-10 hover-scale transition-all duration-200",
+                "justify-start font-normal h-9 sm:h-10 hover-scale transition-all duration-200 text-sm sm:text-base min-h-[44px]",
                 location.pathname === item.href
                   ? "bg-accent text-accent-foreground hover:bg-accent hover:text-accent-foreground"
                   : "hover:bg-accent hover:text-accent-foreground",
@@ -168,10 +167,10 @@ const Sidebar = ({ isCollapsed, onToggle, isMobileOpen = false, onMobileToggle }
       </ScrollArea>
 
       {/* Footer */}
-      <div className="border-t p-4">
+      <div className="border-t p-3 sm:p-4">
         <Button
           variant="outline"
-          className="w-full justify-center hover-scale transition-all duration-200"
+          className="w-full justify-center hover-scale transition-all duration-200 text-sm min-h-[44px]"
           onClick={handleSignOut}
           disabled={isLoggingOut}
         >
@@ -187,7 +186,7 @@ const Sidebar = ({ isCollapsed, onToggle, isMobileOpen = false, onMobileToggle }
   if (isMobile) {
     return (
       <Sheet open={isMobileOpen} onOpenChange={onMobileToggle}>
-        <SheetContent side="left" className="w-72 p-0">
+        <SheetContent side="left" className="w-72 p-0 bg-background">
           <SidebarContent isMobileSheet={true} />
         </SheetContent>
       </Sheet>

@@ -3,6 +3,10 @@ import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useTheme } from "@/hooks/useTheme";
+import { useNavigate } from "react-router-dom";
+import { seedDemoData } from "@/utils/demoData";
+import { useState } from "react";
+import { useToast } from "@/components/ui/use-toast";
 import {
   CalculatorIcon,
   FileTextIcon,
@@ -19,35 +23,65 @@ import {
 
 const Landing = () => {
   const { theme, toggleTheme } = useTheme();
+  const navigate = useNavigate();
+  const { toast } = useToast();
+  const [isDemoLoading, setIsDemoLoading] = useState(false);
+
+  const handleDemoMode = async () => {
+    try {
+      setIsDemoLoading(true);
+      console.log('Starting demo mode from landing page...');
+      
+      localStorage.setItem('isGuest', 'true');
+      await seedDemoData();
+      
+      toast({
+        title: "Demo Mode Active",
+        description: "You're now exploring Accountant AI with sample data!",
+      });
+      
+      console.log('Demo mode setup complete, navigating to dashboard');
+      navigate("/dashboard");
+    } catch (error) {
+      console.error('Error setting up demo mode:', error);
+      toast({
+        title: "Error",
+        description: "Failed to set up demo mode. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsDemoLoading(false);
+    }
+  };
 
   const features = [
     {
-      icon: <CalculatorIcon className="h-8 w-8 text-primary" />,
+      icon: <CalculatorIcon className="h-6 w-6 sm:h-8 sm:w-8 text-primary" />,
       title: "Smart Calculations",
       description: "AI-powered calculations for complex financial scenarios with instant accuracy.",
     },
     {
-      icon: <FileTextIcon className="h-8 w-8 text-primary" />,
+      icon: <FileTextIcon className="h-6 w-6 sm:h-8 sm:w-8 text-primary" />,
       title: "Tax Preparation",
       description: "Automated tax filing and preparation with real-time compliance checking.",
     },
     {
-      icon: <PieChartIcon className="h-8 w-8 text-primary" />,
+      icon: <PieChartIcon className="h-6 w-6 sm:h-8 sm:w-8 text-primary" />,
       title: "Financial Reports",
       description: "Generate comprehensive financial reports with beautiful visualizations.",
     },
     {
-      icon: <TrendingUpIcon className="h-8 w-8 text-primary" />,
+      icon: <TrendingUpIcon className="h-6 w-6 sm:h-8 sm:w-8 text-primary" />,
       title: "Business Analytics",
       description: "Track performance trends and get actionable insights for growth.",
     },
     {
-      icon: <Shield className="h-8 w-8 text-primary" />,
+      icon: <Shield className="h-6 w-6 sm:h-8 sm:w-8 text-primary" />,
       title: "Secure & Compliant",
       description: "Bank-level security with full compliance to financial regulations.",
     },
     {
-      icon: <Zap className="h-8 w-8 text-primary" />,
+      icon: <Zap className="h-6 w-6 sm:h-8 sm:w-8 text-primary" />,
       title: "Lightning Fast",
       description: "Process thousands of transactions in seconds with AI optimization.",
     },
@@ -77,78 +111,100 @@ const Landing = () => {
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
-      <header className="border-b px-6 py-4">
+      <header className="border-b px-4 sm:px-6 py-3 sm:py-4">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
           <div className="flex items-center space-x-2">
-            <Bot className="h-8 w-8 text-primary" />
-            <h1 className="text-2xl font-bold">Accountant AI</h1>
+            <Bot className="h-6 w-6 sm:h-8 sm:w-8 text-primary" />
+            <h1 className="text-lg sm:text-xl md:text-2xl font-bold">Accountant AI</h1>
           </div>
           
-          <div className="flex items-center space-x-4">
+          <div className="flex items-center space-x-2 sm:space-x-4">
             <Button
               variant="ghost"
               size="icon"
               onClick={toggleTheme}
-              className="h-9 w-9"
+              className="h-8 w-8 sm:h-9 sm:w-9 hover-scale transition-all duration-200"
             >
-              {theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+              {theme === "dark" ? (
+                <Sun className="h-4 w-4" />
+              ) : (
+                <Moon className="h-4 w-4" />
+              )}
             </Button>
-            <Link to="/auth">
-              <Button variant="outline">Sign In</Button>
+            <Link to="/auth" className="hidden sm:inline-block">
+              <Button variant="outline" size="sm" className="hover-scale transition-all duration-200">
+                Sign In
+              </Button>
             </Link>
             <Link to="/auth">
-              <Button>Get Started</Button>
+              <Button size="sm" className="hover-scale transition-all duration-200">
+                Get Started
+              </Button>
             </Link>
           </div>
         </div>
       </header>
 
       {/* Hero Section */}
-      <section className="py-20 px-6">
-        <div className="max-w-7xl mx-auto text-center space-y-8">
+      <section className="py-12 sm:py-16 md:py-20 px-4 sm:px-6">
+        <div className="max-w-7xl mx-auto text-center space-y-6 sm:space-y-8">
           <div className="space-y-4 animate-fade-in">
-            <h1 className="text-5xl md:text-7xl font-bold bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
+            <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent leading-tight">
               AI-Powered Accounting
             </h1>
-            <p className="text-xl md:text-2xl text-muted-foreground max-w-3xl mx-auto">
+            <p className="text-base sm:text-lg md:text-xl lg:text-2xl text-muted-foreground max-w-3xl mx-auto px-4">
               Transform your financial management with intelligent automation, real-time insights, and seamless tax preparation.
             </p>
           </div>
           
-          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center animate-slide-up">
-            <Link to="/auth">
-              <Button size="lg" className="text-lg px-8 py-6 transform hover:scale-105 transition-all duration-200">
+          <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center items-center animate-slide-up px-4">
+            <Link to="/auth" className="w-full sm:w-auto">
+              <Button 
+                size="lg" 
+                className="w-full sm:w-auto text-base sm:text-lg px-6 sm:px-8 py-4 sm:py-6 hover-scale transition-all duration-200 min-h-[44px]"
+              >
                 Start Free Trial
               </Button>
             </Link>
-            <Link to="/auth">
-              <Button variant="outline" size="lg" className="text-lg px-8 py-6 transform hover:scale-105 transition-all duration-200">
-                Continue as Guest
-              </Button>
-            </Link>
+            <Button 
+              variant="outline" 
+              size="lg" 
+              onClick={handleDemoMode}
+              disabled={isDemoLoading}
+              className="w-full sm:w-auto text-base sm:text-lg px-6 sm:px-8 py-4 sm:py-6 hover-scale transition-all duration-200 min-h-[44px]"
+            >
+              {isDemoLoading ? "Loading Demo..." : "Try Demo"}
+            </Button>
           </div>
         </div>
       </section>
 
       {/* Features Section */}
-      <section className="py-20 px-6 bg-muted/50">
+      <section className="py-12 sm:py-16 md:py-20 px-4 sm:px-6 bg-muted/50">
         <div className="max-w-7xl mx-auto">
-          <div className="text-center space-y-4 mb-16">
-            <h2 className="text-4xl font-bold">Powerful Features</h2>
-            <p className="text-xl text-muted-foreground">Everything you need to manage your finances efficiently</p>
+          <div className="text-center space-y-4 mb-12 sm:mb-16">
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold">Powerful Features</h2>
+            <p className="text-base sm:text-lg md:text-xl text-muted-foreground px-4">
+              Everything you need to manage your finances efficiently
+            </p>
           </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 md:gap-8">
             {features.map((feature, index) => (
-              <Card key={index} className="group hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1">
-                <CardHeader>
-                  <div className="mb-4 group-hover:scale-110 transition-transform duration-300">
+              <Card 
+                key={index} 
+                className="group hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1 h-full"
+              >
+                <CardHeader className="pb-3 sm:pb-4">
+                  <div className="mb-3 sm:mb-4 group-hover:scale-110 transition-transform duration-300">
                     {feature.icon}
                   </div>
-                  <CardTitle>{feature.title}</CardTitle>
+                  <CardTitle className="text-lg sm:text-xl">{feature.title}</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <CardDescription className="text-base">{feature.description}</CardDescription>
+                  <CardDescription className="text-sm sm:text-base leading-relaxed">
+                    {feature.description}
+                  </CardDescription>
                 </CardContent>
               </Card>
             ))}
@@ -157,25 +213,41 @@ const Landing = () => {
       </section>
 
       {/* How It Works Section */}
-      <section className="py-20 px-6">
+      <section className="py-12 sm:py-16 md:py-20 px-4 sm:px-6">
         <div className="max-w-7xl mx-auto">
-          <div className="text-center space-y-4 mb-16">
-            <h2 className="text-4xl font-bold">How It Works</h2>
-            <p className="text-xl text-muted-foreground">Get started in minutes with our simple process</p>
+          <div className="text-center space-y-4 mb-12 sm:mb-16">
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold">How It Works</h2>
+            <p className="text-base sm:text-lg md:text-xl text-muted-foreground px-4">
+              Get started in minutes with our simple process
+            </p>
           </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8">
             {[
-              { step: "1", title: "Upload Your Data", description: "Import transactions, receipts, and financial documents with one click." },
-              { step: "2", title: "AI Analysis", description: "Our AI automatically categorizes and analyzes your financial data." },
-              { step: "3", title: "Get Insights", description: "Receive actionable insights, reports, and automated tax preparations." },
+              { 
+                step: "1", 
+                title: "Upload Your Data", 
+                description: "Import transactions, receipts, and financial documents with one click." 
+              },
+              { 
+                step: "2", 
+                title: "AI Analysis", 
+                description: "Our AI automatically categorizes and analyzes your financial data." 
+              },
+              { 
+                step: "3", 
+                title: "Get Insights", 
+                description: "Receive actionable insights, reports, and automated tax preparations." 
+              },
             ].map((item, index) => (
-              <div key={index} className="text-center space-y-4 animate-scale-in">
-                <div className="w-16 h-16 bg-primary text-primary-foreground rounded-full flex items-center justify-center text-2xl font-bold mx-auto">
+              <div key={index} className="text-center space-y-3 sm:space-y-4 animate-scale-in">
+                <div className="w-12 h-12 sm:w-16 sm:h-16 bg-primary text-primary-foreground rounded-full flex items-center justify-center text-lg sm:text-2xl font-bold mx-auto">
                   {item.step}
                 </div>
-                <h3 className="text-2xl font-semibold">{item.title}</h3>
-                <p className="text-muted-foreground">{item.description}</p>
+                <h3 className="text-xl sm:text-2xl font-semibold">{item.title}</h3>
+                <p className="text-muted-foreground text-sm sm:text-base leading-relaxed px-4">
+                  {item.description}
+                </p>
               </div>
             ))}
           </div>
@@ -183,27 +255,31 @@ const Landing = () => {
       </section>
 
       {/* Testimonials Section */}
-      <section className="py-20 px-6 bg-muted/50">
+      <section className="py-12 sm:py-16 md:py-20 px-4 sm:px-6 bg-muted/50">
         <div className="max-w-7xl mx-auto">
-          <div className="text-center space-y-4 mb-16">
-            <h2 className="text-4xl font-bold">What Our Users Say</h2>
-            <p className="text-xl text-muted-foreground">Join thousands of satisfied customers</p>
+          <div className="text-center space-y-4 mb-12 sm:mb-16">
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold">What Our Users Say</h2>
+            <p className="text-base sm:text-lg md:text-xl text-muted-foreground px-4">
+              Join thousands of satisfied customers
+            </p>
           </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 md:gap-8">
             {testimonials.map((testimonial, index) => (
-              <Card key={index} className="hover:shadow-lg transition-shadow duration-300">
-                <CardHeader>
+              <Card key={index} className="hover:shadow-lg transition-shadow duration-300 h-full">
+                <CardHeader className="pb-3">
                   <div className="flex items-center space-x-1 mb-2">
                     {[...Array(testimonial.rating)].map((_, i) => (
-                      <StarIcon key={i} className="h-4 w-4 fill-yellow-400 text-yellow-400" />
+                      <StarIcon key={i} className="h-3 w-3 sm:h-4 sm:w-4 fill-yellow-400 text-yellow-400" />
                     ))}
                   </div>
-                  <CardTitle className="text-lg">{testimonial.name}</CardTitle>
-                  <CardDescription>{testimonial.role}</CardDescription>
+                  <CardTitle className="text-base sm:text-lg">{testimonial.name}</CardTitle>
+                  <CardDescription className="text-sm">{testimonial.role}</CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <p className="text-muted-foreground">"{testimonial.content}"</p>
+                  <p className="text-muted-foreground text-sm sm:text-base leading-relaxed">
+                    "{testimonial.content}"
+                  </p>
                 </CardContent>
               </Card>
             ))}
@@ -212,35 +288,42 @@ const Landing = () => {
       </section>
 
       {/* CTA Section */}
-      <section className="py-20 px-6">
-        <div className="max-w-4xl mx-auto text-center space-y-8">
-          <h2 className="text-4xl font-bold">Ready to Transform Your Finances?</h2>
-          <p className="text-xl text-muted-foreground">
+      <section className="py-12 sm:py-16 md:py-20 px-4 sm:px-6">
+        <div className="max-w-4xl mx-auto text-center space-y-6 sm:space-y-8">
+          <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold">Ready to Transform Your Finances?</h2>
+          <p className="text-base sm:text-lg md:text-xl text-muted-foreground px-4">
             Join thousands of businesses already using Accountant AI to streamline their financial operations.
           </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link to="/auth">
-              <Button size="lg" className="text-lg px-8 py-6">
+          <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center px-4">
+            <Link to="/auth" className="w-full sm:w-auto">
+              <Button 
+                size="lg" 
+                className="w-full sm:w-auto text-base sm:text-lg px-6 sm:px-8 py-4 sm:py-6 min-h-[44px]"
+              >
                 Get Started Today
               </Button>
             </Link>
-            <Link to="/auth">
-              <Button variant="outline" size="lg" className="text-lg px-8 py-6">
-                Try Demo
-              </Button>
-            </Link>
+            <Button 
+              variant="outline" 
+              size="lg"
+              onClick={handleDemoMode}
+              disabled={isDemoLoading}
+              className="w-full sm:w-auto text-base sm:text-lg px-6 sm:px-8 py-4 sm:py-6 min-h-[44px]"
+            >
+              {isDemoLoading ? "Loading Demo..." : "Try Demo"}
+            </Button>
           </div>
         </div>
       </section>
 
       {/* Footer */}
-      <footer className="border-t py-12 px-6">
+      <footer className="border-t py-8 sm:py-12 px-4 sm:px-6">
         <div className="max-w-7xl mx-auto text-center">
           <div className="flex items-center justify-center space-x-2 mb-4">
-            <Bot className="h-6 w-6 text-primary" />
-            <span className="text-xl font-bold">Accountant AI</span>
+            <Bot className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
+            <span className="text-lg sm:text-xl font-bold">Accountant AI</span>
           </div>
-          <p className="text-muted-foreground">© 2025 Accountant AI. All rights reserved.</p>
+          <p className="text-muted-foreground text-sm sm:text-base">© 2025 Accountant AI. All rights reserved.</p>
         </div>
       </footer>
     </div>

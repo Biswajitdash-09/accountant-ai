@@ -4,6 +4,7 @@ import Sidebar from "./Sidebar";
 import Header from "./Header";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { cn } from "@/lib/utils";
+import DemoAccountBadge from "./DemoAccountBadge";
 
 interface LayoutProps {
   children: ReactNode;
@@ -35,7 +36,7 @@ const Layout = ({ children }: LayoutProps) => {
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background w-full">
       {/* Mobile Overlay */}
       {isMobile && isMobileMenuOpen && (
         <div 
@@ -59,16 +60,22 @@ const Layout = ({ children }: LayoutProps) => {
 
       {/* Main Content */}
       <div className={cn(
-        "transition-all duration-300 ease-in-out",
+        "transition-all duration-300 ease-in-out w-full",
         isMobile ? "ml-0" : (isSidebarCollapsed ? "ml-16" : "ml-64")
       )}>
         <Header onMobileMenuToggle={toggleMobileMenu} />
+        
+        {/* Demo Badge */}
+        <div className="px-4 sm:px-6 lg:px-8 pt-4">
+          <DemoAccountBadge showExitButton />
+        </div>
+        
         <main className={cn(
           "flex-1 overflow-auto",
           "p-4 sm:p-6 lg:p-8",
           "min-h-[calc(100vh-4rem)]"
         )}>
-          <div className="max-w-7xl mx-auto">
+          <div className="max-w-7xl mx-auto w-full">
             {children}
           </div>
         </main>

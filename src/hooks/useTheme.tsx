@@ -58,9 +58,18 @@ export function ThemeProvider({
       setTheme(theme);
     },
     toggleTheme: () => {
-      const newTheme = theme === "dark" ? "light" : "dark";
-      localStorage.setItem(storageKey, newTheme);
-      setTheme(newTheme);
+      if (theme === "system") {
+        // If system, switch to light or dark based on current system preference
+        const systemIsDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+        const newTheme = systemIsDark ? "light" : "dark";
+        localStorage.setItem(storageKey, newTheme);
+        setTheme(newTheme);
+      } else {
+        // Toggle between light and dark
+        const newTheme = theme === "dark" ? "light" : "dark";
+        localStorage.setItem(storageKey, newTheme);
+        setTheme(newTheme);
+      }
     },
   };
 

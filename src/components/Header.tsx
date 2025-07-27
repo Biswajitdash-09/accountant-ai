@@ -28,15 +28,15 @@ const Header = ({ onMobileMenuToggle }: HeaderProps) => {
   const isMobile = useIsMobile();
 
   return (
-    <header className="flex items-center justify-between p-4 bg-background border-b backdrop-blur-sm">
+    <header className="flex items-center justify-between p-4 bg-background/95 backdrop-blur-sm border-b sticky top-0 z-30">
       {/* Mobile menu button / Logo */}
-      <div className="flex items-center gap-4">
+      <div className="flex items-center gap-3 sm:gap-4">
         {isMobile && (
           <Button
             variant="ghost"
             size="icon"
             onClick={onMobileMenuToggle}
-            className="hover-scale transition-all duration-200 cursor-pointer"
+            className="hover-scale transition-all duration-200 cursor-pointer h-9 w-9"
           >
             <Menu className="h-5 w-5" />
           </Button>
@@ -51,7 +51,7 @@ const Header = ({ onMobileMenuToggle }: HeaderProps) => {
       </div>
 
       {/* Right side items */}
-      <div className="flex items-center space-x-2 sm:space-x-4">
+      <div className="flex items-center space-x-1 sm:space-x-2 md:space-x-4">
         <div className="hidden sm:block">
           <CurrencySelector />
         </div>
@@ -61,12 +61,12 @@ const Header = ({ onMobileMenuToggle }: HeaderProps) => {
           variant="ghost" 
           size="icon" 
           onClick={toggleTheme}
-          className="hover-scale transition-all duration-200 cursor-pointer"
+          className="hover-scale transition-all duration-200 cursor-pointer h-9 w-9"
         >
           {theme === 'dark' ? (
-            <Sun className="h-5 w-5 transition-all duration-200" />
+            <Sun className="h-4 w-4 transition-all duration-200" />
           ) : (
-            <Moon className="h-5 w-5 transition-all duration-200" />
+            <Moon className="h-4 w-4 transition-all duration-200" />
           )}
         </Button>
         
@@ -75,15 +75,15 @@ const Header = ({ onMobileMenuToggle }: HeaderProps) => {
           <Button 
             variant="ghost" 
             size="icon" 
-            className="hidden sm:flex hover-scale transition-all duration-200 cursor-pointer"
+            className="hidden sm:flex hover-scale transition-all duration-200 cursor-pointer h-9 w-9"
             asChild
           >
             <Link to="/notifications">
-              <Bell className="h-5 w-5" />
+              <Bell className="h-4 w-4" />
               {unreadCount > 0 && (
                 <Badge 
                   variant="destructive" 
-                  className="absolute -top-1 -right-1 h-5 w-5 rounded-full p-0 flex items-center justify-center text-xs animate-pulse"
+                  className="absolute -top-1 -right-1 h-4 w-4 rounded-full p-0 flex items-center justify-center text-xs animate-pulse"
                 >
                   {unreadCount > 99 ? '99+' : unreadCount}
                 </Badge>
@@ -97,12 +97,15 @@ const Header = ({ onMobileMenuToggle }: HeaderProps) => {
             <Button 
               variant="ghost" 
               size="icon"
-              className="hover-scale transition-all duration-200 cursor-pointer"
+              className="hover-scale transition-all duration-200 cursor-pointer h-9 w-9"
             >
-              <User className="h-5 w-5" />
+              <User className="h-4 w-4" />
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-48">
+          <DropdownMenuContent 
+            align="end" 
+            className="w-48 bg-background/95 backdrop-blur-sm border shadow-lg z-50"
+          >
             <DropdownMenuItem asChild className="sm:hidden">
               <div className="p-2">
                 <CurrencySelector />

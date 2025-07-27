@@ -79,23 +79,23 @@ const Auth = () => {
   // Show loading while checking auth state
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/5 via-background to-accent/5">
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/5 via-background to-accent/5 px-4">
         <div className="flex flex-col items-center space-y-4">
-          <Bot className="h-12 w-12 text-primary animate-pulse" />
-          <p className="text-muted-foreground">Loading...</p>
+          <Bot className="h-10 w-10 sm:h-12 sm:w-12 text-primary animate-pulse" />
+          <p className="text-muted-foreground text-sm sm:text-base">Loading...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/5 via-background to-accent/5 px-4 relative">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/5 via-background to-accent/5 px-4 py-8 relative">
       {/* Dark mode toggle */}
       <Button
         variant="ghost"
         size="icon"
         onClick={toggleTheme}
-        className="absolute top-4 right-4 z-10"
+        className="absolute top-4 right-4 z-10 h-9 w-9"
       >
         {theme === 'dark' ? (
           <Sun className="h-[1.2rem] w-[1.2rem]" />
@@ -105,25 +105,25 @@ const Auth = () => {
       </Button>
 
       <div className="max-w-md w-full">
-        <div className="text-center mb-8">
+        <div className="text-center mb-6 sm:mb-8">
           <div className="flex items-center justify-center mb-4">
-            <Bot className="h-12 w-12 text-primary mr-3" />
-            <h1 className="text-4xl font-bold">Accountant AI</h1>
+            <Bot className="h-10 w-10 sm:h-12 sm:w-12 text-primary mr-3" />
+            <h1 className="text-3xl sm:text-4xl font-bold">Accountant AI</h1>
           </div>
-          <p className="text-muted-foreground text-lg">AI-Powered Accounting Platform</p>
+          <p className="text-muted-foreground text-base sm:text-lg">AI-Powered Accounting Platform</p>
         </div>
         
         <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as "login" | "signup")} className="animate-fade-in">
-          <TabsList className="grid grid-cols-2 mb-8">
-            <TabsTrigger value="login">Login</TabsTrigger>
-            <TabsTrigger value="signup">Sign Up</TabsTrigger>
+          <TabsList className="grid grid-cols-2 mb-6 sm:mb-8">
+            <TabsTrigger value="login" className="text-sm sm:text-base">Login</TabsTrigger>
+            <TabsTrigger value="signup" className="text-sm sm:text-base">Sign Up</TabsTrigger>
           </TabsList>
           
           <TabsContent value="login">
             <Card className="shadow-xl border-0 bg-background/95 backdrop-blur">
-              <CardHeader>
-                <CardTitle>Welcome back</CardTitle>
-                <CardDescription>
+              <CardHeader className="text-center">
+                <CardTitle className="text-xl sm:text-2xl">Welcome back</CardTitle>
+                <CardDescription className="text-sm sm:text-base">
                   Sign in to access your account
                 </CardDescription>
               </CardHeader>
@@ -155,11 +155,11 @@ const Auth = () => {
                 <Button
                   variant="ghost"
                   type="button"
-                  className="w-full transition-all duration-200 hover:scale-105"
+                  className="w-full transition-all duration-200 hover:scale-105 text-sm sm:text-base min-h-[44px]"
                   onClick={handleGuestLogin}
                   disabled={isLoading}
                 >
-                  Try Demo Mode
+                  {isLoading ? "Setting up demo..." : "Try Demo Mode"}
                 </Button>
               </CardFooter>
             </Card>
@@ -167,9 +167,9 @@ const Auth = () => {
           
           <TabsContent value="signup">
             <Card className="shadow-xl border-0 bg-background/95 backdrop-blur">
-              <CardHeader>
-                <CardTitle>Create an account</CardTitle>
-                <CardDescription>
+              <CardHeader className="text-center">
+                <CardTitle className="text-xl sm:text-2xl">Create an account</CardTitle>
+                <CardDescription className="text-sm sm:text-base">
                   Enter your details to get started
                 </CardDescription>
               </CardHeader>
