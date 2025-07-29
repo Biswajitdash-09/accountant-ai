@@ -78,8 +78,8 @@ serve(async (req) => {
         },
       ],
       mode: "payment",
-      success_url: `${req.headers.get("origin")}/advanced-features?payment=success&credits=${credits}`,
-      cancel_url: `${req.headers.get("origin")}/advanced-features?payment=cancelled`,
+      success_url: `${req.headers.get("origin")}/pricing?payment=success&credits=${credits}`,
+      cancel_url: `${req.headers.get("origin")}/pricing?payment=cancelled`,
       metadata: {
         userId: user.id,
         credits: credits.toString(),

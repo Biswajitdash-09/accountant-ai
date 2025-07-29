@@ -25,7 +25,7 @@ const CreditBalance = ({ className, showBuyButton = true }: CreditBalanceProps) 
   }
 
   const handleBuyCredits = () => {
-    navigate('/advanced-features?tab=credits');
+    navigate('/pricing');
   };
 
   return (

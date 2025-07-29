@@ -1,58 +1,25 @@
-import React, { useState, useEffect } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
+
+import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Brain, FileText, Network, Scale, Users, Zap, BarChart3, CreditCard } from "lucide-react";
+import { ArrowLeft, Brain, FileText, Network, Scale, Users, Zap, BarChart3 } from "lucide-react";
 import { DocumentAIManager } from "@/components/advanced/DocumentAIManager";
 import { ReportingSystem } from "@/components/advanced/ReportingSystem";
 import { MultiEntityManager } from "@/components/advanced/MultiEntityManager";
 import { AdvancedTaxManager } from "@/components/advanced/AdvancedTaxManager";
 import { useCollaboration } from "@/hooks/useCollaboration";
 import { useIntegrations } from "@/hooks/useIntegrations";
-import { useCredits } from "@/hooks/useCredits";
-import { CreditPlans } from "@/components/CreditPlans";
-import { useToast } from "@/components/ui/use-toast";
+import CreditBalance from "@/components/CreditBalance";
 import DemoAccountBadge from "@/components/DemoAccountBadge";
 
 const AdvancedFeatures = () => {
-  const [searchParams] = useSearchParams();
-  const initialTab = searchParams.get('tab') || "credits";
-  const [activeTab, setActiveTab] = useState(initialTab);
+  const [activeTab, setActiveTab] = useState("ai-docs");
   const navigate = useNavigate();
   const { activityFeed } = useCollaboration();
   const { connections } = useIntegrations();
-  const { credits, availableCredits, addCredits } = useCredits();
-  const { toast } = useToast();
-
-  // Handle payment success
-  useEffect(() => {
-    const paymentStatus = searchParams.get('payment');
-    const creditsParam = searchParams.get('credits');
-    
-    if (paymentStatus === 'success' && creditsParam) {
-      const creditsAmount = parseInt(creditsParam);
-      addCredits.mutate(creditsAmount);
-      toast({
-        title: "Payment Successful!",
-        description: `${creditsAmount} credits have been added to your account.`,
-      });
-      
-      // Clean up URL
-      navigate('/advanced-features', { replace: true });
-    } else if (paymentStatus === 'cancelled') {
-      toast({
-        title: "Payment Cancelled",
-        description: "Your payment was cancelled. No charges were made.",
-        variant: "destructive",
-      });
-      
-      // Clean up URL
-      navigate('/advanced-features', { replace: true });
-    }
-  }, [searchParams, navigate, addCredits, toast]);
 
   const tabs = [
-    { id: "credits", label: "Credit Plans", icon: CreditCard, component: () => <CreditPlans /> },
     { id: "ai-docs", label: "AI Documents", icon: Brain, component: DocumentAIManager },
     { id: "reports", label: "Advanced Reports", icon: FileText, component: ReportingSystem },
     { id: "multi-entity", label: "Multi-Entity", icon: Network, component: MultiEntityManager },
@@ -79,20 +46,15 @@ const AdvancedFeatures = () => {
               <div>
                 <h1 className="text-2xl sm:text-3xl font-bold flex items-center gap-2">
                   <BarChart3 className="h-8 w-8 text-primary" />
-                  Credit Plans & Advanced Features
+                  Advanced Features
                 </h1>
                 <p className="text-muted-foreground">
-                  Purchase credits and access enterprise-grade financial management tools
+                  Enterprise-grade financial management tools and AI capabilities
                 </p>
               </div>
               
               {/* Credits Display */}
-              <div className="flex items-center gap-2 bg-muted/30 px-4 py-2 rounded-lg">
-                <CreditCard className="h-4 w-4 text-primary" />
-                <span className="text-sm font-medium">
-                  {availableCredits} Credits Available
-                </span>
-              </div>
+              <CreditBalance />
             </div>
           </div>
         </div>
@@ -100,7 +62,7 @@ const AdvancedFeatures = () => {
         <DemoAccountBadge />
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-3 sm:grid-cols-4 lg:grid-cols-7 gap-1">
+          <TabsList className="grid w-full grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-1">
             {tabs.map((tab) => (
               <TabsTrigger 
                 key={tab.id} 

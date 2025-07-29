@@ -43,11 +43,11 @@ const CreditGuard = ({
               )}
             </p>
             <Button 
-              onClick={() => navigate('/advanced-features')}
+              onClick={() => navigate('/pricing')}
               className="bg-primary hover:bg-primary/90"
             >
               <Zap className="h-4 w-4 mr-2" />
-              Get More Credits
+              Buy Credits
             </Button>
           </div>
         </CardContent>

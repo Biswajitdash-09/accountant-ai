@@ -8,6 +8,7 @@ import Accounts from "./Accounts";
 import Reports from "./Reports";
 import Analytics from "./Analytics";
 import AdvancedFeatures from "./AdvancedFeatures";
+import Pricing from "./Pricing";
 import Tax from "./Tax";
 import Upload from "./Upload";
 import Assistant from "./Assistant";
@@ -27,6 +28,7 @@ const Index = () => {
           <Route path="/reports" element={<Reports />} />
           <Route path="/analytics" element={<Analytics />} />
           <Route path="/advanced-features" element={<AdvancedFeatures />} />
+          <Route path="/pricing" element={<Pricing />} />
           <Route path="/tax" element={<Tax />} />
           <Route path="/upload" element={<Upload />} />
           <Route path="/assistant" element={<Assistant />} />

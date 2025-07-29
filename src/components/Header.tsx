@@ -177,7 +177,7 @@ const Header = ({ onMobileMenuToggle }: HeaderProps) => {
               
               {/* Buy Credits - Mobile friendly */}
               <DropdownMenuItem asChild>
-                <Link to="/advanced-features" className="cursor-pointer flex items-center gap-2 py-2">
+                <Link to="/pricing" className="cursor-pointer flex items-center gap-2 py-2">
                   <CreditBalance showBuyButton={false} />
                 </Link>
               </DropdownMenuItem>
