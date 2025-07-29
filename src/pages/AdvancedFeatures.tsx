@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -16,9 +15,10 @@ import { useToast } from "@/components/ui/use-toast";
 import DemoAccountBadge from "@/components/DemoAccountBadge";
 
 const AdvancedFeatures = () => {
-  const [activeTab, setActiveTab] = useState("credits");
-  const navigate = useNavigate();
   const [searchParams] = useSearchParams();
+  const initialTab = searchParams.get('tab') || "credits";
+  const [activeTab, setActiveTab] = useState(initialTab);
+  const navigate = useNavigate();
   const { activityFeed } = useCollaboration();
   const { connections } = useIntegrations();
   const { credits, availableCredits, addCredits } = useCredits();
@@ -79,10 +79,10 @@ const AdvancedFeatures = () => {
               <div>
                 <h1 className="text-2xl sm:text-3xl font-bold flex items-center gap-2">
                   <BarChart3 className="h-8 w-8 text-primary" />
-                  Advanced Features
+                  Credit Plans & Advanced Features
                 </h1>
                 <p className="text-muted-foreground">
-                  Enterprise-grade financial management tools and automation
+                  Purchase credits and access enterprise-grade financial management tools
                 </p>
               </div>
               
@@ -124,7 +124,6 @@ const AdvancedFeatures = () => {
   );
 };
 
-// Placeholder components for Integrations and Collaboration
 const IntegrationsManager = () => {
   const { connections, createConnection, testConnection } = useIntegrations();
   

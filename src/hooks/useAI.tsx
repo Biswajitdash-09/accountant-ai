@@ -1,6 +1,7 @@
 
 import { useState } from 'react';
 import { useToast } from '@/components/ui/use-toast';
+import { useCredits } from '@/hooks/useCredits';
 
 interface AIResponse {
   text: string;
@@ -10,11 +11,32 @@ interface AIResponse {
 export const useAI = () => {
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
+  const { availableCredits, useCredit } = useCredits();
 
   const generateResponse = async (message: string): Promise<AIResponse> => {
+    // Check if user has credits available
+    if (availableCredits <= 0) {
+      toast({
+        title: "No Credits Available",
+        description: "You need credits to use AI features. Please purchase credits or wait for daily reset.",
+        variant: "destructive",
+      });
+      return {
+        text: "I'm sorry, but you don't have enough credits to use AI features. Please purchase credits or wait for your daily free credits to reset.",
+        error: 'No credits available'
+      };
+    }
+
     setIsLoading(true);
     
     try {
+      // Use a credit before making the API call
+      const creditUsed = await useCredit.mutateAsync(1);
+      
+      if (!creditUsed) {
+        throw new Error('Failed to use credit');
+      }
+
       const response = await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent', {
         method: 'POST',
         headers: {
@@ -66,6 +88,7 @@ export const useAI = () => {
 
   return {
     generateResponse,
-    isLoading
+    isLoading,
+    availableCredits
   };
 };

@@ -3,6 +3,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
+import { useCredits } from "@/hooks/useCredits";
 
 export interface ChatMessage {
   id: string;
@@ -19,6 +20,7 @@ export const useChatHistory = (conversationId?: string) => {
   const { user } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { availableCredits, useCredit } = useCredits();
 
   const {
     data: chatHistory = [],
@@ -56,6 +58,15 @@ export const useChatHistory = (conversationId?: string) => {
     }) => {
       if (!user) throw new Error('User not authenticated');
 
+      // Use credit for assistant messages (AI responses)
+      if (messageData.message_type === 'assistant') {
+        if (availableCredits <= 0) {
+          throw new Error('Not enough credits for AI response');
+        }
+        
+        await useCredit.mutateAsync(1);
+      }
+
       const { data, error } = await supabase
         .from('chat_history')
         .insert({
@@ -75,7 +86,9 @@ export const useChatHistory = (conversationId?: string) => {
       console.error('Error saving chat message:', error);
       toast({
         title: "Error",
-        description: "Failed to save chat message.",
+        description: error instanceof Error && error.message === 'Not enough credits for AI response' 
+          ? "Not enough credits for AI response. Please purchase more credits."
+          : "Failed to save chat message.",
         variant: "destructive",
       });
     },
@@ -149,5 +162,6 @@ export const useChatHistory = (conversationId?: string) => {
     deleteConversation,
     conversations: getConversations.data || [],
     isLoadingConversations: getConversations.isLoading,
+    availableCredits,
   };
 };

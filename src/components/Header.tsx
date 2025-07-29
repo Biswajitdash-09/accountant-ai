@@ -15,6 +15,7 @@ import { useTheme } from "@/hooks/useTheme";
 import { useNotifications } from "@/hooks/useNotifications";
 import { Link, useLocation } from "react-router-dom";
 import CurrencySelector from "./CurrencySelector";
+import CreditBalance from "./CreditBalance";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { cn } from "@/lib/utils";
 import { Menu } from "lucide-react";
@@ -83,6 +84,9 @@ const Header = ({ onMobileMenuToggle }: HeaderProps) => {
 
         {/* Right section */}
         <div className="flex items-center gap-2 flex-shrink-0">
+          {/* Credit Balance - Always visible */}
+          <CreditBalance showBuyButton={false} />
+          
           {/* Currency Selector - Hidden on mobile */}
           <div className="hidden sm:flex">
             <CurrencySelector />
@@ -170,6 +174,14 @@ const Header = ({ onMobileMenuToggle }: HeaderProps) => {
                   <DropdownMenuSeparator />
                 </>
               )}
+              
+              {/* Buy Credits - Mobile friendly */}
+              <DropdownMenuItem asChild>
+                <Link to="/advanced-features" className="cursor-pointer flex items-center gap-2 py-2">
+                  <CreditBalance showBuyButton={false} />
+                </Link>
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
               
               {/* Common items */}
               <DropdownMenuItem asChild>
