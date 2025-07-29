@@ -2054,6 +2054,42 @@ export type Database = {
           },
         ]
       }
+      user_credits: {
+        Row: {
+          created_at: string
+          daily_free_credits: number
+          id: string
+          last_reset_date: string
+          subscription_tier: string
+          total_credits: number
+          updated_at: string
+          used_credits: number
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          daily_free_credits?: number
+          id?: string
+          last_reset_date?: string
+          subscription_tier?: string
+          total_credits?: number
+          updated_at?: string
+          used_credits?: number
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          daily_free_credits?: number
+          id?: string
+          last_reset_date?: string
+          subscription_tier?: string
+          total_credits?: number
+          updated_at?: string
+          used_credits?: number
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_preferences: {
         Row: {
           created_at: string | null
@@ -2216,6 +2252,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      add_credits: {
+        Args: { user_id: string; credits_to_add: number }
+        Returns: boolean
+      }
       get_user_crypto_assets: {
         Args: { p_user_id: string }
         Returns: {
@@ -2237,6 +2277,14 @@ export type Database = {
           p_metadata?: Json
         }
         Returns: undefined
+      }
+      reset_daily_credits: {
+        Args: { user_id: string }
+        Returns: boolean
+      }
+      use_credits: {
+        Args: { user_id: string; credits_to_use?: number }
+        Returns: boolean
       }
     }
     Enums: {

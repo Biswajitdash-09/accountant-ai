@@ -37,7 +37,7 @@ export const useCredits = () => {
         .single();
 
       if (error && error.code !== 'PGRST116') throw error;
-      return data as UserCredits | null;
+      return data;
     },
     enabled: !!user,
   });
