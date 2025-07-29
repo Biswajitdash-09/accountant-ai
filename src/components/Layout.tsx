@@ -2,6 +2,7 @@
 import { useState, useEffect, ReactNode } from "react";
 import Sidebar from "./Sidebar";
 import Header from "./Header";
+import { NavigationBreadcrumbs } from "./Navigation/Breadcrumbs";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { cn } from "@/lib/utils";
 import DemoAccountBadge from "./DemoAccountBadge";
@@ -30,7 +31,6 @@ const Layout = ({ children }: LayoutProps) => {
       }
     };
     
-    // Listen for route changes
     window.addEventListener('popstate', handleRouteChange);
     return () => window.removeEventListener('popstate', handleRouteChange);
   }, [isMobileMenuOpen]);
@@ -82,19 +82,23 @@ const Layout = ({ children }: LayoutProps) => {
       )}>
         <Header onMobileMenuToggle={toggleMobileMenu} />
         
-        {/* Demo Badge */}
-        <div className="px-4 sm:px-6 lg:px-8 pt-4">
-          <DemoAccountBadge showExitButton />
-        </div>
-        
-        <main className={cn(
-          "flex-1 overflow-auto",
-          "p-4 sm:p-6 lg:p-8",
-          "min-h-[calc(100vh-4rem)]",
-          "max-w-full" // Prevent horizontal overflow
-        )}>
-          <div className="max-w-7xl mx-auto w-full">
-            {children}
+        {/* Content Area */}
+        <main className="flex-1 min-h-[calc(100vh-4rem)] max-w-full">
+          {/* Demo Badge */}
+          <div className="px-4 sm:px-6 lg:px-8 pt-4 mobile-safe">
+            <DemoAccountBadge showExitButton />
+          </div>
+          
+          {/* Breadcrumbs */}
+          <div className="px-4 sm:px-6 lg:px-8 mobile-safe">
+            <NavigationBreadcrumbs />
+          </div>
+          
+          {/* Page Content */}
+          <div className="px-4 sm:px-6 lg:px-8 pb-8 mobile-safe mobile-bottom-safe">
+            <div className="max-w-7xl mx-auto w-full">
+              {children}
+            </div>
           </div>
         </main>
       </div>

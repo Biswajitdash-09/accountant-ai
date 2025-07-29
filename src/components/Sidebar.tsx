@@ -20,11 +20,13 @@ import {
   Zap,
   ChevronLeft,
   ChevronRight,
+  Dot,
 } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { cn } from "@/lib/utils";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { Badge } from "@/components/ui/badge";
 
 interface SidebarProps {
   isCollapsed: boolean;
@@ -50,84 +52,119 @@ const Sidebar = ({ isCollapsed, onToggle, isMobileOpen = false, onMobileToggle }
     }
   };
 
-  const menuItems = [
+  const menuSections = [
     {
-      href: "/dashboard",
-      label: "Dashboard",
-      icon: LayoutDashboard,
+      title: "Main",
+      items: [
+        {
+          href: "/dashboard",
+          label: "Dashboard",
+          icon: LayoutDashboard,
+          badge: null,
+        },
+        {
+          href: "/transactions",
+          label: "Transactions", 
+          icon: Receipt,
+          badge: null,
+        },
+        {
+          href: "/accounts",
+          label: "Accounts",
+          icon: Wallet,
+          badge: null,
+        },
+      ]
     },
     {
-      href: "/transactions",
-      label: "Transactions",
-      icon: Receipt,
+      title: "Analytics",
+      items: [
+        {
+          href: "/reports",
+          label: "Reports",
+          icon: FileText,
+          badge: null,
+        },
+        {
+          href: "/analytics",
+          label: "Analytics",
+          icon: BarChart3,
+          badge: null,
+        },
+      ]
     },
     {
-      href: "/accounts",
-      label: "Accounts",
-      icon: Wallet,
+      title: "Tools",
+      items: [
+        {
+          href: "/advanced-features",
+          label: "Advanced",
+          icon: Zap,
+          badge: "Pro",
+        },
+        {
+          href: "/tax",
+          label: "Tax Center",
+          icon: Calculator,
+          badge: null,
+        },
+        {
+          href: "/upload",
+          label: "Documents",
+          icon: Upload,
+          badge: null,
+        },
+        {
+          href: "/assistant",
+          label: "AI Assistant",
+          icon: Bot,
+          badge: "AI",
+        },
+        {
+          href: "/markets",
+          label: "Markets",
+          icon: TrendingUp,
+          badge: null,
+        },
+      ]
     },
     {
-      href: "/reports",
-      label: "Reports",
-      icon: FileText,
-    },
-    {
-      href: "/analytics",
-      label: "Analytics",
-      icon: BarChart3,
-    },
-    {
-      href: "/advanced-features",
-      label: "Advanced",
-      icon: Zap,
-    },
-    {
-      href: "/tax",
-      label: "Tax Center",
-      icon: Calculator,
-    },
-    {
-      href: "/upload",
-      label: "Documents",
-      icon: Upload,
-    },
-    {
-      href: "/assistant",
-      label: "AI Assistant",
-      icon: Bot,
-    },
-    {
-      href: "/markets",
-      label: "Markets",
-      icon: TrendingUp,
-    },
-    {
-      href: "/profile",
-      label: "Profile",
-      icon: User,
-    },
+      title: "Account",
+      items: [
+        {
+          href: "/profile",
+          label: "Profile",
+          icon: User,
+          badge: null,
+        },
+      ]
+    }
   ];
 
   const SidebarContent = ({ isMobileSheet = false }: { isMobileSheet?: boolean }) => (
     <div className="flex flex-col h-full bg-background">
-      {/* Logo/Header */}
-      <div className="flex items-center gap-2 p-3 sm:p-4 border-b">
+      {/* Header */}
+      <div className="flex items-center justify-between p-4 border-b">
         {!isCollapsed && (
-          <div className="flex items-center gap-2 min-w-0">
-            <div className="w-7 h-7 sm:w-8 sm:h-8 bg-primary rounded-lg flex items-center justify-center shrink-0">
-              <LayoutDashboard className="h-3 w-3 sm:h-4 sm:w-4 text-primary-foreground" />
+          <div className="flex items-center gap-3 min-w-0">
+            <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center shrink-0">
+              <LayoutDashboard className="h-4 w-4 text-primary-foreground" />
             </div>
-            <h2 className="font-semibold text-base sm:text-lg truncate">Accountant AI</h2>
+            <div className="min-w-0">
+              <h2 className="font-semibold text-base truncate">Accountant AI</h2>
+              <p className="text-xs text-muted-foreground">Financial Management</p>
+            </div>
           </div>
         )}
         
-        {/* Collapse toggle - only show on desktop */}
+        {/* Collapse toggle - desktop only */}
         {!isMobileSheet && !isMobile && (
           <Button
             variant="ghost"
             size="icon"
             onClick={onToggle}
-            className="ml-auto shrink-0 hover-scale transition-all duration-200 h-8 w-8"
+            className="ml-auto shrink-0 btn-enhanced h-8 w-8"
+            aria-label={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
           >
             {isCollapsed ? (
               <ChevronRight className="h-4 w-4" />
@@ -139,48 +176,77 @@ const Sidebar = ({ isCollapsed, onToggle, isMobileOpen = false, onMobileToggle }
       </div>
 
       {/* Navigation */}
-      <ScrollArea className="flex-1 px-2">
-        <div className="flex flex-col space-y-1 py-3 sm:py-4">
-          {menuItems.map((item) => (
-            <Button
-              key={item.href}
-              asChild
-              variant="ghost"
-              className={cn(
-                "justify-start font-normal h-10 sm:h-11 hover-scale transition-all duration-200 text-sm sm:text-base min-h-[44px]",
-                location.pathname === item.href
-                  ? "bg-primary/10 text-primary hover:bg-primary/15 hover:text-primary border border-primary/20"
-                  : "hover:bg-accent hover:text-accent-foreground",
-                isCollapsed && !isMobileSheet ? "px-2 justify-center" : "px-3"
+      <ScrollArea className="flex-1 px-3 custom-scrollbar">
+        <div className="space-y-6 py-4">
+          {menuSections.map((section) => (
+            <div key={section.title} className="space-y-2">
+              {!isCollapsed && (
+                <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider px-2">
+                  {section.title}
+                </h3>
               )}
-              onClick={() => {
-                if (isMobileSheet && onMobileToggle) {
-                  onMobileToggle();
-                }
-              }}
-            >
-              <Link to={item.href} className="flex items-center gap-3 w-full">
-                <item.icon className="h-4 w-4 shrink-0" />
-                {(!isCollapsed || isMobileSheet) && (
-                  <span className="truncate">{item.label}</span>
-                )}
-              </Link>
-            </Button>
+              <div className="space-y-1">
+                {section.items.map((item) => {
+                  const isActive = location.pathname === item.href;
+                  return (
+                    <Button
+                      key={item.href}
+                      asChild
+                      variant="ghost"
+                      className={cn(
+                        "w-full justify-start font-normal transition-all duration-200 mobile-touch",
+                        isActive 
+                          ? "ui-nav-active shadow-sm" 
+                          : "ui-nav-item hover:bg-accent/50",
+                        isCollapsed && !isMobileSheet ? "px-2 justify-center" : "px-3"
+                      )}
+                      onClick={() => {
+                        if (isMobileSheet && onMobileToggle) {
+                          onMobileToggle();
+                        }
+                      }}
+                    >
+                      <Link to={item.href} className="flex items-center gap-3 w-full">
+                        <item.icon className="h-4 w-4 shrink-0" />
+                        {(!isCollapsed || isMobileSheet) && (
+                          <>
+                            <span className="truncate flex-1">{item.label}</span>
+                            {item.badge && (
+                              <Badge 
+                                variant={item.badge === "Pro" ? "default" : "secondary"} 
+                                className="text-xs px-1.5 py-0.5 h-5"
+                              >
+                                {item.badge}
+                              </Badge>
+                            )}
+                          </>
+                        )}
+                        {isActive && !isCollapsed && (
+                          <Dot className="h-4 w-4 text-primary animate-pulse" />
+                        )}
+                      </Link>
+                    </Button>
+                  );
+                })}
+              </div>
+            </div>
           ))}
         </div>
       </ScrollArea>
 
       {/* Footer */}
-      <div className="border-t p-3 sm:p-4">
+      <div className="border-t p-3 mobile-bottom-safe">
         <Button
           variant="outline"
-          className="w-full justify-center hover-scale transition-all duration-200 text-sm min-h-[44px] hover:bg-destructive/10 hover:text-destructive hover:border-destructive/30"
+          className="w-full justify-center btn-enhanced mobile-touch hover:bg-destructive/10 hover:text-destructive hover:border-destructive/30"
           onClick={handleSignOut}
           disabled={isLoggingOut}
         >
-          <span className={cn(isCollapsed && !isMobileSheet ? "sr-only" : "")}>
-            {isLoggingOut ? "Signing Out..." : "Sign Out"}
-          </span>
+          {!isCollapsed && (
+            <span className="truncate">
+              {isLoggingOut ? "Signing Out..." : "Sign Out"}
+            </span>
+          )}
         </Button>
       </div>
     </div>
@@ -192,7 +258,7 @@ const Sidebar = ({ isCollapsed, onToggle, isMobileOpen = false, onMobileToggle }
       <Sheet open={isMobileOpen} onOpenChange={onMobileToggle}>
         <SheetContent 
           side="left" 
-          className="w-72 p-0 bg-background border-r border-border"
+          className="w-80 p-0 ui-glass border-r"
           onClick={(e) => e.stopPropagation()}
         >
           <SidebarContent isMobileSheet={true} />
@@ -205,7 +271,7 @@ const Sidebar = ({ isCollapsed, onToggle, isMobileOpen = false, onMobileToggle }
   return (
     <div
       className={cn(
-        "flex flex-col h-full bg-background border-r border-border transition-all duration-200 shadow-sm",
+        "flex flex-col h-full ui-glass border-r shadow-sm transition-all duration-300 ease-in-out",
         isCollapsed ? "w-16" : "w-64"
       )}
     >
