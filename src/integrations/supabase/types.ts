@@ -1043,6 +1043,60 @@ export type Database = {
         }
         Relationships: []
       }
+      payments: {
+        Row: {
+          amount: number
+          created_at: string
+          credits: number
+          currency: string
+          failure_reason: string | null
+          id: string
+          metadata: Json | null
+          payment_method: string | null
+          plan_id: string
+          plan_name: string | null
+          status: string
+          stripe_payment_intent_id: string | null
+          stripe_session_id: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          credits: number
+          currency?: string
+          failure_reason?: string | null
+          id?: string
+          metadata?: Json | null
+          payment_method?: string | null
+          plan_id: string
+          plan_name?: string | null
+          status?: string
+          stripe_payment_intent_id?: string | null
+          stripe_session_id?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          credits?: number
+          currency?: string
+          failure_reason?: string | null
+          id?: string
+          metadata?: Json | null
+          payment_method?: string | null
+          plan_id?: string
+          plan_name?: string | null
+          status?: string
+          stripe_payment_intent_id?: string | null
+          stripe_session_id?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       performance_metrics: {
         Row: {
           id: string
@@ -2086,6 +2140,42 @@ export type Database = {
           total_credits?: number
           updated_at?: string
           used_credits?: number
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_locations: {
+        Row: {
+          country_code: string | null
+          country_name: string | null
+          created_at: string
+          currency: string | null
+          detected_from_ip: boolean | null
+          id: string
+          manual_override: boolean | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          country_code?: string | null
+          country_name?: string | null
+          created_at?: string
+          currency?: string | null
+          detected_from_ip?: boolean | null
+          id?: string
+          manual_override?: boolean | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          country_code?: string | null
+          country_name?: string | null
+          created_at?: string
+          currency?: string | null
+          detected_from_ip?: boolean | null
+          id?: string
+          manual_override?: boolean | null
+          updated_at?: string
           user_id?: string
         }
         Relationships: []
