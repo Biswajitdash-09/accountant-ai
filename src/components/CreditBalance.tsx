@@ -1,6 +1,7 @@
 
 import { CreditCard } from "lucide-react";
 import { useCredits } from "@/hooks/useCredits";
+import { useCurrency } from "@/contexts/CurrencyContext";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useNavigate } from "react-router-dom";
@@ -13,6 +14,7 @@ interface CreditBalanceProps {
 
 const CreditBalance = ({ className, showBuyButton = true }: CreditBalanceProps) => {
   const { availableCredits, dailyCreditsRemaining, isLoading } = useCredits();
+  const { selectedCurrency } = useCurrency();
   const navigate = useNavigate();
 
   if (isLoading) {

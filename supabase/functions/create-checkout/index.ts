@@ -13,22 +13,6 @@ const logStep = (step: string, details?: any) => {
   console.log(`[CREATE-CHECKOUT] ${step}${detailsStr}`);
 };
 
-// Credit plan configurations
-const CREDIT_PLANS = {
-  starter: {
-    credits: 10,
-    priceUSD: 0.10,
-    priceINR: 8,
-    name: "Starter Plan"
-  },
-  pro: {
-    credits: 20,
-    priceUSD: 0.90,
-    priceINR: 75,
-    name: "Pro Plan"
-  }
-};
-
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -53,21 +37,51 @@ serve(async (req) => {
     if (!user?.email) throw new Error("User not authenticated or email not available");
     logStep("User authenticated", { userId: user.id, email: user.email });
 
-    const { planId, userCountry } = await req.json();
-    logStep("Request data", { planId, userCountry });
+    const { planId, currencyCode = 'USD' } = await req.json();
+    logStep("Request data", { planId, currencyCode });
 
-    if (!planId || !CREDIT_PLANS[planId as keyof typeof CREDIT_PLANS]) {
-      throw new Error("Invalid plan ID");
+    // Get plan details from database
+    const { data: planData, error: planError } = await supabaseClient
+      .from('credit_plans')
+      .select('*')
+      .eq('plan_id', planId)
+      .eq('is_active', true)
+      .single();
+
+    if (planError || !planData) {
+      throw new Error("Invalid or inactive plan ID");
     }
 
-    const plan = CREDIT_PLANS[planId as keyof typeof CREDIT_PLANS];
-    
-    // Determine currency and pricing based on user location
-    const isIndianUser = userCountry === 'IN';
-    const currency = isIndianUser ? 'inr' : 'usd';
-    const amount = isIndianUser ? plan.priceINR : plan.priceUSD;
-    
-    logStep("Pricing determined", { currency, amount, isIndianUser });
+    logStep("Plan found", planData);
+
+    // Validate currency and get pricing
+    const validCurrencies = ['USD', 'INR', 'NGN'];
+    if (!validCurrencies.includes(currencyCode)) {
+      throw new Error(`Unsupported currency: ${currencyCode}`);
+    }
+
+    let amount: number;
+    let currency: string;
+
+    switch (currencyCode) {
+      case 'INR':
+        amount = planData.price_inr;
+        currency = 'inr';
+        break;
+      case 'NGN':
+        amount = planData.price_ngn;
+        currency = 'ngn';
+        break;
+      default:
+        amount = planData.price_usd;
+        currency = 'usd';
+    }
+
+    if (amount <= 0) {
+      throw new Error("Invalid pricing for selected plan and currency");
+    }
+
+    logStep("Pricing determined", { currency, amount, currencyCode });
 
     const stripeKey = Deno.env.get("STRIPE_SECRET_KEY");
     if (!stripeKey) throw new Error("STRIPE_SECRET_KEY is not set");
@@ -90,12 +104,16 @@ serve(async (req) => {
       logStep("New customer created", { customerId });
     }
 
-    // Configure payment methods based on user location
-    const paymentMethodTypes = isIndianUser 
-      ? ['card', 'upi'] 
-      : ['card'];
-
-    logStep("Payment methods configured", { paymentMethodTypes });
+    // Configure payment methods based on currency and region
+    let paymentMethodTypes: string[] = ['card'];
+    
+    // UPI is only available for INR in India
+    if (currencyCode === 'INR') {
+      paymentMethodTypes.push('upi');
+    }
+    
+    // Note: NGN typically uses cards in Stripe
+    logStep("Payment methods configured", { paymentMethodTypes, currencyCode });
 
     // Create checkout session
     const session = await stripe.checkout.sessions.create({
@@ -105,23 +123,24 @@ serve(async (req) => {
           price_data: {
             currency: currency,
             product_data: {
-              name: `${plan.name} - ${plan.credits} Credits`,
-              description: `Purchase ${plan.credits} credits for advanced features`,
+              name: `${planData.plan_name} - ${planData.credits} Credits`,
+              description: `Purchase ${planData.credits} credits for advanced features`,
             },
-            unit_amount: Math.round(amount * 100), // Amount in cents/paisa
+            unit_amount: Math.round(amount * 100), // Amount in cents/kobo/paisa
           },
           quantity: 1,
         },
       ],
       mode: "payment",
       payment_method_types: paymentMethodTypes,
-      success_url: `${req.headers.get("origin")}/pricing?payment=success&credits=${plan.credits}`,
+      success_url: `${req.headers.get("origin")}/pricing?payment=success&credits=${planData.credits}&plan=${planId}`,
       cancel_url: `${req.headers.get("origin")}/pricing?payment=cancelled`,
       metadata: {
         userId: user.id,
-        credits: plan.credits.toString(),
-        planName: plan.name,
+        credits: planData.credits.toString(),
+        planName: planData.plan_name,
         planId: planId,
+        currencyCode: currencyCode,
       },
     });
 

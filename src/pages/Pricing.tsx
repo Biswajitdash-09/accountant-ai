@@ -3,11 +3,12 @@ import React, { useState, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, CreditCard, CheckCircle, XCircle } from "lucide-react";
-import { CreditPlans } from "@/components/CreditPlans";
 import { useCredits } from "@/hooks/useCredits";
 import { useToast } from "@/components/ui/use-toast";
 import CreditBalance from "@/components/CreditBalance";
 import DemoAccountBadge from "@/components/DemoAccountBadge";
+import CurrencySwitcher from "@/components/CurrencySwitcher";
+import { EnhancedCreditPlans } from "@/components/EnhancedCreditPlans";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 const Pricing = () => {
@@ -20,6 +21,7 @@ const Pricing = () => {
   useEffect(() => {
     const paymentStatus = searchParams.get('payment');
     const creditsParam = searchParams.get('credits');
+    const planParam = searchParams.get('plan');
     
     if (paymentStatus === 'success' && creditsParam) {
       const creditsAmount = parseInt(creditsParam);
@@ -78,8 +80,11 @@ const Pricing = () => {
                 </p>
               </div>
               
-              {/* Credits Display */}
-              <CreditBalance showBuyButton={false} />
+              {/* Credits Display and Currency Switcher */}
+              <div className="flex items-center gap-4">
+                <CurrencySwitcher />
+                <CreditBalance showBuyButton={false} />
+              </div>
             </div>
           </div>
         </div>
@@ -119,8 +124,8 @@ const Pricing = () => {
 
         <DemoAccountBadge />
 
-        {/* Credit Plans */}
-        <CreditPlans />
+        {/* Enhanced Credit Plans */}
+        <EnhancedCreditPlans />
       </div>
     </div>
   );
