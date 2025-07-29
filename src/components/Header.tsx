@@ -1,5 +1,5 @@
 
-import { Bell, User, Sun, Moon } from "lucide-react";
+import { Bell, User, Sun, Moon, CreditCard } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -46,6 +46,7 @@ const Header = ({ onMobileMenuToggle }: HeaderProps) => {
       "/markets": "Markets",
       "/profile": "Profile",
       "/notifications": "Notifications",
+      "/pricing": "Buy Credits",
     };
     return titles[path] || "Accountant AI";
   };
@@ -86,6 +87,21 @@ const Header = ({ onMobileMenuToggle }: HeaderProps) => {
         <div className="flex items-center gap-2 flex-shrink-0">
           {/* Credit Balance - Always visible */}
           <CreditBalance showBuyButton={false} />
+          
+          {/* Buy Credits Button - Show on non-pricing pages */}
+          {location.pathname !== "/pricing" && (
+            <Button
+              asChild
+              size="sm"
+              variant="outline"
+              className="hidden sm:flex h-9 gap-2 btn-enhanced"
+            >
+              <Link to="/pricing">
+                <CreditCard className="h-3 w-3" />
+                Buy Credits
+              </Link>
+            </Button>
+          )}
           
           {/* Currency Selector - Hidden on mobile */}
           <div className="hidden sm:flex">
@@ -175,10 +191,11 @@ const Header = ({ onMobileMenuToggle }: HeaderProps) => {
                 </>
               )}
               
-              {/* Buy Credits - Mobile friendly */}
+              {/* Buy Credits - Always visible in menu */}
               <DropdownMenuItem asChild>
                 <Link to="/pricing" className="cursor-pointer flex items-center gap-2 py-2">
-                  <CreditBalance showBuyButton={false} />
+                  <CreditCard className="h-4 w-4" />
+                  Buy Credits
                 </Link>
               </DropdownMenuItem>
               <DropdownMenuSeparator />

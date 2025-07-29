@@ -21,6 +21,7 @@ import {
   ChevronLeft,
   ChevronRight,
   Dot,
+  CreditCard,
 } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
@@ -129,6 +130,17 @@ const Sidebar = ({ isCollapsed, onToggle, isMobileOpen = false, onMobileToggle }
       ]
     },
     {
+      title: "Credits & Billing",
+      items: [
+        {
+          href: "/pricing",
+          label: "Buy Credits",
+          icon: CreditCard,
+          badge: "New",
+        },
+      ]
+    },
+    {
       title: "Account",
       items: [
         {
@@ -213,8 +225,11 @@ const Sidebar = ({ isCollapsed, onToggle, isMobileOpen = false, onMobileToggle }
                             <span className="truncate flex-1">{item.label}</span>
                             {item.badge && (
                               <Badge 
-                                variant={item.badge === "Pro" ? "default" : "secondary"} 
-                                className="text-xs px-1.5 py-0.5 h-5"
+                                variant={item.badge === "Pro" ? "default" : item.badge === "New" ? "secondary" : "secondary"} 
+                                className={cn(
+                                  "text-xs px-1.5 py-0.5 h-5",
+                                  item.badge === "New" && "bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300"
+                                )}
                               >
                                 {item.badge}
                               </Badge>

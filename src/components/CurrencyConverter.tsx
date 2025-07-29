@@ -1,320 +1,255 @@
 
-import { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Button } from '@/components/ui/button';
-import { ArrowRightLeft, RefreshCw, ArrowUpDown } from 'lucide-react';
-import { useToast } from '@/components/ui/use-toast';
-import { supabase } from '@/integrations/supabase/client';
-import { useIsMobile } from '@/hooks/use-mobile';
-import { MobileForm, MobileFormSection, MobileFormRow } from '@/components/ui/mobile-form';
+import React, { useState, useEffect } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { ArrowUpDown, TrendingUp } from "lucide-react";
+import { useCurrencies } from "@/hooks/useCurrencies";
+import { useCurrencyFormatter } from "@/hooks/useCurrencyFormatter";
+import { useToast } from "@/components/ui/use-toast";
 
-interface ExchangeRate {
-  base: string;
-  quote: string;
-  rate: number;
-  fetched_at: string;
-}
-
-// Enhanced currency list with NGN and ZAR prioritized
-const POPULAR_CURRENCIES = [
-  // Priority African currencies
-  { code: 'NGN', name: 'Nigerian Naira', symbol: '₦' },
-  { code: 'ZAR', name: 'South African Rand', symbol: 'R' },
-  
-  // Major global currencies
-  { code: 'USD', name: 'US Dollar', symbol: '$' },
-  { code: 'EUR', name: 'Euro', symbol: '€' },
-  { code: 'GBP', name: 'British Pound', symbol: '£' },
-  { code: 'INR', name: 'Indian Rupee', symbol: '₹' },
-  { code: 'JPY', name: 'Japanese Yen', symbol: '¥' },
-  { code: 'CAD', name: 'Canadian Dollar', symbol: 'C$' },
-  { code: 'AUD', name: 'Australian Dollar', symbol: 'A$' },
-  { code: 'CHF', name: 'Swiss Franc', symbol: 'CHF' },
-  { code: 'CNY', name: 'Chinese Yuan', symbol: '¥' },
-  { code: 'SGD', name: 'Singapore Dollar', symbol: 'S$' }
-];
-
-export const CurrencyConverter = () => {
-  const [amount, setAmount] = useState('1');
-  const [fromCurrency, setFromCurrency] = useState('USD');
-  const [toCurrency, setToCurrency] = useState('NGN'); // Default to NGN for regional bias
+const CurrencyConverter = () => {
+  const [amount, setAmount] = useState("100");
+  const [fromCurrency, setFromCurrency] = useState("");
+  const [toCurrency, setToCurrency] = useState("");
   const [convertedAmount, setConvertedAmount] = useState<number | null>(null);
-  const [exchangeRates, setExchangeRates] = useState<ExchangeRate[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [lastUpdated, setLastUpdated] = useState<string>('');
+  
+  const { currencies, isLoading } = useCurrencies();
+  const { formatCurrency } = useCurrencyFormatter();
   const { toast } = useToast();
-  const isMobile = useIsMobile();
 
-  const fetchExchangeRates = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('exchange_rates')
-        .select('*')
-        .order('fetched_at', { ascending: false })
-        .limit(100);
-
-      if (error) throw error;
-
-      setExchangeRates(data || []);
+  // Set default currencies when currencies are loaded
+  useEffect(() => {
+    if (currencies.length > 0 && !fromCurrency && !toCurrency) {
+      // Prioritize NGN and ZAR as defaults
+      const ngn = currencies.find(c => c.code === 'NGN');
+      const zar = currencies.find(c => c.code === 'ZAR');
+      const usd = currencies.find(c => c.code === 'USD');
       
-      if (data && data.length > 0) {
-        setLastUpdated(new Date(data[0].fetched_at).toLocaleString());
+      setFromCurrency(ngn?.id || usd?.id || currencies[0]?.id || "");
+      setToCurrency(zar?.id || usd?.id || currencies[1]?.id || "");
+    }
+  }, [currencies, fromCurrency, toCurrency]);
+
+  // Get popular currencies with NGN and ZAR prioritized
+  const popularCurrencies = React.useMemo(() => {
+    if (!currencies.length) return [];
+    
+    const priority = ['NGN', 'ZAR', 'USD', 'EUR', 'GBP', 'CAD', 'AUD', 'JPY'];
+    const prioritized = [];
+    const remaining = [];
+    
+    currencies.forEach(currency => {
+      const priorityIndex = priority.indexOf(currency.code);
+      if (priorityIndex !== -1) {
+        prioritized[priorityIndex] = currency;
+      } else {
+        remaining.push(currency);
       }
-    } catch (error) {
-      console.error('Error fetching exchange rates:', error);
+    });
+    
+    return [...prioritized.filter(Boolean), ...remaining];
+  }, [currencies]);
+
+  const handleConvert = () => {
+    if (!amount || !fromCurrency || !toCurrency) {
       toast({
-        title: "Error",
-        description: "Failed to fetch exchange rates",
+        title: "Missing Information",
+        description: "Please select both currencies and enter an amount.",
         variant: "destructive",
       });
-    }
-  };
-
-  const refreshRates = async () => {
-    setIsLoading(true);
-    try {
-      const { error } = await supabase.functions.invoke('sync-fx', {
-        body: { currencies: [fromCurrency, toCurrency] }
-      });
-
-      if (error) {
-        console.warn('FX sync trigger failed:', error);
-      }
-
-      // Refresh rates after a short delay
-      setTimeout(() => {
-        fetchExchangeRates();
-      }, 2000);
-
-      toast({
-        title: "Success",
-        description: "Exchange rates updated",
-      });
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to refresh exchange rates",
-        variant: "destructive",
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const getExchangeRate = (from: string, to: string): number => {
-    if (from === to) return 1;
-
-    // Direct rate
-    const directRate = exchangeRates.find(
-      rate => rate.base === from && rate.quote === to
-    );
-    if (directRate) return directRate.rate;
-
-    // Inverse rate
-    const inverseRate = exchangeRates.find(
-      rate => rate.base === to && rate.quote === from
-    );
-    if (inverseRate) return 1 / inverseRate.rate;
-
-    // Cross rate via USD
-    const fromToUSD = exchangeRates.find(
-      rate => rate.base === from && rate.quote === 'USD'
-    );
-    const usdToTarget = exchangeRates.find(
-      rate => rate.base === 'USD' && rate.quote === to
-    );
-
-    if (fromToUSD && usdToTarget) {
-      return fromToUSD.rate * usdToTarget.rate;
-    }
-
-    // Cross rate via INR
-    const fromToINR = exchangeRates.find(
-      rate => rate.base === from && rate.quote === 'INR'
-    );
-    const inrToTarget = exchangeRates.find(
-      rate => rate.base === 'INR' && rate.quote === to
-    );
-
-    if (fromToINR && inrToTarget) {
-      return fromToINR.rate * inrToTarget.rate;
-    }
-
-    return 0; // No rate available
-  };
-
-  const convertCurrency = () => {
-    const numAmount = parseFloat(amount);
-    if (isNaN(numAmount)) {
-      setConvertedAmount(null);
       return;
     }
 
-    const rate = getExchangeRate(fromCurrency, toCurrency);
-    if (rate > 0) {
-      setConvertedAmount(numAmount * rate);
-    } else {
-      setConvertedAmount(null);
+    const numAmount = parseFloat(amount);
+    if (isNaN(numAmount) || numAmount <= 0) {
       toast({
-        title: "Error",
-        description: "Exchange rate not available for this currency pair",
+        title: "Invalid Amount",
+        description: "Please enter a valid positive number.",
         variant: "destructive",
       });
+      return;
     }
+
+    const fromCurrencyData = currencies.find(c => c.id === fromCurrency);
+    const toCurrencyData = currencies.find(c => c.id === toCurrency);
+
+    if (!fromCurrencyData || !toCurrencyData) {
+      toast({
+        title: "Currency Error",
+        description: "Selected currencies are not available.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Convert using exchange rates
+    let converted;
+    if (fromCurrency === toCurrency) {
+      converted = numAmount;
+    } else {
+      // Convert from source currency to base currency (USD equivalent)
+      const baseAmount = numAmount / fromCurrencyData.exchange_rate;
+      // Convert from base currency to target currency
+      converted = baseAmount * toCurrencyData.exchange_rate;
+    }
+
+    setConvertedAmount(converted);
+    
+    toast({
+      title: "Conversion Complete",
+      description: `${formatCurrency(numAmount, fromCurrency, fromCurrency)} = ${formatCurrency(converted, toCurrency, toCurrency)}`,
+    });
   };
 
-  const swapCurrencies = () => {
+  const handleSwapCurrencies = () => {
+    const tempFrom = fromCurrency;
     setFromCurrency(toCurrency);
-    setToCurrency(fromCurrency);
+    setToCurrency(tempFrom);
+    // Clear the result when swapping
+    setConvertedAmount(null);
   };
 
-  useEffect(() => {
-    fetchExchangeRates();
-  }, []);
-
-  useEffect(() => {
-    if (amount && fromCurrency && toCurrency && exchangeRates.length > 0) {
-      convertCurrency();
-    }
-  }, [amount, fromCurrency, toCurrency, exchangeRates]);
-
-  const fromCurrencyInfo = POPULAR_CURRENCIES.find(c => c.code === fromCurrency);
-  const toCurrencyInfo = POPULAR_CURRENCIES.find(c => c.code === toCurrency);
+  if (isLoading) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <TrendingUp className="h-5 w-5" />
+            Currency Converter
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="text-center text-muted-foreground">Loading currencies...</div>
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <Card>
-      <CardHeader className="flex flex-col sm:flex-row sm:items-center justify-between space-y-4 sm:space-y-0">
-        <CardTitle className="text-lg sm:text-xl">Currency Converter</CardTitle>
-        <Button 
-          variant="outline" 
-          size="sm" 
-          onClick={refreshRates}
-          disabled={isLoading}
-          className="w-full sm:w-auto"
-        >
-          <RefreshCw className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''} ${isMobile ? '' : 'mr-2'}`} />
-          {!isMobile && 'Refresh'}
-        </Button>
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2">
+          <TrendingUp className="h-5 w-5" />
+          Currency Converter
+        </CardTitle>
       </CardHeader>
-      <CardContent className="space-y-6">
-        <MobileForm>
-          <MobileFormSection title="">
-            {/* From Currency Section */}
-            <MobileFormRow>
-              <div className="space-y-2 flex-1">
-                <label className="text-sm font-medium">From</label>
-                <div className="flex gap-2">
-                  <Input
-                    type="number"
-                    step="0.01"
-                    value={amount}
-                    onChange={(e) => setAmount(e.target.value)}
-                    placeholder="Amount"
-                    className="flex-1"
-                  />
-                  <Select value={fromCurrency} onValueChange={setFromCurrency}>
-                    <SelectTrigger className="w-24">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {POPULAR_CURRENCIES.map(currency => (
-                        <SelectItem key={currency.code} value={currency.code}>
-                          {currency.code}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-            </MobileFormRow>
+      <CardContent className="space-y-4">
+        {/* Amount Input */}
+        <div className="space-y-2">
+          <label className="text-sm font-medium">Amount</label>
+          <Input
+            type="number"
+            value={amount}
+            onChange={(e) => setAmount(e.target.value)}
+            placeholder="Enter amount"
+            min="0"
+            step="0.01"
+          />
+        </div>
 
-            {/* Swap Button */}
-            <div className="flex justify-center">
-              <Button
-                variant="outline"
-                size="icon"
-                onClick={swapCurrencies}
-                className="rounded-full"
-              >
-                {isMobile ? (
-                  <ArrowUpDown className="h-4 w-4" />
-                ) : (
-                  <ArrowRightLeft className="h-4 w-4" />
-                )}
-              </Button>
-            </div>
-
-            {/* To Currency Section */}
-            <MobileFormRow>
-              <div className="space-y-2 flex-1">
-                <label className="text-sm font-medium">To</label>
-                <div className="flex gap-2">
-                  <Input
-                    type="text"
-                    value={convertedAmount !== null ? Math.abs(convertedAmount).toFixed(4) : ''}
-                    readOnly
-                    placeholder="Converted amount"
-                    className="flex-1 bg-muted"
-                  />
-                  <Select value={toCurrency} onValueChange={setToCurrency}>
-                    <SelectTrigger className="w-24">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {POPULAR_CURRENCIES.map(currency => (
-                        <SelectItem key={currency.code} value={currency.code}>
-                          {currency.code}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-            </MobileFormRow>
-          </MobileFormSection>
-        </MobileForm>
-
-        {convertedAmount !== null && (
-          <div className="bg-muted p-4 rounded-lg">
-            <div className="text-center space-y-2">
-              <p className="text-lg sm:text-2xl font-bold">
-                {fromCurrencyInfo?.symbol}{amount} {fromCurrency} = {toCurrencyInfo?.symbol}{Math.abs(convertedAmount).toFixed(2)} {toCurrency}
-              </p>
-              <p className="text-xs sm:text-sm text-muted-foreground">
-                1 {fromCurrency} = {toCurrencyInfo?.symbol}{Math.abs(getExchangeRate(fromCurrency, toCurrency)).toFixed(4)} {toCurrency}
-              </p>
-            </div>
+        {/* Currency Selection */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="space-y-2">
+            <label className="text-sm font-medium">From</label>
+            <Select value={fromCurrency} onValueChange={setFromCurrency}>
+              <SelectTrigger>
+                <SelectValue placeholder="Select currency" />
+              </SelectTrigger>
+              <SelectContent>
+                {popularCurrencies.map((currency) => (
+                  <SelectItem key={currency.id} value={currency.id}>
+                    <div className="flex items-center gap-2">
+                      <span className="font-medium">{currency.code}</span>
+                      <span className="text-sm text-muted-foreground">
+                        {currency.symbol}
+                      </span>
+                      <span className="text-xs text-muted-foreground truncate">
+                        {currency.name}
+                      </span>
+                    </div>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
-        )}
 
-        {lastUpdated && (
-          <p className="text-xs text-muted-foreground text-center">
-            Exchange rates last updated: {lastUpdated}
-          </p>
-        )}
-
-        {/* Updated Popular Exchange Rates with NGN and ZAR priority */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-sm">
-          <div className="text-center p-3 bg-muted/30 rounded-lg">
-            <p className="text-muted-foreground text-xs mb-1">USD/NGN</p>
-            <p className="font-semibold">{Math.abs(getExchangeRate('USD', 'NGN')).toFixed(2)}</p>
-          </div>
-          <div className="text-center p-3 bg-muted/30 rounded-lg">
-            <p className="text-muted-foreground text-xs mb-1">USD/ZAR</p>
-            <p className="font-semibold">{Math.abs(getExchangeRate('USD', 'ZAR')).toFixed(2)}</p>
-          </div>
-          <div className="text-center p-3 bg-muted/30 rounded-lg">
-            <p className="text-muted-foreground text-xs mb-1">EUR/NGN</p>
-            <p className="font-semibold">{Math.abs(getExchangeRate('EUR', 'NGN')).toFixed(2)}</p>
-          </div>
-          <div className="text-center p-3 bg-muted/30 rounded-lg">
-            <p className="text-muted-foreground text-xs mb-1">GBP/ZAR</p>
-            <p className="font-semibold">{Math.abs(getExchangeRate('GBP', 'ZAR')).toFixed(2)}</p>
+          <div className="space-y-2">
+            <label className="text-sm font-medium">To</label>
+            <Select value={toCurrency} onValueChange={setToCurrency}>
+              <SelectTrigger>
+                <SelectValue placeholder="Select currency" />
+              </SelectTrigger>
+              <SelectContent>
+                {popularCurrencies.map((currency) => (
+                  <SelectItem key={currency.id} value={currency.id}>
+                    <div className="flex items-center gap-2">
+                      <span className="font-medium">{currency.code}</span>
+                      <span className="text-sm text-muted-foreground">
+                        {currency.symbol}
+                      </span>
+                      <span className="text-xs text-muted-foreground truncate">
+                        {currency.name}
+                      </span>
+                    </div>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
         </div>
+
+        {/* Swap Button */}
+        <div className="flex justify-center">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleSwapCurrencies}
+            className="gap-2"
+            disabled={!fromCurrency || !toCurrency}
+          >
+            <ArrowUpDown className="h-4 w-4" />
+            Swap
+          </Button>
+        </div>
+
+        {/* Convert Button */}
+        <Button onClick={handleConvert} className="w-full" disabled={!fromCurrency || !toCurrency}>
+          Convert
+        </Button>
+
+        {/* Result */}
+        {convertedAmount !== null && fromCurrency && toCurrency && (
+          <div className="mt-4 p-4 bg-muted/30 rounded-lg">
+            <div className="text-center space-y-2">
+              <div className="text-lg font-semibold">
+                {formatCurrency(parseFloat(amount) || 0, fromCurrency, fromCurrency)}
+              </div>
+              <div className="text-sm text-muted-foreground">=</div>
+              <div className="text-2xl font-bold text-primary">
+                {formatCurrency(convertedAmount, toCurrency, toCurrency)}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Exchange Rate Info */}
+        {fromCurrency && toCurrency && fromCurrency !== toCurrency && (
+          <div className="text-xs text-muted-foreground text-center">
+            {(() => {
+              const fromCurrencyData = currencies.find(c => c.id === fromCurrency);
+              const toCurrencyData = currencies.find(c => c.id === toCurrency);
+              if (!fromCurrencyData || !toCurrencyData) return null;
+              
+              const rate = toCurrencyData.exchange_rate / fromCurrencyData.exchange_rate;
+              return `1 ${fromCurrencyData.code} = ${rate.toFixed(6)} ${toCurrencyData.code}`;
+            })()}
+          </div>
+        )}
       </CardContent>
     </Card>
   );
 };
+
+export default CurrencyConverter;

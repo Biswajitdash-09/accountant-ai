@@ -28,6 +28,10 @@ serve(async (req) => {
       { base: 'EUR', quote: 'ZAR' },
       { base: 'GBP', quote: 'NGN' },
       { base: 'GBP', quote: 'ZAR' },
+      { base: 'NGN', quote: 'USD' },
+      { base: 'ZAR', quote: 'USD' },
+      { base: 'NGN', quote: 'ZAR' },
+      { base: 'ZAR', quote: 'NGN' },
       
       // Existing popular pairs
       { base: 'USD', quote: 'INR' },
@@ -44,13 +48,14 @@ serve(async (req) => {
       { base: 'USD', quote: 'EUR' },
       { base: 'USD', quote: 'GBP' },
       { base: 'EUR', quote: 'GBP' },
-      { base: 'NGN', quote: 'ZAR' },
-      { base: 'ZAR', quote: 'NGN' },
+      { base: 'USD', quote: 'CAD' },
+      { base: 'USD', quote: 'AUD' },
+      { base: 'USD', quote: 'JPY' },
     ];
 
     const exchangeRates = [];
 
-    // Fetch rates from Open Exchange Rates API
+    // Fetch rates from Exchange Rate API
     try {
       const response = await fetch(
         `https://api.exchangerate-api.com/v4/latest/USD`
@@ -104,9 +109,22 @@ serve(async (req) => {
 
       console.log('Successfully inserted exchange rates');
 
-      // Clean up old rates (keep last 1000 entries)
+      // Update currencies table with latest rates
+      for (const exchangeRate of exchangeRates) {
+        if (exchangeRate.base === 'USD') {
+          await supabase
+            .from('currencies')
+            .update({ 
+              exchange_rate: exchangeRate.rate,
+              updated_at: new Date().toISOString()
+            })
+            .eq('code', exchangeRate.quote);
+        }
+      }
+
+      // Clean up old rates (keep last 2000 entries for better historical data)
       const { error: cleanupError } = await supabase
-        .rpc('cleanup_old_exchange_rates', { keep_count: 1000 });
+        .rpc('cleanup_old_exchange_rates', { keep_count: 2000 });
 
       if (cleanupError) {
         console.warn('Cleanup warning:', cleanupError);
@@ -124,17 +142,23 @@ serve(async (req) => {
     } catch (apiError) {
       console.error('API fetch error:', apiError);
       
-      // Enhanced fallback rates including NGN and ZAR
+      // Enhanced fallback rates including NGN and ZAR with more realistic values
       const fallbackRates = [
         { base: 'USD', quote: 'NGN', rate: 1650.00 },
         { base: 'USD', quote: 'ZAR', rate: 18.50 },
         { base: 'USD', quote: 'INR', rate: 83.25 },
-        { base: 'EUR', quote: 'NGN', rate: 1800.00 },
-        { base: 'EUR', quote: 'ZAR', rate: 20.20 },
-        { base: 'EUR', quote: 'INR', rate: 90.50 },
-        { base: 'GBP', quote: 'NGN', rate: 2100.00 },
-        { base: 'GBP', quote: 'ZAR', rate: 23.50 },
-        { base: 'GBP', quote: 'INR', rate: 105.75 },
+        { base: 'USD', quote: 'EUR', rate: 0.85 },
+        { base: 'USD', quote: 'GBP', rate: 0.73 },
+        { base: 'EUR', quote: 'NGN', rate: 1941.18 },
+        { base: 'EUR', quote: 'ZAR', rate: 21.76 },
+        { base: 'EUR', quote: 'INR', rate: 97.94 },
+        { base: 'GBP', quote: 'NGN', rate: 2260.27 },
+        { base: 'GBP', quote: 'ZAR', rate: 25.34 },
+        { base: 'GBP', quote: 'INR', rate: 114.04 },
+        { base: 'NGN', quote: 'USD', rate: 0.000606 },
+        { base: 'ZAR', quote: 'USD', rate: 0.054054 },
+        { base: 'NGN', quote: 'ZAR', rate: 0.0112 },
+        { base: 'ZAR', quote: 'NGN', rate: 89.19 },
       ];
 
       const fallbackEntries = fallbackRates.map(rate => ({
@@ -145,6 +169,19 @@ serve(async (req) => {
       await supabase
         .from('exchange_rates')
         .insert(fallbackEntries);
+
+      // Update currencies table with fallback rates
+      for (const rate of fallbackRates) {
+        if (rate.base === 'USD') {
+          await supabase
+            .from('currencies')
+            .update({ 
+              exchange_rate: rate.rate,
+              updated_at: new Date().toISOString()
+            })
+            .eq('code', rate.quote);
+        }
+      }
 
       return new Response(
         JSON.stringify({ 
