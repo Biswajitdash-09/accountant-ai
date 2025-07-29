@@ -1,3 +1,4 @@
+
 import { useState, useRef, useEffect } from "react";
 import { Send, User, Bot, FileText, CornerDownLeft, Loader2, History, Trash2, MessageSquare } from "lucide-react";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -23,7 +24,7 @@ const Assistant = () => {
   const [messages, setMessages] = useState<Message[]>([
     {
       id: "welcome",
-      content: "Hello! I'm your AI assistant powered by Gemini 2.0 Flash. I can help you with any questions or topics you'd like to discuss. How can I assist you today?",
+      content: "Hello! I'm your AI assistant powered by Gemini 2.0 Flash. I can help you with accounting questions, financial analysis, business calculations, and much more. How can I assist you today?",
       sender: "assistant",
       timestamp: new Date(),
     },
@@ -141,7 +142,7 @@ const Assistant = () => {
     setCurrentConversationId(newId);
     setMessages([{
       id: "welcome",
-      content: "Hello! I'm your AI assistant powered by Gemini 2.0 Flash. I can help you with any questions or topics you'd like to discuss. How can I assist you today?",
+      content: "Hello! I'm your AI assistant powered by Gemini 2.0 Flash. I can help you with accounting questions, financial analysis, business calculations, and much more. How can I assist you today?",
       sender: "assistant",
       timestamp: new Date(),
     }]);
@@ -169,37 +170,38 @@ const Assistant = () => {
   };
 
   return (
-    <div className="space-y-6">
-      <h1 className="text-3xl font-bold">AI Assistant</h1>
+    <div className="space-y-4 sm:space-y-6 max-w-full overflow-hidden">
+      <h1 className="text-2xl sm:text-3xl font-bold px-2 sm:px-0">AI Assistant</h1>
       
       <div className={cn(
-        "grid gap-6",
+        "grid gap-4 sm:gap-6",
         isMobile ? "grid-cols-1" : "grid-cols-1 lg:grid-cols-4"
       )}>
         <div className={cn(isMobile ? "order-2" : "lg:col-span-3")}>
-          <Card className="h-[calc(100vh-12rem)]">
-            <CardHeader className="pb-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <CardTitle>AI Assistant</CardTitle>
-                  <CardDescription>
-                    Ask me anything! I'm powered by Gemini 2.0 Flash and can help with any topic or question.
+          <Card className="h-[calc(100vh-10rem)] sm:h-[calc(100vh-12rem)]">
+            <CardHeader className="pb-3 sm:pb-4 px-3 sm:px-6">
+              <div className="flex items-center justify-between gap-2">
+                <div className="min-w-0 flex-1">
+                  <CardTitle className="text-lg sm:text-xl">AI Assistant</CardTitle>
+                  <CardDescription className="text-xs sm:text-sm leading-tight">
+                    Ask me about accounting, taxes, financial analysis, or any topic you'd like to discuss.
                   </CardDescription>
                 </div>
                 <Button
                   variant="outline"
                   size="sm"
                   onClick={startNewConversation}
-                  className="button-hover transition-all duration-200 cursor-pointer"
+                  className="button-hover transition-all duration-200 cursor-pointer flex-shrink-0 text-xs sm:text-sm px-2 sm:px-3"
                 >
-                  <MessageSquare className="h-4 w-4 mr-2" />
-                  New Chat
+                  <MessageSquare className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
+                  <span className="hidden sm:inline">New Chat</span>
+                  <span className="sm:hidden">New</span>
                 </Button>
               </div>
             </CardHeader>
             <CardContent className="p-0">
-              <ScrollArea className="h-[calc(100vh-18rem)] px-4 py-2">
-                <div className="space-y-4">
+              <ScrollArea className="h-[calc(100vh-16rem)] sm:h-[calc(100vh-18rem)] px-3 sm:px-4 py-2">
+                <div className="space-y-3 sm:space-y-4">
                   {messages.map((message) => (
                     <div
                       key={message.id}
@@ -208,44 +210,44 @@ const Assistant = () => {
                       }`}
                     >
                       <div
-                        className={`flex gap-3 max-w-[80%] ${
+                        className={`flex gap-2 sm:gap-3 max-w-[85%] sm:max-w-[80%] ${
                           message.sender === "user" ? "flex-row-reverse" : ""
                         }`}
                       >
-                        <Avatar className="hover-scale transition-all duration-200">
+                        <Avatar className="hover-scale transition-all duration-200 h-6 w-6 sm:h-8 sm:w-8 flex-shrink-0">
                           {message.sender === "user" ? (
                             <>
                               <AvatarImage src="/placeholder.svg" />
-                              <AvatarFallback>
-                                <User className="h-5 w-5" />
+                              <AvatarFallback className="text-xs">
+                                <User className="h-3 w-3 sm:h-4 sm:w-4" />
                               </AvatarFallback>
                             </>
                           ) : (
                             <>
                               <AvatarImage src="/placeholder.svg" />
-                              <AvatarFallback>
-                                <Bot className="h-5 w-5" />
+                              <AvatarFallback className="text-xs">
+                                <Bot className="h-3 w-3 sm:h-4 sm:w-4" />
                               </AvatarFallback>
                             </>
                           )}
                         </Avatar>
                         <div
                           className={cn(
-                            "rounded-lg p-3 transition-all duration-200 cursor-pointer",
+                            "rounded-lg p-2 sm:p-3 transition-all duration-200 cursor-pointer text-sm sm:text-base",
                             message.sender === "user"
                               ? "bg-primary text-primary-foreground"
                               : "bg-muted hover:bg-muted/80"
                           )}
                         >
-                          <div className="mb-1 text-sm">
+                          <div className="mb-1 text-xs sm:text-sm">
                             {message.sender === "user" ? "You" : "AI Assistant"}
                             <span className="text-xs opacity-70 ml-2">
                               {formatTime(message.timestamp)}
                             </span>
                           </div>
-                          <div className="whitespace-pre-wrap flex items-center gap-2">
+                          <div className="whitespace-pre-wrap flex items-center gap-2 break-words">
                             {message.isLoading && (
-                              <Loader2 className="h-4 w-4 animate-spin" />
+                              <Loader2 className="h-3 w-3 sm:h-4 sm:w-4 animate-spin flex-shrink-0" />
                             )}
                             {message.content}
                           </div>
@@ -257,14 +259,14 @@ const Assistant = () => {
                 </div>
               </ScrollArea>
             </CardContent>
-            <CardFooter className="pt-4 border-t">
-              <div className="flex w-full items-center space-x-2">
+            <CardFooter className="pt-3 sm:pt-4 border-t px-3 sm:px-6">
+              <div className="flex w-full items-end space-x-2">
                 <Textarea
-                  placeholder="Ask me anything..."
+                  placeholder="Ask me anything about accounting, taxes, or business..."
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
                   onKeyDown={handleKeyDown}
-                  className="flex-1 focus-ring transition-all duration-200"
+                  className="flex-1 focus-ring transition-all duration-200 text-sm sm:text-base min-h-[40px] sm:min-h-[44px] resize-none"
                   rows={1}
                   disabled={isLoading}
                 />
@@ -272,7 +274,7 @@ const Assistant = () => {
                   onClick={handleSend} 
                   size="icon"
                   disabled={isLoading || input.trim() === ""}
-                  className="button-hover transition-all duration-200 cursor-pointer"
+                  className="button-hover transition-all duration-200 cursor-pointer h-10 w-10 sm:h-11 sm:w-11 flex-shrink-0"
                 >
                   {isLoading ? (
                     <Loader2 className="h-4 w-4 animate-spin" />
@@ -286,80 +288,108 @@ const Assistant = () => {
         </div>
 
         <div className={cn(isMobile ? "order-1" : "")}>
-          <Card className="h-[calc(100vh-12rem)]">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <History className="h-5 w-5" />
+          <Card className="h-[calc(100vh-10rem)] sm:h-[calc(100vh-12rem)]">
+            <CardHeader className="px-3 sm:px-6 py-3 sm:py-6">
+              <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
+                <History className="h-4 w-4 sm:h-5 sm:w-5" />
                 Quick Questions & History
               </CardTitle>
             </CardHeader>
             <CardContent className="p-0">
               <Tabs defaultValue="questions">
-                <TabsList className="grid w-full grid-cols-2">
-                  <TabsTrigger value="questions" className="cursor-pointer">Questions</TabsTrigger>
-                  <TabsTrigger value="history" className="cursor-pointer">History</TabsTrigger>
+                <TabsList className="grid w-full grid-cols-2 mx-3 sm:mx-6 mb-3">
+                  <TabsTrigger value="questions" className="cursor-pointer text-xs sm:text-sm">Questions</TabsTrigger>
+                  <TabsTrigger value="history" className="cursor-pointer text-xs sm:text-sm">History</TabsTrigger>
                 </TabsList>
-                <TabsContent value="questions" className="p-4 space-y-2">
-                  <Button
-                    variant="outline"
-                    className="justify-start w-full button-hover transition-all duration-200 cursor-pointer"
-                    onClick={() => handleQuickQuestion("What's the weather like today?")}
-                  >
-                    <CornerDownLeft className="mr-2 h-4 w-4" />
-                    <span>Weather information</span>
-                  </Button>
-                  <Button
-                    variant="outline"
-                    className="justify-start w-full button-hover transition-all duration-200 cursor-pointer"
-                    onClick={() => handleQuickQuestion("Explain quantum computing in simple terms")}
-                  >
-                    <CornerDownLeft className="mr-2 h-4 w-4" />
-                    <span>Quantum computing</span>
-                  </Button>
-                  <Button
-                    variant="outline"
-                    className="justify-start w-full button-hover transition-all duration-200 cursor-pointer"
-                    onClick={() => handleQuickQuestion("Write a creative short story")}
-                  >
-                    <CornerDownLeft className="mr-2 h-4 w-4" />
-                    <span>Creative writing</span>
-                  </Button>
-                  <Button
-                    variant="outline"
-                    className="justify-start w-full button-hover transition-all duration-200 cursor-pointer"
-                    onClick={() => handleQuickQuestion("Help me plan a healthy meal")}
-                  >
-                    <CornerDownLeft className="mr-2 h-4 w-4" />
-                    <span>Meal planning</span>
-                  </Button>
-                  <Button
-                    variant="outline"
-                    className="justify-start w-full button-hover transition-all duration-200 cursor-pointer"
-                    onClick={() => handleQuickQuestion("Solve this math problem: 2x + 5 = 15")}
-                  >
-                    <CornerDownLeft className="mr-2 h-4 w-4" />
-                    <span>Math problems</span>
-                  </Button>
+                <TabsContent value="questions" className="px-3 sm:px-4 space-y-2 mt-0">
+                  <ScrollArea className="h-[300px] sm:h-[400px]">
+                    <div className="space-y-2 pr-2">
+                      <Button
+                        variant="outline"
+                        className="justify-start w-full button-hover transition-all duration-200 cursor-pointer text-xs sm:text-sm h-auto py-2 px-3"
+                        onClick={() => handleQuickQuestion("Explain the difference between cash and accrual accounting")}
+                      >
+                        <CornerDownLeft className="mr-2 h-3 w-3 sm:h-4 sm:w-4 flex-shrink-0" />
+                        <span className="text-left leading-tight">Cash vs Accrual Accounting</span>
+                      </Button>
+                      <Button
+                        variant="outline"
+                        className="justify-start w-full button-hover transition-all duration-200 cursor-pointer text-xs sm:text-sm h-auto py-2 px-3"
+                        onClick={() => handleQuickQuestion("How to calculate depreciation for business assets?")}
+                      >
+                        <CornerDownLeft className="mr-2 h-3 w-3 sm:h-4 sm:w-4 flex-shrink-0" />
+                        <span className="text-left leading-tight">Asset Depreciation Methods</span>
+                      </Button>
+                      <Button
+                        variant="outline"
+                        className="justify-start w-full button-hover transition-all duration-200 cursor-pointer text-xs sm:text-sm h-auto py-2 px-3"
+                        onClick={() => handleQuickQuestion("What are the main types of business tax deductions?")}
+                      >
+                        <CornerDownLeft className="mr-2 h-3 w-3 sm:h-4 sm:w-4 flex-shrink-0" />
+                        <span className="text-left leading-tight">Tax Deductions Guide</span>
+                      </Button>
+                      <Button
+                        variant="outline"
+                        className="justify-start w-full button-hover transition-all duration-200 cursor-pointer text-xs sm:text-sm h-auto py-2 px-3"
+                        onClick={() => handleQuickQuestion("How to prepare a cash flow statement?")}
+                      >
+                        <CornerDownLeft className="mr-2 h-3 w-3 sm:h-4 sm:w-4 flex-shrink-0" />
+                        <span className="text-left leading-tight">Cash Flow Statement</span>
+                      </Button>
+                      <Button
+                        variant="outline"
+                        className="justify-start w-full button-hover transition-all duration-200 cursor-pointer text-xs sm:text-sm h-auto py-2 px-3"
+                        onClick={() => handleQuickQuestion("Calculate break-even point for a business")}
+                      >
+                        <CornerDownLeft className="mr-2 h-3 w-3 sm:h-4 sm:w-4 flex-shrink-0" />
+                        <span className="text-left leading-tight">Break-Even Analysis</span>
+                      </Button>
+                      <Button
+                        variant="outline"
+                        className="justify-start w-full button-hover transition-all duration-200 cursor-pointer text-xs sm:text-sm h-auto py-2 px-3"
+                        onClick={() => handleQuickQuestion("What is accounts receivable aging and how to manage it?")}
+                      >
+                        <CornerDownLeft className="mr-2 h-3 w-3 sm:h-4 sm:w-4 flex-shrink-0" />
+                        <span className="text-left leading-tight">Accounts Receivable Aging</span>
+                      </Button>
+                      <Button
+                        variant="outline"
+                        className="justify-start w-full button-hover transition-all duration-200 cursor-pointer text-xs sm:text-sm h-auto py-2 px-3"
+                        onClick={() => handleQuickQuestion("How to create a budget forecast for next year?")}
+                      >
+                        <CornerDownLeft className="mr-2 h-3 w-3 sm:h-4 sm:w-4 flex-shrink-0" />
+                        <span className="text-left leading-tight">Budget Forecasting</span>
+                      </Button>
+                      <Button
+                        variant="outline"
+                        className="justify-start w-full button-hover transition-all duration-200 cursor-pointer text-xs sm:text-sm h-auto py-2 px-3"
+                        onClick={() => handleQuickQuestion("Explain inventory valuation methods (FIFO, LIFO, Weighted Average)")}
+                      >
+                        <CornerDownLeft className="mr-2 h-3 w-3 sm:h-4 sm:w-4 flex-shrink-0" />
+                        <span className="text-left leading-tight">Inventory Valuation</span>
+                      </Button>
+                    </div>
+                  </ScrollArea>
                 </TabsContent>
-                <TabsContent value="history" className="p-4 space-y-2">
-                  <ScrollArea className="h-[400px]">
+                <TabsContent value="history" className="px-3 sm:px-4 space-y-2 mt-0">
+                  <ScrollArea className="h-[300px] sm:h-[400px]">
                     {conversations.length === 0 ? (
-                      <div className="text-center py-8 text-muted-foreground">
-                        <MessageSquare className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                        <p>No chat history yet</p>
-                        <p className="text-sm">Start a conversation to see history</p>
+                      <div className="text-center py-6 sm:py-8 text-muted-foreground">
+                        <MessageSquare className="h-8 w-8 sm:h-12 sm:w-12 mx-auto mb-3 sm:mb-4 opacity-50" />
+                        <p className="text-sm sm:text-base">No chat history yet</p>
+                        <p className="text-xs sm:text-sm">Start a conversation to see history</p>
                       </div>
                     ) : (
-                      <div className="space-y-2">
+                      <div className="space-y-2 pr-2">
                         {conversations.map((conversation) => (
                           <div key={conversation.conversation_id} className="flex items-center justify-between group">
                             <Button
                               variant="ghost"
-                              className="flex-1 justify-start text-left p-2 h-auto button-hover transition-all duration-200 cursor-pointer"
+                              className="flex-1 justify-start text-left p-2 h-auto button-hover transition-all duration-200 cursor-pointer min-w-0"
                               onClick={() => loadConversation(conversation.conversation_id)}
                             >
-                              <div className="truncate">
-                                <p className="text-sm font-medium truncate">{conversation.title}</p>
+                              <div className="truncate min-w-0">
+                                <p className="text-xs sm:text-sm font-medium truncate">{conversation.title}</p>
                                 <p className="text-xs text-muted-foreground">
                                   {new Date(conversation.created_at).toLocaleDateString()}
                                 </p>
@@ -368,10 +398,10 @@ const Assistant = () => {
                             <Button
                               variant="ghost"
                               size="sm"
-                              className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 cursor-pointer"
+                              className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 cursor-pointer h-8 w-8 flex-shrink-0"
                               onClick={() => handleDeleteConversation(conversation.conversation_id)}
                             >
-                              <Trash2 className="h-4 w-4" />
+                              <Trash2 className="h-3 w-3 sm:h-4 sm:w-4" />
                             </Button>
                           </div>
                         ))}
