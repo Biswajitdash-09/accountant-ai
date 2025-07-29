@@ -27,7 +27,7 @@ export const useCreditPlans = () => {
     refetch
   } = useQuery({
     queryKey: ['credit_plans'],
-    queryFn: async () => {
+    queryFn: async (): Promise<CreditPlan[]> => {
       const { data, error } = await supabase
         .from('credit_plans')
         .select('*')
@@ -35,7 +35,11 @@ export const useCreditPlans = () => {
         .order('sort_order', { ascending: true });
 
       if (error) throw error;
-      return data as CreditPlan[];
+      
+      return (data || []).map(plan => ({
+        ...plan,
+        features: Array.isArray(plan.features) ? plan.features as string[] : []
+      }));
     },
   });
 

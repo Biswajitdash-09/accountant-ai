@@ -11,6 +11,11 @@ export interface UserCredits {
   used_credits: number;
   daily_free_credits: number;
   last_reset_date: string;
+  current_plan_id: string | null;
+  currency_id: string | null;
+  stripe_customer_id: string | null;
+  stripe_subscription_id: string | null;
+  subscription_status: string | null;
   subscription_tier: string;
   created_at: string;
   updated_at: string;
@@ -27,7 +32,7 @@ export const useCredits = () => {
     error
   } = useQuery({
     queryKey: ['user_credits', user?.id],
-    queryFn: async () => {
+    queryFn: async (): Promise<UserCredits | null> => {
       if (!user) {
         console.log('No user found for credits query');
         return null;
@@ -52,7 +57,8 @@ export const useCredits = () => {
               total_credits: 5,
               used_credits: 0,
               daily_free_credits: 5,
-              subscription_tier: 'free'
+              subscription_tier: 'free',
+              current_plan_id: 'free'
             })
             .select()
             .single();
@@ -63,14 +69,14 @@ export const useCredits = () => {
           }
           
           console.log('Created initial credits record:', newRecord);
-          return newRecord;
+          return newRecord as UserCredits;
         }
         console.error('Error fetching credits:', error);
         throw error;
       }
       
       console.log('Credits fetched successfully:', data);
-      return data;
+      return data as UserCredits;
     },
     enabled: !!user,
     retry: 1,
