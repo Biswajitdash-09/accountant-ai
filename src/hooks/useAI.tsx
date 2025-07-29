@@ -26,7 +26,7 @@ export const useAI = () => {
             {
               parts: [
                 {
-                  text: `You are Accountant AI — a professional virtual accountant. Only answer accounting, tax, finance, bookkeeping, audit, or business compliance-related questions. If the query is unrelated, respond with: "Sorry, I only handle accounting-related queries."\n\nUser query: ${message}`
+                  text: message
                 }
               ]
             }

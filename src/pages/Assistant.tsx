@@ -1,4 +1,3 @@
-
 import { useState, useRef, useEffect } from "react";
 import { Send, User, Bot, FileText, CornerDownLeft, Loader2, History, Trash2, MessageSquare } from "lucide-react";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -24,7 +23,7 @@ const Assistant = () => {
   const [messages, setMessages] = useState<Message[]>([
     {
       id: "welcome",
-      content: "Hello! I'm your AI accounting assistant. I can help you with accounting, tax, finance, bookkeeping, audit, and business compliance questions. How can I assist you today?",
+      content: "Hello! I'm your AI assistant powered by Gemini 2.0 Flash. I can help you with any questions or topics you'd like to discuss. How can I assist you today?",
       sender: "assistant",
       timestamp: new Date(),
     },
@@ -142,7 +141,7 @@ const Assistant = () => {
     setCurrentConversationId(newId);
     setMessages([{
       id: "welcome",
-      content: "Hello! I'm your AI accounting assistant. I can help you with accounting, tax, finance, bookkeeping, audit, and business compliance questions. How can I assist you today?",
+      content: "Hello! I'm your AI assistant powered by Gemini 2.0 Flash. I can help you with any questions or topics you'd like to discuss. How can I assist you today?",
       sender: "assistant",
       timestamp: new Date(),
     }]);
@@ -182,9 +181,9 @@ const Assistant = () => {
             <CardHeader className="pb-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <CardTitle>Accounting Assistant</CardTitle>
+                  <CardTitle>AI Assistant</CardTitle>
                   <CardDescription>
-                    Ask questions about accounting, taxes, finance, bookkeeping, and business compliance
+                    Ask me anything! I'm powered by Gemini 2.0 Flash and can help with any topic or question.
                   </CardDescription>
                 </div>
                 <Button
@@ -261,7 +260,7 @@ const Assistant = () => {
             <CardFooter className="pt-4 border-t">
               <div className="flex w-full items-center space-x-2">
                 <Textarea
-                  placeholder="Ask a question about accounting, taxes, or finance..."
+                  placeholder="Ask me anything..."
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
                   onKeyDown={handleKeyDown}
@@ -291,7 +290,7 @@ const Assistant = () => {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <History className="h-5 w-5" />
-                Quick Actions & History
+                Quick Questions & History
               </CardTitle>
             </CardHeader>
             <CardContent className="p-0">
@@ -304,42 +303,42 @@ const Assistant = () => {
                   <Button
                     variant="outline"
                     className="justify-start w-full button-hover transition-all duration-200 cursor-pointer"
-                    onClick={() => handleQuickQuestion("What are my estimated quarterly taxes based on my current income?")}
+                    onClick={() => handleQuickQuestion("What's the weather like today?")}
                   >
                     <CornerDownLeft className="mr-2 h-4 w-4" />
-                    <span>Calculate quarterly taxes</span>
+                    <span>Weather information</span>
                   </Button>
                   <Button
                     variant="outline"
                     className="justify-start w-full button-hover transition-all duration-200 cursor-pointer"
-                    onClick={() => handleQuickQuestion("What business expenses can I deduct this year?")}
+                    onClick={() => handleQuickQuestion("Explain quantum computing in simple terms")}
                   >
                     <CornerDownLeft className="mr-2 h-4 w-4" />
-                    <span>Deductible expenses</span>
+                    <span>Quantum computing</span>
                   </Button>
                   <Button
                     variant="outline"
                     className="justify-start w-full button-hover transition-all duration-200 cursor-pointer"
-                    onClick={() => handleQuickQuestion("How should I categorize my business transactions?")}
+                    onClick={() => handleQuickQuestion("Write a creative short story")}
                   >
                     <CornerDownLeft className="mr-2 h-4 w-4" />
-                    <span>Transaction categorization</span>
+                    <span>Creative writing</span>
                   </Button>
                   <Button
                     variant="outline"
                     className="justify-start w-full button-hover transition-all duration-200 cursor-pointer"
-                    onClick={() => handleQuickQuestion("What accounting method should I use for my business?")}
+                    onClick={() => handleQuickQuestion("Help me plan a healthy meal")}
                   >
                     <CornerDownLeft className="mr-2 h-4 w-4" />
-                    <span>Accounting methods</span>
+                    <span>Meal planning</span>
                   </Button>
                   <Button
                     variant="outline"
                     className="justify-start w-full button-hover transition-all duration-200 cursor-pointer"
-                    onClick={() => handleQuickQuestion("How do I prepare for a tax audit?")}
+                    onClick={() => handleQuickQuestion("Solve this math problem: 2x + 5 = 15")}
                   >
                     <CornerDownLeft className="mr-2 h-4 w-4" />
-                    <span>Tax audit preparation</span>
+                    <span>Math problems</span>
                   </Button>
                 </TabsContent>
                 <TabsContent value="history" className="p-4 space-y-2">
