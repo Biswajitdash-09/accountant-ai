@@ -13,6 +13,22 @@ const logStep = (step: string, details?: any) => {
   console.log(`[CREATE-CHECKOUT] ${step}${detailsStr}`);
 };
 
+// Credit plan configurations
+const CREDIT_PLANS = {
+  starter: {
+    credits: 10,
+    priceUSD: 0.10,
+    priceINR: 8,
+    name: "Starter Plan"
+  },
+  pro: {
+    credits: 20,
+    priceUSD: 0.90,
+    priceINR: 75,
+    name: "Pro Plan"
+  }
+};
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -37,8 +53,21 @@ serve(async (req) => {
     if (!user?.email) throw new Error("User not authenticated or email not available");
     logStep("User authenticated", { userId: user.id, email: user.email });
 
-    const { credits, planName, amount } = await req.json();
-    logStep("Request data", { credits, planName, amount });
+    const { planId, userCountry } = await req.json();
+    logStep("Request data", { planId, userCountry });
+
+    if (!planId || !CREDIT_PLANS[planId as keyof typeof CREDIT_PLANS]) {
+      throw new Error("Invalid plan ID");
+    }
+
+    const plan = CREDIT_PLANS[planId as keyof typeof CREDIT_PLANS];
+    
+    // Determine currency and pricing based on user location
+    const isIndianUser = userCountry === 'IN';
+    const currency = isIndianUser ? 'inr' : 'usd';
+    const amount = isIndianUser ? plan.priceINR : plan.priceUSD;
+    
+    logStep("Pricing determined", { currency, amount, isIndianUser });
 
     const stripeKey = Deno.env.get("STRIPE_SECRET_KEY");
     if (!stripeKey) throw new Error("STRIPE_SECRET_KEY is not set");
@@ -61,33 +90,42 @@ serve(async (req) => {
       logStep("New customer created", { customerId });
     }
 
+    // Configure payment methods based on user location
+    const paymentMethodTypes = isIndianUser 
+      ? ['card', 'upi'] 
+      : ['card'];
+
+    logStep("Payment methods configured", { paymentMethodTypes });
+
     // Create checkout session
     const session = await stripe.checkout.sessions.create({
       customer: customerId,
       line_items: [
         {
           price_data: {
-            currency: "usd",
+            currency: currency,
             product_data: {
-              name: `${planName} - ${credits} Credits`,
-              description: `Purchase ${credits} credits for advanced features`,
+              name: `${plan.name} - ${plan.credits} Credits`,
+              description: `Purchase ${plan.credits} credits for advanced features`,
             },
-            unit_amount: amount, // Amount in cents
+            unit_amount: Math.round(amount * 100), // Amount in cents/paisa
           },
           quantity: 1,
         },
       ],
       mode: "payment",
-      success_url: `${req.headers.get("origin")}/pricing?payment=success&credits=${credits}`,
+      payment_method_types: paymentMethodTypes,
+      success_url: `${req.headers.get("origin")}/pricing?payment=success&credits=${plan.credits}`,
       cancel_url: `${req.headers.get("origin")}/pricing?payment=cancelled`,
       metadata: {
         userId: user.id,
-        credits: credits.toString(),
-        planName: planName,
+        credits: plan.credits.toString(),
+        planName: plan.name,
+        planId: planId,
       },
     });
 
-    logStep("Checkout session created", { sessionId: session.id });
+    logStep("Checkout session created", { sessionId: session.id, url: session.url });
 
     return new Response(JSON.stringify({ url: session.url }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },

@@ -4,19 +4,21 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { Check, Crown, Star, Zap, CreditCard } from "lucide-react";
+import { Check, Crown, Star, Zap, CreditCard, Smartphone, Wallet } from "lucide-react";
 import { useCredits } from "@/hooks/useCredits";
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { useUserLocation } from "@/hooks/useUserLocation";
 import { cn } from "@/lib/utils";
 
 const CREDIT_PLANS = [
   {
     id: "free",
     name: "Free Plan",
-    price: 0,
+    priceUSD: 0,
+    priceINR: 0,
     credits: 5,
     period: "per day",
     description: "Perfect for getting started",
@@ -29,12 +31,13 @@ const CREDIT_PLANS = [
     icon: Star,
     color: "from-blue-500 to-cyan-500",
     popular: false,
-    stripePrice: null
+    paymentMethods: []
   },
   {
     id: "starter",
     name: "Starter Plan",
-    price: 0.1,
+    priceUSD: 0.10,
+    priceINR: 8,
     credits: 10,
     period: "one-time",
     description: "Great for light usage",
@@ -48,12 +51,13 @@ const CREDIT_PLANS = [
     icon: Zap,
     color: "from-green-500 to-emerald-500",
     popular: true,
-    stripePrice: "price_starter_10_credits"
+    paymentMethods: ["card", "upi", "wallet"]
   },
   {
     id: "pro",
     name: "Pro Plan",
-    price: 0.9,
+    priceUSD: 0.90,
+    priceINR: 75,
     credits: 20,
     period: "one-time",
     description: "Best value for power users",
@@ -68,15 +72,37 @@ const CREDIT_PLANS = [
     icon: Crown,
     color: "from-purple-500 to-pink-500",
     popular: false,
-    stripePrice: "price_pro_20_credits"
+    paymentMethods: ["card", "upi", "wallet"]
   }
 ];
+
+const PaymentMethodIcons = ({ methods, isIndian }: { methods: string[], isIndian: boolean }) => {
+  const icons = {
+    card: <CreditCard className="h-4 w-4" />,
+    upi: <Smartphone className="h-4 w-4" />,
+    wallet: <Wallet className="h-4 w-4" />
+  };
+
+  const displayMethods = isIndian ? methods : methods.filter(m => m === 'card');
+
+  return (
+    <div className="flex items-center gap-2 text-xs text-muted-foreground">
+      {displayMethods.map(method => (
+        <div key={method} className="flex items-center gap-1">
+          {icons[method as keyof typeof icons]}
+          <span className="capitalize">{method === 'upi' ? 'UPI' : method}</span>
+        </div>
+      ))}
+    </div>
+  );
+};
 
 export const CreditPlans = () => {
   const { credits, availableCredits, dailyCreditsRemaining } = useCredits();
   const { user } = useAuth();
   const { toast } = useToast();
   const isMobile = useIsMobile();
+  const { location, loading: locationLoading } = useUserLocation();
   const [loadingPlan, setLoadingPlan] = useState<string | null>(null);
 
   const handlePurchase = async (plan: typeof CREDIT_PLANS[0]) => {
@@ -100,20 +126,17 @@ export const CreditPlans = () => {
     setLoadingPlan(plan.id);
 
     try {
-      // Create Stripe checkout session
       const { data, error } = await supabase.functions.invoke('create-checkout', {
         body: {
-          priceId: plan.stripePrice,
-          credits: plan.credits,
-          planName: plan.name,
-          amount: plan.price * 100, // Convert to cents
+          planId: plan.id,
+          userCountry: location?.countryCode || 'US'
         }
       });
 
       if (error) throw error;
 
-      // Redirect to Stripe checkout
       if (data?.url) {
+        // Open Stripe checkout in a new tab
         window.open(data.url, '_blank');
       }
     } catch (error) {
@@ -128,6 +151,23 @@ export const CreditPlans = () => {
     }
   };
 
+  const formatPrice = (plan: typeof CREDIT_PLANS[0]) => {
+    if (plan.priceUSD === 0) return "Free";
+    
+    const price = location?.isIndian ? plan.priceINR : plan.priceUSD;
+    const currency = location?.isIndian ? "₹" : "$";
+    
+    return `${currency}${price}`;
+  };
+
+  if (locationLoading) {
+    return (
+      <div className="flex items-center justify-center p-8">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       {/* Current Credits Status */}
@@ -137,6 +177,11 @@ export const CreditPlans = () => {
             <CreditCard className="h-5 w-5" />
             Your Credits
           </CardTitle>
+          {location && (
+            <div className="text-sm text-muted-foreground">
+              Pricing in {location.isIndian ? 'Indian Rupees (₹)' : 'US Dollars ($)'}
+            </div>
+          )}
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -188,8 +233,8 @@ export const CreditPlans = () => {
                 
                 <div className="space-y-2">
                   <div className="text-3xl font-bold">
-                    ${plan.price}
-                    {plan.price > 0 && (
+                    {formatPrice(plan)}
+                    {plan.priceUSD > 0 && (
                       <span className="text-sm font-normal text-muted-foreground">
                         {plan.period}
                       </span>
@@ -198,6 +243,12 @@ export const CreditPlans = () => {
                   <Badge variant="secondary" className="text-sm">
                     {plan.credits} credits {plan.period}
                   </Badge>
+                  {plan.paymentMethods.length > 0 && (
+                    <PaymentMethodIcons 
+                      methods={plan.paymentMethods} 
+                      isIndian={location?.isIndian || false}
+                    />
+                  )}
                 </div>
               </CardHeader>
               
@@ -250,7 +301,11 @@ export const CreditPlans = () => {
             </div>
             <div className="text-sm text-amber-800 dark:text-amber-200">
               <p className="font-medium mb-1">Secure Payment Processing</p>
-              <p>All payments are processed securely through Stripe. Your credits will be added instantly after successful payment.</p>
+              <p>
+                All payments are processed securely through Stripe. 
+                {location?.isIndian ? " UPI, cards, and wallets are supported." : " International cards are accepted."}
+                {" "}Your credits will be added instantly after successful payment.
+              </p>
             </div>
           </div>
         </CardContent>
