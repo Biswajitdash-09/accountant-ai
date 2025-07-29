@@ -28,31 +28,32 @@ const Header = ({ onMobileMenuToggle }: HeaderProps) => {
   const isMobile = useIsMobile();
 
   return (
-    <header className="flex items-center justify-between p-4 bg-background/95 backdrop-blur-sm border-b sticky top-0 z-30">
+    <header className="flex items-center justify-between p-3 sm:p-4 bg-background/95 backdrop-blur-sm border-b sticky top-0 z-30">
       {/* Mobile menu button / Logo */}
-      <div className="flex items-center gap-3 sm:gap-4">
+      <div className="flex items-center gap-2 sm:gap-3 md:gap-4 min-w-0 flex-1 sm:flex-none">
         {isMobile && (
           <Button
             variant="ghost"
             size="icon"
             onClick={onMobileMenuToggle}
-            className="hover-scale transition-all duration-200 cursor-pointer h-9 w-9"
+            className="hover-scale transition-all duration-200 cursor-pointer h-8 w-8 sm:h-9 sm:w-9 flex-shrink-0"
           >
-            <Menu className="h-5 w-5" />
+            <Menu className="h-4 w-4 sm:h-5 sm:w-5" />
           </Button>
         )}
         
         {/* Show logo */}
-        <div className={cn(isMobile ? "block" : "hidden lg:block")}>
-          <h1 className={cn("font-semibold", isMobile ? "text-lg" : "text-xl")}>
+        <div className={cn("flex-shrink-0", isMobile ? "block" : "hidden lg:block")}>
+          <h1 className={cn("font-semibold truncate", isMobile ? "text-base sm:text-lg" : "text-xl")}>
             Accountant AI
           </h1>
         </div>
       </div>
 
       {/* Right side items */}
-      <div className="flex items-center space-x-1 sm:space-x-2 md:space-x-4">
-        <div className="hidden sm:block">
+      <div className="flex items-center gap-1 sm:gap-2 md:gap-3 flex-shrink-0">
+        {/* Currency Selector - Hidden on very small screens, shown on sm+ */}
+        <div className="hidden sm:flex flex-shrink-0">
           <CurrencySelector />
         </div>
         
@@ -61,29 +62,29 @@ const Header = ({ onMobileMenuToggle }: HeaderProps) => {
           variant="ghost" 
           size="icon" 
           onClick={toggleTheme}
-          className="hover-scale transition-all duration-200 cursor-pointer h-9 w-9"
+          className="hover-scale transition-all duration-200 cursor-pointer h-8 w-8 sm:h-9 sm:w-9 flex-shrink-0"
         >
           {theme === 'dark' ? (
-            <Sun className="h-4 w-4 transition-all duration-200" />
+            <Sun className="h-3.5 w-3.5 sm:h-4 sm:w-4 transition-all duration-200" />
           ) : (
-            <Moon className="h-4 w-4 transition-all duration-200" />
+            <Moon className="h-3.5 w-3.5 sm:h-4 sm:w-4 transition-all duration-200" />
           )}
         </Button>
         
-        {/* Notifications */}
-        <div className="relative">
+        {/* Notifications - Hidden on mobile, shown on sm+ */}
+        <div className="relative hidden sm:block flex-shrink-0">
           <Button 
             variant="ghost" 
             size="icon" 
-            className="hidden sm:flex hover-scale transition-all duration-200 cursor-pointer h-9 w-9"
+            className="hover-scale transition-all duration-200 cursor-pointer h-8 w-8 sm:h-9 sm:w-9"
             asChild
           >
             <Link to="/notifications">
-              <Bell className="h-4 w-4" />
+              <Bell className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
               {unreadCount > 0 && (
                 <Badge 
                   variant="destructive" 
-                  className="absolute -top-1 -right-1 h-4 w-4 rounded-full p-0 flex items-center justify-center text-xs animate-pulse"
+                  className="absolute -top-1 -right-1 h-3.5 w-3.5 sm:h-4 sm:w-4 rounded-full p-0 flex items-center justify-center text-[10px] sm:text-xs animate-pulse"
                 >
                   {unreadCount > 99 ? '99+' : unreadCount}
                 </Badge>
@@ -92,22 +93,24 @@ const Header = ({ onMobileMenuToggle }: HeaderProps) => {
           </Button>
         </div>
 
+        {/* User Profile Menu */}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button 
               variant="ghost" 
               size="icon"
-              className="hover-scale transition-all duration-200 cursor-pointer h-9 w-9"
+              className="hover-scale transition-all duration-200 cursor-pointer h-8 w-8 sm:h-9 sm:w-9 flex-shrink-0"
             >
-              <User className="h-4 w-4" />
+              <User className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent 
             align="end" 
-            className="w-48 bg-background/95 backdrop-blur-sm border shadow-lg z-50"
+            className="w-44 sm:w-48 bg-background/95 backdrop-blur-sm border shadow-lg z-50 mr-2 sm:mr-0"
           >
+            {/* Mobile-only items */}
             <DropdownMenuItem asChild className="sm:hidden">
-              <div className="p-2">
+              <div className="p-2 focus:bg-accent">
                 <CurrencySelector />
               </div>
             </DropdownMenuItem>
@@ -115,12 +118,14 @@ const Header = ({ onMobileMenuToggle }: HeaderProps) => {
               <Link to="/notifications" className="flex items-center justify-between w-full cursor-pointer">
                 <span>Notifications</span>
                 {unreadCount > 0 && (
-                  <Badge variant="destructive" className="ml-2">
+                  <Badge variant="destructive" className="ml-2 h-4 w-4 text-xs">
                     {unreadCount > 99 ? '99+' : unreadCount}
                   </Badge>
                 )}
               </Link>
             </DropdownMenuItem>
+            
+            {/* Common items */}
             <DropdownMenuItem asChild>
               <Link to="/profile" className="cursor-pointer">Profile</Link>
             </DropdownMenuItem>
