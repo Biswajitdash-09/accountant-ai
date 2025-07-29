@@ -13,7 +13,7 @@ import { TaskManager } from "@/components/TaskManager";
 import { DeadlineTracker } from "@/components/DeadlineTracker";
 import { NotificationCenter } from "@/components/NotificationCenter";
 import { CryptoPortfolio } from "@/components/CryptoPortfolio";
-import { CurrencyConverter } from "@/components/CurrencyConverter";
+import CurrencyConverter from "@/components/CurrencyConverter";
 import { useCurrencyFormatter } from "@/hooks/useCurrencyFormatter";
 import { useNotificationService } from "@/hooks/useNotificationService";
 import { useDemoMode } from "@/hooks/useDemoMode";
