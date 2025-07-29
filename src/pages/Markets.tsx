@@ -33,7 +33,7 @@ const Markets = () => {
   const [conversionLoading, setConversionLoading] = useState(false);
   const [convertAmount, setConvertAmount] = useState<string>("1000");
   const [fromCurrency, setFromCurrency] = useState<string>("USD");
-  const [toCurrency, setToCurrency] = useState<string>("INR");
+  const [toCurrency, setToCurrency] = useState<string>("NGN"); // Default to NGN for regional bias
 
   const handleCurrencyConversion = async () => {
     if (!convertAmount || parseFloat(convertAmount) <= 0) {
@@ -50,11 +50,14 @@ const Markets = () => {
       // Simulate API call - in production, use real exchange rate API
       await new Promise(resolve => setTimeout(resolve, 1000));
       
+      // Enhanced mock rates including NGN and ZAR
       const mockRates: Record<string, Record<string, number>> = {
-        USD: { INR: 83.5, EUR: 0.92, GBP: 0.79 },
-        EUR: { INR: 90.8, USD: 1.09, GBP: 0.86 },
-        GBP: { INR: 105.2, USD: 1.27, EUR: 1.16 },
-        INR: { USD: 0.012, EUR: 0.011, GBP: 0.0095 }
+        USD: { INR: 83.5, EUR: 0.92, GBP: 0.79, NGN: 1650.00, ZAR: 18.50 },
+        EUR: { INR: 90.8, USD: 1.09, GBP: 0.86, NGN: 1800.00, ZAR: 20.20 },
+        GBP: { INR: 105.2, USD: 1.27, EUR: 1.16, NGN: 2100.00, ZAR: 23.50 },
+        INR: { USD: 0.012, EUR: 0.011, GBP: 0.0095, NGN: 19.8, ZAR: 0.22 },
+        NGN: { USD: 0.00061, EUR: 0.00056, GBP: 0.00048, INR: 0.051, ZAR: 0.011 },
+        ZAR: { USD: 0.054, EUR: 0.049, GBP: 0.043, INR: 4.5, NGN: 89.2 }
       };
 
       const rate = mockRates[fromCurrency]?.[toCurrency] || 1;
@@ -137,6 +140,8 @@ const Markets = () => {
                   <SelectItem value="USD" className="cursor-pointer">USD - US Dollar</SelectItem>
                   <SelectItem value="EUR" className="cursor-pointer">EUR - Euro</SelectItem>
                   <SelectItem value="GBP" className="cursor-pointer">GBP - British Pound</SelectItem>
+                  <SelectItem value="NGN" className="cursor-pointer">NGN - Nigerian Naira</SelectItem>
+                  <SelectItem value="ZAR" className="cursor-pointer">ZAR - South African Rand</SelectItem>
                   <SelectItem value="INR" className="cursor-pointer">INR - Indian Rupee</SelectItem>
                 </SelectContent>
               </Select>
@@ -148,6 +153,8 @@ const Markets = () => {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
+                  <SelectItem value="NGN" className="cursor-pointer">NGN - Nigerian Naira</SelectItem>
+                  <SelectItem value="ZAR" className="cursor-pointer">ZAR - South African Rand</SelectItem>
                   <SelectItem value="USD" className="cursor-pointer">USD - US Dollar</SelectItem>
                   <SelectItem value="EUR" className="cursor-pointer">EUR - Euro</SelectItem>
                   <SelectItem value="GBP" className="cursor-pointer">GBP - British Pound</SelectItem>

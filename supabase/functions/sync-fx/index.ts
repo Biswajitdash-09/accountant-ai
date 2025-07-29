@@ -19,8 +19,17 @@ serve(async (req) => {
 
     console.log('Starting FX sync...');
 
-    // Popular currency pairs with INR base
+    // Enhanced currency pairs with NGN and ZAR prioritized
     const currencyPairs = [
+      // Priority pairs with NGN and ZAR
+      { base: 'USD', quote: 'NGN' },
+      { base: 'USD', quote: 'ZAR' },
+      { base: 'EUR', quote: 'NGN' },
+      { base: 'EUR', quote: 'ZAR' },
+      { base: 'GBP', quote: 'NGN' },
+      { base: 'GBP', quote: 'ZAR' },
+      
+      // Existing popular pairs
       { base: 'USD', quote: 'INR' },
       { base: 'EUR', quote: 'INR' },
       { base: 'GBP', quote: 'INR' },
@@ -30,15 +39,18 @@ serve(async (req) => {
       { base: 'CHF', quote: 'INR' },
       { base: 'CNY', quote: 'INR' },
       { base: 'SGD', quote: 'INR' },
+      
       // Cross rates
       { base: 'USD', quote: 'EUR' },
       { base: 'USD', quote: 'GBP' },
       { base: 'EUR', quote: 'GBP' },
+      { base: 'NGN', quote: 'ZAR' },
+      { base: 'ZAR', quote: 'NGN' },
     ];
 
     const exchangeRates = [];
 
-    // Fetch rates from Open Exchange Rates API (free tier)
+    // Fetch rates from Open Exchange Rates API
     try {
       const response = await fetch(
         `https://api.exchangerate-api.com/v4/latest/USD`
@@ -112,10 +124,16 @@ serve(async (req) => {
     } catch (apiError) {
       console.error('API fetch error:', apiError);
       
-      // Fallback: Insert some basic rates
+      // Enhanced fallback rates including NGN and ZAR
       const fallbackRates = [
+        { base: 'USD', quote: 'NGN', rate: 1650.00 },
+        { base: 'USD', quote: 'ZAR', rate: 18.50 },
         { base: 'USD', quote: 'INR', rate: 83.25 },
+        { base: 'EUR', quote: 'NGN', rate: 1800.00 },
+        { base: 'EUR', quote: 'ZAR', rate: 20.20 },
         { base: 'EUR', quote: 'INR', rate: 90.50 },
+        { base: 'GBP', quote: 'NGN', rate: 2100.00 },
+        { base: 'GBP', quote: 'ZAR', rate: 23.50 },
         { base: 'GBP', quote: 'INR', rate: 105.75 },
       ];
 

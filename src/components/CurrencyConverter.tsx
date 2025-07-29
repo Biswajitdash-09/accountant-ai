@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -16,11 +17,17 @@ interface ExchangeRate {
   fetched_at: string;
 }
 
+// Enhanced currency list with NGN and ZAR prioritized
 const POPULAR_CURRENCIES = [
-  { code: 'INR', name: 'Indian Rupee', symbol: '₹' },
+  // Priority African currencies
+  { code: 'NGN', name: 'Nigerian Naira', symbol: '₦' },
+  { code: 'ZAR', name: 'South African Rand', symbol: 'R' },
+  
+  // Major global currencies
   { code: 'USD', name: 'US Dollar', symbol: '$' },
   { code: 'EUR', name: 'Euro', symbol: '€' },
   { code: 'GBP', name: 'British Pound', symbol: '£' },
+  { code: 'INR', name: 'Indian Rupee', symbol: '₹' },
   { code: 'JPY', name: 'Japanese Yen', symbol: '¥' },
   { code: 'CAD', name: 'Canadian Dollar', symbol: 'C$' },
   { code: 'AUD', name: 'Australian Dollar', symbol: 'A$' },
@@ -32,7 +39,7 @@ const POPULAR_CURRENCIES = [
 export const CurrencyConverter = () => {
   const [amount, setAmount] = useState('1');
   const [fromCurrency, setFromCurrency] = useState('USD');
-  const [toCurrency, setToCurrency] = useState('INR');
+  const [toCurrency, setToCurrency] = useState('NGN'); // Default to NGN for regional bias
   const [convertedAmount, setConvertedAmount] = useState<number | null>(null);
   const [exchangeRates, setExchangeRates] = useState<ExchangeRate[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -288,23 +295,23 @@ export const CurrencyConverter = () => {
           </p>
         )}
 
-        {/* Popular Exchange Rates */}
+        {/* Updated Popular Exchange Rates with NGN and ZAR priority */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-sm">
           <div className="text-center p-3 bg-muted/30 rounded-lg">
-            <p className="text-muted-foreground text-xs mb-1">USD/INR</p>
-            <p className="font-semibold">{Math.abs(getExchangeRate('USD', 'INR')).toFixed(2)}</p>
+            <p className="text-muted-foreground text-xs mb-1">USD/NGN</p>
+            <p className="font-semibold">{Math.abs(getExchangeRate('USD', 'NGN')).toFixed(2)}</p>
           </div>
           <div className="text-center p-3 bg-muted/30 rounded-lg">
-            <p className="text-muted-foreground text-xs mb-1">EUR/INR</p>
-            <p className="font-semibold">{Math.abs(getExchangeRate('EUR', 'INR')).toFixed(2)}</p>
+            <p className="text-muted-foreground text-xs mb-1">USD/ZAR</p>
+            <p className="font-semibold">{Math.abs(getExchangeRate('USD', 'ZAR')).toFixed(2)}</p>
           </div>
           <div className="text-center p-3 bg-muted/30 rounded-lg">
-            <p className="text-muted-foreground text-xs mb-1">GBP/INR</p>
-            <p className="font-semibold">{Math.abs(getExchangeRate('GBP', 'INR')).toFixed(2)}</p>
+            <p className="text-muted-foreground text-xs mb-1">EUR/NGN</p>
+            <p className="font-semibold">{Math.abs(getExchangeRate('EUR', 'NGN')).toFixed(2)}</p>
           </div>
           <div className="text-center p-3 bg-muted/30 rounded-lg">
-            <p className="text-muted-foreground text-xs mb-1">JPY/INR</p>
-            <p className="font-semibold">{Math.abs(getExchangeRate('JPY', 'INR')).toFixed(4)}</p>
+            <p className="text-muted-foreground text-xs mb-1">GBP/ZAR</p>
+            <p className="font-semibold">{Math.abs(getExchangeRate('GBP', 'ZAR')).toFixed(2)}</p>
           </div>
         </div>
       </CardContent>

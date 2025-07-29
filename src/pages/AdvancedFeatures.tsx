@@ -1,24 +1,58 @@
 
-import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import React, { useState, useEffect } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Brain, FileText, Network, Scale, Users, Zap, BarChart3 } from "lucide-react";
+import { ArrowLeft, Brain, FileText, Network, Scale, Users, Zap, BarChart3, CreditCard } from "lucide-react";
 import { DocumentAIManager } from "@/components/advanced/DocumentAIManager";
 import { ReportingSystem } from "@/components/advanced/ReportingSystem";
 import { MultiEntityManager } from "@/components/advanced/MultiEntityManager";
 import { AdvancedTaxManager } from "@/components/advanced/AdvancedTaxManager";
 import { useCollaboration } from "@/hooks/useCollaboration";
 import { useIntegrations } from "@/hooks/useIntegrations";
+import { useCredits } from "@/hooks/useCredits";
+import { CreditPlans } from "@/components/CreditPlans";
+import { useToast } from "@/components/ui/use-toast";
 import DemoAccountBadge from "@/components/DemoAccountBadge";
 
 const AdvancedFeatures = () => {
-  const [activeTab, setActiveTab] = useState("ai-docs");
+  const [activeTab, setActiveTab] = useState("credits");
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { activityFeed } = useCollaboration();
   const { connections } = useIntegrations();
+  const { credits, availableCredits, addCredits } = useCredits();
+  const { toast } = useToast();
+
+  // Handle payment success
+  useEffect(() => {
+    const paymentStatus = searchParams.get('payment');
+    const creditsParam = searchParams.get('credits');
+    
+    if (paymentStatus === 'success' && creditsParam) {
+      const creditsAmount = parseInt(creditsParam);
+      addCredits.mutate(creditsAmount);
+      toast({
+        title: "Payment Successful!",
+        description: `${creditsAmount} credits have been added to your account.`,
+      });
+      
+      // Clean up URL
+      navigate('/advanced-features', { replace: true });
+    } else if (paymentStatus === 'cancelled') {
+      toast({
+        title: "Payment Cancelled",
+        description: "Your payment was cancelled. No charges were made.",
+        variant: "destructive",
+      });
+      
+      // Clean up URL
+      navigate('/advanced-features', { replace: true });
+    }
+  }, [searchParams, navigate, addCredits, toast]);
 
   const tabs = [
+    { id: "credits", label: "Credit Plans", icon: CreditCard, component: () => <CreditPlans /> },
     { id: "ai-docs", label: "AI Documents", icon: Brain, component: DocumentAIManager },
     { id: "reports", label: "Advanced Reports", icon: FileText, component: ReportingSystem },
     { id: "multi-entity", label: "Multi-Entity", icon: Network, component: MultiEntityManager },
@@ -40,23 +74,39 @@ const AdvancedFeatures = () => {
             <ArrowLeft className="h-4 w-4" />
             Back
           </Button>
-          <div>
-            <h1 className="text-2xl sm:text-3xl font-bold flex items-center gap-2">
-              <BarChart3 className="h-8 w-8 text-primary" />
-              Advanced Features
-            </h1>
-            <p className="text-muted-foreground">
-              Enterprise-grade financial management tools and automation
-            </p>
+          <div className="flex-1">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+              <div>
+                <h1 className="text-2xl sm:text-3xl font-bold flex items-center gap-2">
+                  <BarChart3 className="h-8 w-8 text-primary" />
+                  Advanced Features
+                </h1>
+                <p className="text-muted-foreground">
+                  Enterprise-grade financial management tools and automation
+                </p>
+              </div>
+              
+              {/* Credits Display */}
+              <div className="flex items-center gap-2 bg-muted/30 px-4 py-2 rounded-lg">
+                <CreditCard className="h-4 w-4 text-primary" />
+                <span className="text-sm font-medium">
+                  {availableCredits} Credits Available
+                </span>
+              </div>
+            </div>
           </div>
         </div>
 
         <DemoAccountBadge />
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-2 md:grid-cols-3 lg:grid-cols-6">
+          <TabsList className="grid w-full grid-cols-3 sm:grid-cols-4 lg:grid-cols-7 gap-1">
             {tabs.map((tab) => (
-              <TabsTrigger key={tab.id} value={tab.id} className="gap-1 text-xs">
+              <TabsTrigger 
+                key={tab.id} 
+                value={tab.id} 
+                className="gap-1 text-xs px-2 py-1"
+              >
                 <tab.icon className="h-3 w-3" />
                 <span className="hidden sm:inline">{tab.label}</span>
               </TabsTrigger>
