@@ -46,26 +46,16 @@ export const useCreditPlans = () => {
   } = useQuery({
     queryKey: ['credit_plans'],
     queryFn: async (): Promise<CreditPlan[]> => {
-      // Use raw SQL query to bypass TypeScript table issues
-      const { data, error } = await supabase
-        .rpc('get_credit_plans');
+      // Use direct table query with type assertion to bypass TypeScript table issues
+      const { data, error } = await (supabase as any)
+        .from('credit_plans')
+        .select('*')
+        .eq('is_active', true)
+        .order('sort_order', { ascending: true });
 
       if (error) {
         console.error('Error fetching credit plans:', error);
-        // Fallback to direct table query with type assertion
-        const { data: fallbackData, error: fallbackError } = await (supabase as any)
-          .from('credit_plans')
-          .select('*')
-          .eq('is_active', true)
-          .order('sort_order', { ascending: true });
-
-        if (fallbackError) throw fallbackError;
-        
-        return (fallbackData || []).map((plan: CreditPlanRow) => ({
-          ...plan,
-          features: Array.isArray(plan.features) ? plan.features as string[] : 
-                   typeof plan.features === 'string' ? JSON.parse(plan.features) : []
-        })) as CreditPlan[];
+        throw error;
       }
 
       return (data || []).map((plan: CreditPlanRow) => ({
