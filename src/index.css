@@ -73,18 +73,19 @@
     @apply border-border;
   }
   body {
-    @apply bg-background text-foreground font-body;
+    @apply bg-background text-foreground;
+    font-family: "Poppins", system-ui, sans-serif;
     font-feature-settings: "rlig" 1, "calt" 1;
     font-optical-sizing: auto;
   }
   
   h1, h2, h3, h4, h5, h6 {
-    @apply font-heading;
+    font-family: "Outfit", system-ui, sans-serif;
     font-optical-sizing: auto;
   }
   
   .font-mono, code, pre {
-    @apply font-mono;
+    font-family: "JetBrains Mono", Consolas, monospace;
   }
 }
 
