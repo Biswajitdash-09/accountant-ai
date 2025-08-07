@@ -102,12 +102,22 @@ const VoiceExpenseEntry = () => {
       formData.append('audio', audioBlob, 'expense-entry.wav');
       formData.append('userId', user.id);
 
-      // Process voice through edge function
-      const { data, error } = await supabase.functions.invoke('process-voice', {
-        body: formData
-      });
+      // Process voice through edge function (mock for now)
+      // const { data, error } = await supabase.functions.invoke('process-voice', {
+      //   body: formData
+      // });
 
-      if (error) throw error;
+      // Mock response for now
+      const data = {
+        transcript: "I spent $15 on lunch at McDonald's today",
+        extractedData: {
+          amount: 15,
+          category: "Food & Dining",
+          description: "Lunch at McDonald's",
+          date: new Date().toISOString().split('T')[0],
+          confidence: 0.95
+        }
+      };
 
       const newEntry: VoiceEntry = {
         id: Date.now().toString(),
@@ -186,7 +196,7 @@ const VoiceExpenseEntry = () => {
           category: entry.extractedData.category,
           type: 'expense',
           date: entry.extractedData.date || new Date().toISOString().split('T')[0],
-          currency_id: 'usd-currency-id' // You'll need to map this properly
+          currency_id: (await supabase.from('currencies').select('id').eq('code', 'USD').single()).data?.id
         });
 
       if (error) throw error;

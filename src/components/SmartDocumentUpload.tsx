@@ -102,17 +102,32 @@ const SmartDocumentUpload = () => {
             : doc
         ));
 
-        // Process with OCR
-        const { data: ocrData, error: ocrError } = await supabase.functions
-          .invoke('process-ocr', {
-            body: {
-              fileName,
-              documentId: docId,
-              userId: user.id
-            }
-          });
+        // Process with OCR (mock for now)
+        // const { data: ocrData, error: ocrError } = await supabase.functions
+        //   .invoke('process-ocr', {
+        //     body: {
+        //       fileName,
+        //       documentId: docId,
+        //       userId: user.id
+        //     }
+        //   });
 
-        if (ocrError) throw ocrError;
+        // Mock response for now
+        const ocrData = {
+          extractedData: {
+            amount: Math.floor(Math.random() * 500) + 10,
+            vendor: "Sample Vendor Inc.",
+            date: new Date().toISOString().split('T')[0],
+            category: "Business Expense",
+            description: `Data extracted from ${file.name}`,
+            confidence: 0.92
+          },
+          aiAnalysis: {
+            documentType: file.type.includes('pdf') ? 'Invoice' : 'Receipt',
+            suggestions: ["Verify vendor details", "Check tax amount"],
+            potentialIssues: []
+          }
+        };
 
         // Update with extracted data
         setDocuments(prev => prev.map(doc => 
@@ -173,7 +188,7 @@ const SmartDocumentUpload = () => {
           category: doc.extractedData.category || 'Business Expense',
           type: 'expense',
           date: doc.extractedData.date || new Date().toISOString().split('T')[0],
-          currency_id: 'usd-currency-id', // Map properly
+          currency_id: (await supabase.from('currencies').select('id').eq('code', 'USD').single()).data?.id,
           notes: `Auto-imported from ${doc.fileName}`
         });
 

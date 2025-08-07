@@ -15,6 +15,7 @@ import Assistant from "./Assistant";
 import Markets from "./Markets";
 import Profile from "./Profile";
 import Notifications from "./Notifications";
+import Performance from "./Performance";
 import NotFound from "./NotFound";
 
 const Index = () => {
@@ -33,6 +34,7 @@ const Index = () => {
           <Route path="/upload" element={<Upload />} />
           <Route path="/assistant" element={<Assistant />} />
           <Route path="/markets" element={<Markets />} />
+          <Route path="/performance" element={<Performance />} />
           <Route path="/profile" element={<Profile />} />
           <Route path="/notifications" element={<Notifications />} />
           <Route path="/" element={<Navigate to="/dashboard" replace />} />

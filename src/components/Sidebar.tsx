@@ -127,6 +127,12 @@ const Sidebar = ({ isCollapsed, onToggle, isMobileOpen = false, onMobileToggle }
           icon: TrendingUp,
           badge: null,
         },
+        {
+          href: "/performance",
+          label: "Performance",
+          icon: Zap,
+          badge: "PWA",
+        },
       ]
     },
     {
