@@ -20,8 +20,11 @@ export default {
 		},
 		extend: {
 			fontFamily: {
-				sans: ["Inter", "system-ui", "sans-serif"],
-				display: ["Inter", "system-ui", "sans-serif"],
+				sans: ["Poppins", "system-ui", "sans-serif"],
+				display: ["Outfit", "system-ui", "sans-serif"],
+				mono: ["JetBrains Mono", "Consolas", "monospace"],
+				body: ["Poppins", "system-ui", "sans-serif"],
+				heading: ["Outfit", "system-ui", "sans-serif"],
 			},
 			colors: {
 				border: 'hsl(var(--border))',

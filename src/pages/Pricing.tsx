@@ -8,7 +8,7 @@ import { useToast } from "@/components/ui/use-toast";
 import CreditBalance from "@/components/CreditBalance";
 import DemoAccountBadge from "@/components/DemoAccountBadge";
 import CurrencySwitcher from "@/components/CurrencySwitcher";
-import { EnhancedCreditPlans } from "@/components/EnhancedCreditPlans";
+import BillingDashboard from "@/components/BillingDashboard";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 const Pricing = () => {
@@ -124,8 +124,8 @@ const Pricing = () => {
 
         <DemoAccountBadge />
 
-        {/* Enhanced Credit Plans */}
-        <EnhancedCreditPlans />
+        {/* Billing Dashboard */}
+        <BillingDashboard />
       </div>
     </div>
   );
