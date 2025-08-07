@@ -104,6 +104,18 @@ const Sidebar = ({ isCollapsed, onToggle, isMobileOpen = false, onMobileToggle }
           badge: "Pro",
         },
         {
+          href: "/performance",
+          label: "Performance",
+          icon: TrendingUp,
+          badge: "PWA",
+        },
+        {
+          href: "/security",
+          label: "Security",
+          icon: Bot,
+          badge: null,
+        },
+        {
           href: "/tax",
           label: "Tax Center",
           icon: Calculator,

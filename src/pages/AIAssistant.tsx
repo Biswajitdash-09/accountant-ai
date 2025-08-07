@@ -1,11 +1,13 @@
 import React from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Brain, Mic, Scan, Lightbulb } from "lucide-react";
+import { Brain, Mic, Scan, Lightbulb, MessageCircle, CreditCard } from "lucide-react";
 import { motion } from "framer-motion";
 import VoiceExpenseEntry from "@/components/VoiceExpenseEntry";
 import SmartDocumentUpload from "@/components/SmartDocumentUpload";
 import AIFinancialInsights from "@/components/AIFinancialInsights";
+import AIChatbot from "@/components/ai/AIChatbot";
+import PaymentGateway from "@/components/PaymentGateway";
 
 const AIAssistantPage = () => {
   return (
@@ -27,21 +29,33 @@ const AIAssistantPage = () => {
       </motion.div>
 
       {/* AI Features Tabs */}
-      <Tabs defaultValue="voice" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-3 max-w-md mx-auto">
-          <TabsTrigger value="voice" className="gap-2">
+      <Tabs defaultValue="chatbot" className="space-y-6">
+        <TabsList className="grid w-full grid-cols-5 max-w-2xl mx-auto">
+          <TabsTrigger value="chatbot" className="gap-2 text-xs">
+            <MessageCircle className="h-4 w-4" />
+            AI Chat
+          </TabsTrigger>
+          <TabsTrigger value="voice" className="gap-2 text-xs">
             <Mic className="h-4 w-4" />
             Voice Entry
           </TabsTrigger>
-          <TabsTrigger value="documents" className="gap-2">
+          <TabsTrigger value="documents" className="gap-2 text-xs">
             <Scan className="h-4 w-4" />
             Smart OCR
           </TabsTrigger>
-          <TabsTrigger value="insights" className="gap-2">
+          <TabsTrigger value="insights" className="gap-2 text-xs">
             <Lightbulb className="h-4 w-4" />
             AI Insights
           </TabsTrigger>
+          <TabsTrigger value="payment" className="gap-2 text-xs">
+            <CreditCard className="h-4 w-4" />
+            Buy Credits
+          </TabsTrigger>
         </TabsList>
+
+        <TabsContent value="chatbot" className="space-y-6">
+          <AIChatbot />
+        </TabsContent>
 
         <TabsContent value="voice" className="space-y-6">
           <VoiceExpenseEntry />
@@ -53,6 +67,10 @@ const AIAssistantPage = () => {
 
         <TabsContent value="insights" className="space-y-6">
           <AIFinancialInsights />
+        </TabsContent>
+
+        <TabsContent value="payment" className="space-y-6">
+          <PaymentGateway />
         </TabsContent>
       </Tabs>
 
