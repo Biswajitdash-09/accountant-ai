@@ -9,12 +9,12 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { CalendarIcon, Target, DollarSign } from "lucide-react";
 
 interface GoalFormState {
-  title: string;
+  goal_name: string;
   description: string;
   target_amount: string;
   current_amount: string;
   target_date: string;
-  category: string;
+  goal_type: string;
 }
 
 interface FinancialGoalFormProps {
@@ -25,12 +25,12 @@ interface FinancialGoalFormProps {
 
 const FinancialGoalForm = ({ onSubmit, onCancel, isSubmitting }: FinancialGoalFormProps) => {
   const [formData, setFormData] = useState<GoalFormState>({
-    title: "",
+    goal_name: "",
     description: "",
     target_amount: "",
     current_amount: "0",
     target_date: "",
-    category: "savings"
+    goal_type: "savings"
   });
 
   const handleInputChange = (field: keyof GoalFormState, value: string) => {
@@ -44,28 +44,25 @@ const FinancialGoalForm = ({ onSubmit, onCancel, isSubmitting }: FinancialGoalFo
     e.preventDefault();
     
     const goalData = {
-      title: formData.title,
+      goal_name: formData.goal_name,
+      goal_type: formData.goal_type,
       description: formData.description,
       target_amount: parseFloat(formData.target_amount),
       current_amount: parseFloat(formData.current_amount),
       target_date: formData.target_date,
-      category: formData.category,
-      status: 'active'
+      priority: 'medium' as const,
+      is_achieved: false
     };
     
     onSubmit(goalData);
   };
 
-  const categories = [
+  const goalTypes = [
     { value: "savings", label: "Savings" },
     { value: "investment", label: "Investment" },
-    { value: "debt_payment", label: "Debt Payment" },
-    { value: "emergency_fund", label: "Emergency Fund" },
-    { value: "retirement", label: "Retirement" },
-    { value: "education", label: "Education" },
-    { value: "house", label: "House" },
-    { value: "vacation", label: "Vacation" },
-    { value: "other", label: "Other" }
+    { value: "debt_reduction", label: "Debt Reduction" },
+    { value: "revenue", label: "Revenue" },
+    { value: "expense_reduction", label: "Expense Reduction" }
   ];
 
   return (
@@ -83,29 +80,29 @@ const FinancialGoalForm = ({ onSubmit, onCancel, isSubmitting }: FinancialGoalFo
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="title">Goal Title</Label>
+              <Label htmlFor="goal_name">Goal Name</Label>
               <Input
-                id="title"
-                value={formData.title}
-                onChange={(e) => handleInputChange("title", e.target.value)}
+                id="goal_name"
+                value={formData.goal_name}
+                onChange={(e) => handleInputChange("goal_name", e.target.value)}
                 placeholder="e.g., Emergency Fund"
                 required
               />
             </div>
             
             <div className="space-y-2">
-              <Label htmlFor="category">Category</Label>
+              <Label htmlFor="goal_type">Goal Type</Label>
               <Select
-                value={formData.category}
-                onValueChange={(value) => handleInputChange("category", value)}
+                value={formData.goal_type}
+                onValueChange={(value) => handleInputChange("goal_type", value)}
               >
                 <SelectTrigger>
-                  <SelectValue placeholder="Select category" />
+                  <SelectValue placeholder="Select goal type" />
                 </SelectTrigger>
                 <SelectContent>
-                  {categories.map((category) => (
-                    <SelectItem key={category.value} value={category.value}>
-                      {category.label}
+                  {goalTypes.map((goalType) => (
+                    <SelectItem key={goalType.value} value={goalType.value}>
+                      {goalType.label}
                     </SelectItem>
                   ))}
                 </SelectContent>

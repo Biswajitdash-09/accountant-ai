@@ -42,8 +42,17 @@ const AccountForm = ({ account, onSuccess, onCancel }: AccountFormProps) => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    console.log('Account form submission started', { formData });
+    
     if (!formData.account_name.trim()) {
+      console.error('Account name validation failed');
       alert("Account name is required");
+      return;
+    }
+
+    if (!formData.account_type.trim()) {
+      console.error('Account type validation failed');
+      alert("Account type is required");
       return;
     }
 
@@ -54,15 +63,20 @@ const AccountForm = ({ account, onSuccess, onCancel }: AccountFormProps) => {
         currency_id: formData.currency_id || preferences?.default_currency_id || baseCurrency?.id || ""
       };
 
+      console.log('Submitting account data:', accountData);
+
       if (account) {
         await updateAccount.mutateAsync({ id: account.id, ...accountData });
+        console.log('Account updated successfully');
       } else {
         await createAccount.mutateAsync(accountData);
+        console.log('Account created successfully');
       }
       
       onSuccess?.();
     } catch (error) {
       console.error('Error saving account:', error);
+      alert(`Failed to ${account ? 'update' : 'create'} account: ${error.message || 'Unknown error'}`);
     } finally {
       setIsSubmitting(false);
     }

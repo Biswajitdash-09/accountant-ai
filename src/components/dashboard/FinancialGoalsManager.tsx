@@ -34,6 +34,8 @@ const FinancialGoalsManager = () => {
   const handleCreateGoal = async (goalData: any) => {
     setIsSubmitting(true);
     
+    console.log('Financial goal creation started', { goalData });
+    
     if (isDemo) {
       // Simulate success for demo mode
       setTimeout(() => {
@@ -48,10 +50,13 @@ const FinancialGoalsManager = () => {
     }
     
     try {
+      console.log('Creating financial goal with data:', goalData);
       await createFinancialGoal.mutateAsync(goalData);
+      console.log('Financial goal created successfully');
       setIsFormOpen(false);
       toast({ description: 'Goal created successfully.' });
     } catch (error: any) {
+      console.error('Error creating financial goal:', error);
       toast({
         title: "Error",
         description: error.message || "Failed to create goal",
