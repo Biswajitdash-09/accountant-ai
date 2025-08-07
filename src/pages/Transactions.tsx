@@ -8,6 +8,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useTransactions } from "@/hooks/useTransactions";
 import { useAccounts } from "@/hooks/useAccounts";
+import { useCurrencyFormatter } from "@/hooks/useCurrencyFormatter";
 import AddTransactionModal from "@/components/modals/AddTransactionModal";
 import { Search, Download, Filter, Trash2, Edit, Loader2, Plus, FileText } from "lucide-react";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
@@ -38,12 +39,7 @@ const Transactions = () => {
     return Array.from(new Set(cats));
   }, [transactions]);
 
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
-    }).format(amount);
-  };
+  const { formatCurrency } = useCurrencyFormatter();
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString();

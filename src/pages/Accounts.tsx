@@ -11,6 +11,7 @@ import ImportStatementModal from "@/components/modals/ImportStatementModal";
 import EditAccountModal from "@/components/modals/EditAccountModal";
 import { CreditCard, Wallet, Building, Trash2, Edit, Eye, Loader2, Plus, Upload } from "lucide-react";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
+import { useCurrencyFormatter } from "@/hooks/useCurrencyFormatter";
 
 const Accounts = () => {
   const { accounts, isLoading, deleteAccount } = useAccounts();
@@ -41,12 +42,7 @@ const Accounts = () => {
     }
   };
 
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
-    }).format(amount);
-  };
+  const { formatCurrency } = useCurrencyFormatter();
 
   const handleDeleteAccount = async (accountId: string) => {
     try {

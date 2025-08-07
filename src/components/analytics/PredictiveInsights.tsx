@@ -93,10 +93,10 @@ export const PredictiveInsights = () => {
 
   const getImpactColor = (impact: string) => {
     switch (impact) {
-      case 'high': return 'bg-red-100 text-red-800';
-      case 'medium': return 'bg-yellow-100 text-yellow-800';
-      case 'low': return 'bg-green-100 text-green-800';
-      default: return 'bg-gray-100 text-gray-800';
+      case 'high': return 'bg-destructive/10 text-destructive';
+      case 'medium': return 'bg-orange-500/10 text-orange-600 dark:text-orange-400';
+      case 'low': return 'bg-green-500/10 text-green-600 dark:text-green-400';
+      default: return 'bg-muted text-muted-foreground';
     }
   };
 

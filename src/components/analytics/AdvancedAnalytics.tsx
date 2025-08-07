@@ -254,13 +254,6 @@ export const AdvancedAnalytics = () => {
                     fillOpacity={0.6}
                     name="Expenses"
                   />
-                  <Line
-                    type="monotone"
-                    dataKey="netFlow"
-                    stroke="#3b82f6"
-                    strokeWidth={3}
-                    name="Net Cash Flow"
-                  />
                 </AreaChart>
               </ResponsiveContainer>
             </CardContent>
