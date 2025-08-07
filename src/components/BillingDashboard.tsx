@@ -12,6 +12,8 @@ import { CreditCard, Download, Bell, Settings, Zap } from "lucide-react";
 import { motion } from "framer-motion";
 import PaymentHistory from "./PaymentHistory";
 import { EnhancedCreditPlans } from "./EnhancedCreditPlans";
+import CreditAnalytics from "./CreditAnalytics";
+import EnhancedCreditSettings from "./EnhancedCreditSettings";
 
 const BillingDashboard = () => {
   const { credits, availableCredits } = useCredits();
@@ -181,9 +183,11 @@ const BillingDashboard = () => {
 
       {/* Main Content Tabs */}
       <Tabs defaultValue="plans" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-2">
+        <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="plans">Buy Credits</TabsTrigger>
           <TabsTrigger value="history">Payment History</TabsTrigger>
+          <TabsTrigger value="analytics">Analytics</TabsTrigger>
+          <TabsTrigger value="settings">Settings</TabsTrigger>
         </TabsList>
         
         <TabsContent value="plans" className="space-y-6">
@@ -192,6 +196,14 @@ const BillingDashboard = () => {
         
         <TabsContent value="history" className="space-y-6">
           <PaymentHistory />
+        </TabsContent>
+        
+        <TabsContent value="analytics" className="space-y-6">
+          <CreditAnalytics />
+        </TabsContent>
+        
+        <TabsContent value="settings" className="space-y-6">
+          <EnhancedCreditSettings />
         </TabsContent>
       </Tabs>
     </div>
