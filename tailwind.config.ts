@@ -31,8 +31,7 @@ export default {
 				foreground: 'hsl(var(--foreground))',
 				primary: {
 					DEFAULT: 'hsl(var(--primary))',
-					foreground: 'hsl(var(--primary-foreground))',
-					glow: 'hsl(var(--primary-glow))',
+					foreground: 'hsl(var(--primary-foreground))'
 				},
 				secondary: {
 					DEFAULT: 'hsl(var(--secondary))',
@@ -68,14 +67,6 @@ export default {
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
 				},
-				// Financial theme colors
-				finance: {
-					positive: 'hsl(var(--finance-positive))',
-					negative: 'hsl(var(--finance-negative))',
-					neutral: 'hsl(var(--finance-neutral))',
-					highlight: 'hsl(var(--finance-highlight))',
-					warning: 'hsl(var(--finance-warning))',
-				}
 			},
 			borderRadius: {
 				lg: 'var(--radius)',
