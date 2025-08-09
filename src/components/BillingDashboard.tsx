@@ -14,13 +14,13 @@ import PaymentHistory from "./PaymentHistory";
 import { EnhancedCreditPlans } from "./EnhancedCreditPlans";
 import CreditAnalytics from "./CreditAnalytics";
 import EnhancedCreditSettings from "./EnhancedCreditSettings";
-
+import { useCurrencyFormatter } from "@/hooks/useCurrencyFormatter";
 const BillingDashboard = () => {
   const { credits, availableCredits } = useCredits();
   const { totalAmountSpent } = usePayments();
   const [autoRecharge, setAutoRecharge] = useState(false);
   const [emailNotifications, setEmailNotifications] = useState(true);
-
+  const { formatCurrency } = useCurrencyFormatter();
   return (
     <div className="space-y-6">
       {/* Header */}

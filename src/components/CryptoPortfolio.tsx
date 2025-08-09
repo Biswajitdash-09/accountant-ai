@@ -11,7 +11,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { cn } from '@/lib/utils';
-import { useCurrency } from '@/contexts/CurrencyContext';
+import { useCurrencyFormatter } from '@/hooks/useCurrencyFormatter';
 
 interface CryptoAsset {
   id: string;
@@ -55,7 +55,7 @@ export const CryptoPortfolio = () => {
   const { user } = useAuth();
   const { toast } = useToast();
 const isMobile = useIsMobile();
-const { formatAmount } = useCurrency();
+const { formatCurrency, preferredCurrency } = useCurrencyFormatter();
 
   const fetchPortfolio = async () => {
     if (!user) return;
@@ -304,7 +304,7 @@ const { formatAmount } = useCurrency();
             <div className="text-center p-4 bg-gradient-to-br from-primary/5 to-primary/10 rounded-lg border border-primary/20 hover-glow transition-all duration-200">
               <p className="text-xs sm:text-sm text-muted-foreground mb-1">Total Value</p>
               <p className="text-lg sm:text-xl lg:text-2xl font-bold text-primary">
-                {formatAmount(totalValue, 'INR')}
+                {formatCurrency(totalValue, undefined, undefined, { showSymbol: true })}
               </p>
             </div>
             <div className="text-center p-4 bg-gradient-to-br from-green-500/5 to-green-500/10 rounded-lg border border-green-500/20 hover-glow transition-all duration-200">
@@ -314,7 +314,7 @@ const { formatAmount } = useCurrency();
                 totalPnL >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'
               )}>
                 {totalPnL >= 0 ? <TrendingUp className="h-4 w-4" /> : <TrendingDown className="h-4 w-4" />}
-                {totalPnL >= 0 ? '+' : ''}{formatAmount(Math.abs(totalPnL), 'INR')}
+                {totalPnL >= 0 ? '+' : ''}{formatCurrency(Math.abs(totalPnL), undefined, undefined, { showSymbol: true })}
               </p>
             </div>
             <div className="text-center p-4 bg-gradient-to-br from-blue-500/5 to-blue-500/10 rounded-lg border border-blue-500/20 hover-glow transition-all duration-200">
@@ -376,7 +376,7 @@ const { formatAmount } = useCurrency();
                     </div>
                     
                     <div className="space-y-2">
-                      <label className="text-sm font-medium">Avg Buy Price (₹)</label>
+                      <label className="text-sm font-medium">Avg Buy Price ({preferredCurrency?.symbol})</label>
                       <Input
                         placeholder="0.00"
                         type="number"
@@ -454,7 +454,7 @@ const { formatAmount } = useCurrency();
                             {asset.quantity.toFixed(8)} {asset.symbol}
                           </p>
                           <p className="text-xs sm:text-sm text-muted-foreground">
-                            Avg: {formatAmount(asset.avg_buy_price, 'INR')}
+                            Avg: {formatCurrency(asset.avg_buy_price, undefined, undefined, { showSymbol: true })}
                           </p>
                         </div>
                       </div>
@@ -474,13 +474,13 @@ const { formatAmount } = useCurrency();
                       <div className="space-y-1">
                         <p className="text-muted-foreground text-xs">Current Price</p>
                         <p className="font-semibold">
-                          {formatAmount(asset.current_price || 0, 'INR')}
+                          {formatCurrency(asset.current_price || 0, undefined, undefined, { showSymbol: true })}
                         </p>
                       </div>
                       <div className="space-y-1">
                         <p className="text-muted-foreground text-xs">Market Value</p>
                         <p className="font-semibold">
-                          {formatAmount(asset.market_value || 0, 'INR')}
+                          {formatCurrency(asset.market_value || 0, undefined, undefined, { showSymbol: true })}
                         </p>
                       </div>
                       <div className="space-y-1">
@@ -490,7 +490,7 @@ const { formatAmount } = useCurrency();
                           (asset.pnl || 0) >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'
                         )}>
                           {(asset.pnl || 0) >= 0 ? <TrendingUp className="h-3 w-3" /> : <TrendingDown className="h-3 w-3" />}
-                          {(asset.pnl || 0) >= 0 ? '+' : ''}{formatAmount(Math.abs(asset.pnl || 0), 'INR')}
+                          {(asset.pnl || 0) >= 0 ? '+' : ''}{formatCurrency(Math.abs(asset.pnl || 0), undefined, undefined, { showSymbol: true })}
                         </p>
                       </div>
                       <div className="space-y-1">
