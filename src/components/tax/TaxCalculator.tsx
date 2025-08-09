@@ -19,8 +19,8 @@ import { useToast } from "@/components/ui/use-toast";
 import DemoAccountBadge from "@/components/DemoAccountBadge";
 import { MobileForm, MobileFormSection } from "@/components/ui/mobile-form";
 
-export const TaxCalculator = () => {
-  const { taxPeriods } = useTaxPeriods();
+export const TaxCalculator = ({ selectedCountry = 'USA' }: { selectedCountry?: 'USA' | 'UK' | 'India' | 'Nigeria' }) => {
+  const { taxPeriods, createTaxPeriod } = useTaxPeriods();
   const { taxSettings } = useTaxSettings();
   const currentPeriod = taxPeriods.find(p => p.status === 'active') || taxPeriods[0];
   const { taxCalculations, calculateTax, isLoading } = useTaxCalculations(currentPeriod?.id);
@@ -110,8 +110,38 @@ export const TaxCalculator = () => {
     });
   };
 
-  const getTaxBrackets = (filingStatus: string) => {
-    // 2024 Tax brackets based on filing status
+  const getTaxBrackets = (filingStatus: string, country: 'USA' | 'UK' | 'India' | 'Nigeria') => {
+    // Minimal illustrative brackets per country (for display only)
+    if (country === 'UK') {
+      return [
+        { range: "£0 - £12,570", rate: "0%", color: "bg-green-100 text-green-800" },
+        { range: "£12,571 - £50,270", rate: "20%", color: "bg-yellow-100 text-yellow-800" },
+        { range: "£50,271 - £125,140", rate: "40%", color: "bg-orange-100 text-orange-800" },
+        { range: "> £125,140", rate: "45%", color: "bg-red-100 text-red-800" },
+      ];
+    }
+    if (country === 'India') {
+      return [
+        { range: "₹0 - ₹3,00,000", rate: "0%", color: "bg-green-100 text-green-800" },
+        { range: "₹3,00,001 - ₹7,00,000", rate: "5%", color: "bg-yellow-100 text-yellow-800" },
+        { range: "₹7,00,001 - ₹10,00,000", rate: "10%", color: "bg-orange-100 text-orange-800" },
+        { range: "₹10,00,001 - ₹12,00,000", rate: "15%", color: "bg-orange-200 text-orange-800" },
+        { range: "₹12,00,001 - ₹15,00,000", rate: "20%", color: "bg-red-100 text-red-800" },
+        { range: "> ₹15,00,000", rate: "30%", color: "bg-red-200 text-red-800" },
+      ];
+    }
+    if (country === 'Nigeria') {
+      return [
+        { range: "₦0 - ₦300,000", rate: "7%", color: "bg-green-100 text-green-800" },
+        { range: "₦300,001 - ₦600,000", rate: "11%", color: "bg-yellow-100 text-yellow-800" },
+        { range: "₦600,001 - ₦1,100,000", rate: "15%", color: "bg-orange-100 text-orange-800" },
+        { range: "₦1,100,001 - ₦1,600,000", rate: "19%", color: "bg-orange-200 text-orange-800" },
+        { range: "₦1,600,001 - ₦3,200,000", rate: "21%", color: "bg-red-100 text-red-800" },
+        { range: "> ₦3,200,000", rate: "24%", color: "bg-red-200 text-red-800" },
+      ];
+    }
+
+    // Default USA brackets with filing status
     const brackets = {
       single: [
         { range: "$0 - $11,000", rate: "10%", color: "bg-green-100 text-green-800" },
@@ -131,8 +161,8 @@ export const TaxCalculator = () => {
         { range: "$462,500 - $693,750", rate: "35%", color: "bg-orange-200 text-orange-800" },
         { range: "$693,750+", rate: "37%", color: "bg-red-100 text-red-800" }
       ]
-    };
-    
+    } as const;
+
     return brackets[filingStatus as keyof typeof brackets] || brackets.single;
   };
 
@@ -148,7 +178,7 @@ export const TaxCalculator = () => {
   } : null;
 
   const displayCalculation = isDemo ? demoCalculation : currentCalculation;
-  const taxBrackets = getTaxBrackets(filingStatus);
+  const taxBrackets = getTaxBrackets(filingStatus, selectedCountry);
 
   return (
     <div className="container mx-auto p-4 max-w-6xl">
@@ -161,6 +191,37 @@ export const TaxCalculator = () => {
         </div>
 
         <DemoAccountBadge />
+
+        {!currentPeriod && (
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-base">No active tax period</CardTitle>
+              <CardDescription>
+                Create a current year tax period to start calculations.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Button
+                onClick={async () => {
+                  const now = new Date();
+                  const year = now.getFullYear();
+                  await createTaxPeriod.mutateAsync({
+                    period_type: 'annual',
+                    tax_year: year,
+                    start_date: `${year}-01-01`,
+                    end_date: `${year}-12-31`,
+                    status: 'active',
+                    estimated_tax_due: 0,
+                    actual_tax_due: 0,
+                    amount_paid: 0,
+                  } as any);
+                }}
+              >
+                Create Current Tax Period
+              </Button>
+            </CardContent>
+          </Card>
+        )}
 
         <MobileForm>
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

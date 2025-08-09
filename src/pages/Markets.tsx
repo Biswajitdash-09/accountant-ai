@@ -16,6 +16,7 @@ import { BackButton } from "@/components/ui/back-button";
 import { CryptoPortfolio } from "@/components/CryptoPortfolio";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { cn } from "@/lib/utils";
+import CurrencySwitcher from "@/components/CurrencySwitcher";
 
 interface ConversionResult {
   from: string;
@@ -100,6 +101,12 @@ const Markets = () => {
             <p className="text-muted-foreground text-sm sm:text-base">
               Track your crypto portfolio, convert currencies in real-time, and monitor market trends.
             </p>
+          </div>
+        </div>
+        <div className="shrink-0">
+          {/* Global currency switcher */}
+          <div className="w-48">
+            <CurrencySwitcher />
           </div>
         </div>
       </div>

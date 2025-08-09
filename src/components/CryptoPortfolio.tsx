@@ -11,6 +11,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { cn } from '@/lib/utils';
+import { useCurrency } from '@/contexts/CurrencyContext';
 
 interface CryptoAsset {
   id: string;
@@ -53,7 +54,8 @@ export const CryptoPortfolio = () => {
   });
   const { user } = useAuth();
   const { toast } = useToast();
-  const isMobile = useIsMobile();
+const isMobile = useIsMobile();
+const { formatAmount } = useCurrency();
 
   const fetchPortfolio = async () => {
     if (!user) return;
@@ -302,7 +304,7 @@ export const CryptoPortfolio = () => {
             <div className="text-center p-4 bg-gradient-to-br from-primary/5 to-primary/10 rounded-lg border border-primary/20 hover-glow transition-all duration-200">
               <p className="text-xs sm:text-sm text-muted-foreground mb-1">Total Value</p>
               <p className="text-lg sm:text-xl lg:text-2xl font-bold text-primary">
-                ₹{totalValue.toLocaleString('en-IN', { maximumFractionDigits: 2 })}
+                {formatAmount(totalValue, 'INR')}
               </p>
             </div>
             <div className="text-center p-4 bg-gradient-to-br from-green-500/5 to-green-500/10 rounded-lg border border-green-500/20 hover-glow transition-all duration-200">
@@ -312,7 +314,7 @@ export const CryptoPortfolio = () => {
                 totalPnL >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'
               )}>
                 {totalPnL >= 0 ? <TrendingUp className="h-4 w-4" /> : <TrendingDown className="h-4 w-4" />}
-                {totalPnL >= 0 ? '+' : ''}₹{Math.abs(totalPnL).toLocaleString('en-IN', { maximumFractionDigits: 2 })}
+                {totalPnL >= 0 ? '+' : ''}{formatAmount(Math.abs(totalPnL), 'INR')}
               </p>
             </div>
             <div className="text-center p-4 bg-gradient-to-br from-blue-500/5 to-blue-500/10 rounded-lg border border-blue-500/20 hover-glow transition-all duration-200">
@@ -452,7 +454,7 @@ export const CryptoPortfolio = () => {
                             {asset.quantity.toFixed(8)} {asset.symbol}
                           </p>
                           <p className="text-xs sm:text-sm text-muted-foreground">
-                            Avg: ₹{asset.avg_buy_price.toLocaleString('en-IN')}
+                            Avg: {formatAmount(asset.avg_buy_price, 'INR')}
                           </p>
                         </div>
                       </div>
@@ -472,13 +474,13 @@ export const CryptoPortfolio = () => {
                       <div className="space-y-1">
                         <p className="text-muted-foreground text-xs">Current Price</p>
                         <p className="font-semibold">
-                          ₹{(asset.current_price || 0).toLocaleString('en-IN')}
+                          {formatAmount(asset.current_price || 0, 'INR')}
                         </p>
                       </div>
                       <div className="space-y-1">
                         <p className="text-muted-foreground text-xs">Market Value</p>
                         <p className="font-semibold">
-                          ₹{(asset.market_value || 0).toLocaleString('en-IN', { maximumFractionDigits: 2 })}
+                          {formatAmount(asset.market_value || 0, 'INR')}
                         </p>
                       </div>
                       <div className="space-y-1">
@@ -488,7 +490,7 @@ export const CryptoPortfolio = () => {
                           (asset.pnl || 0) >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'
                         )}>
                           {(asset.pnl || 0) >= 0 ? <TrendingUp className="h-3 w-3" /> : <TrendingDown className="h-3 w-3" />}
-                          {(asset.pnl || 0) >= 0 ? '+' : ''}₹{Math.abs(asset.pnl || 0).toLocaleString('en-IN', { maximumFractionDigits: 2 })}
+                          {(asset.pnl || 0) >= 0 ? '+' : ''}{formatAmount(Math.abs(asset.pnl || 0), 'INR')}
                         </p>
                       </div>
                       <div className="space-y-1">

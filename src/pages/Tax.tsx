@@ -7,17 +7,25 @@ import { TaxCalculator } from "@/components/tax/TaxCalculator";
 import { TaxCalendar } from "@/components/tax/TaxCalendar";
 import { TaxSettings } from "@/components/tax/TaxSettings";
 import { FileText, Calculator, TrendingUp, Settings, Calendar } from "lucide-react";
+import { TaxCountrySelector } from "@/components/tax/TaxCountrySelector";
 
 const Tax = () => {
   const [activeTab, setActiveTab] = useState("dashboard");
+  const [selectedCountry, setSelectedCountry] = useState<'USA' | 'UK' | 'India' | 'Nigeria'>('USA');
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold">Tax Management</h1>
-        <p className="text-muted-foreground">
-          Comprehensive tax planning, calculation, and compliance management
-        </p>
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
+        <div>
+          <h1 className="text-3xl font-bold">Tax Management</h1>
+          <p className="text-muted-foreground">
+            Comprehensive tax planning, calculation, and compliance management
+          </p>
+        </div>
+        <div className="md:text-right">
+          <p className="text-sm text-muted-foreground mb-2">Tax country</p>
+          <TaxCountrySelector value={selectedCountry} onChange={setSelectedCountry} />
+        </div>
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
@@ -53,7 +61,7 @@ const Tax = () => {
         </TabsContent>
 
         <TabsContent value="calculator" className="space-y-6">
-          <TaxCalculator />
+          <TaxCalculator selectedCountry={selectedCountry} />
         </TabsContent>
 
         <TabsContent value="calendar" className="space-y-6">

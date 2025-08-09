@@ -1530,6 +1530,63 @@ export type Database = {
           },
         ]
       }
+      tax_calendar_events: {
+        Row: {
+          amount: number | null
+          business_entity_id: string | null
+          created_at: string | null
+          description: string | null
+          due_date: string
+          event_date: string
+          event_title: string
+          event_type: string
+          id: string
+          is_recurring: boolean | null
+          metadata: Json | null
+          recurrence_pattern: string | null
+          reminder_days: number[] | null
+          status: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          amount?: number | null
+          business_entity_id?: string | null
+          created_at?: string | null
+          description?: string | null
+          due_date: string
+          event_date: string
+          event_title: string
+          event_type: string
+          id?: string
+          is_recurring?: boolean | null
+          metadata?: Json | null
+          recurrence_pattern?: string | null
+          reminder_days?: number[] | null
+          status?: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          amount?: number | null
+          business_entity_id?: string | null
+          created_at?: string | null
+          description?: string | null
+          due_date?: string
+          event_date?: string
+          event_title?: string
+          event_type?: string
+          id?: string
+          is_recurring?: boolean | null
+          metadata?: Json | null
+          recurrence_pattern?: string | null
+          reminder_days?: number[] | null
+          status?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       tax_compliance_checks: {
         Row: {
           business_entity_id: string | null
