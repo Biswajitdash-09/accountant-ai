@@ -108,17 +108,17 @@ const BillingDashboard = () => {
           animate={{ opacity: 1, scale: 1 }}
           transition={{ delay: 0.4 }}
         >
-          <Card>
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-muted-foreground">Total Spent</p>
-                  <p className="text-2xl font-bold">${(totalAmountSpent / 100).toFixed(2)}</p>
+            <Card>
+              <CardContent className="p-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-muted-foreground">Total Spent</p>
+                    <p className="text-2xl font-bold">{formatCurrency(totalAmountSpent / 100)}</p>
+                  </div>
+                  <CreditCard className="h-8 w-8 text-green-500" />
                 </div>
-                <CreditCard className="h-8 w-8 text-green-500" />
-              </div>
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
         </motion.div>
       </div>
 

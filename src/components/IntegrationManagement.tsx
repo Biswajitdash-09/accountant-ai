@@ -43,13 +43,13 @@ const IntegrationManagement = () => {
 
   const integrations: Integration[] = [
     {
-      id: 'plaid',
-      name: 'Plaid Banking',
-      description: 'Connect your bank accounts for automatic transaction import',
+      id: 'yodlee',
+      name: 'Yodlee Banking',
+      description: 'Connect bank accounts via Yodlee FastLink for transactions & balances',
       icon: Building,
       category: 'banking',
       status: 'disconnected',
-      features: ['Bank Account Sync', 'Transaction Import', 'Balance Updates'],
+      features: ['FastLink Flow', 'Transaction Import', 'Balance Updates'],
       setupRequired: true
     },
     {
@@ -121,16 +121,25 @@ const IntegrationManagement = () => {
 
   const handleConnect = async (integration: Integration) => {
     setConnectingId(integration.id);
-    
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 2000));
-    
-    toast({
-      title: `${integration.name} connected!`,
-      description: "Integration setup completed successfully.",
-    });
-    
-    setConnectingId(null);
+    try {
+      if (integration.id === 'yodlee') {
+        const { data, error } = await supabase.functions.invoke('yodlee-init');
+        if (error) throw error;
+        if (data?.url) {
+          window.open(data.url, '_blank');
+        } else {
+          toast({ title: 'Yodlee', description: data?.message || 'Yodlee not configured yet.' });
+        }
+      } else {
+        // Simulate other integrations
+        await new Promise(resolve => setTimeout(resolve, 1500));
+        toast({ title: `${integration.name} connected!`, description: 'Integration setup completed successfully.' });
+      }
+    } catch (e: any) {
+      toast({ title: 'Connection failed', description: e.message || 'Please try again later.', variant: 'destructive' });
+    } finally {
+      setConnectingId(null);
+    }
   };
 
   const handleDisconnect = async (integrationId: string) => {

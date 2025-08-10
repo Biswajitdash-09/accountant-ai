@@ -5,9 +5,11 @@ import { usePayments } from "@/hooks/usePayments";
 import { format } from "date-fns";
 import { CreditCard, CheckCircle, XCircle, Clock } from "lucide-react";
 import { motion } from "framer-motion";
+import { useCurrencyFormatter } from "@/hooks/useCurrencyFormatter";
 
 const PaymentHistory = () => {
   const { payments, isLoading, totalAmountSpent, totalCreditspurchased } = usePayments();
+  const { formatCurrency, currencies, baseCurrency, preferredCurrency } = useCurrencyFormatter();
 
   if (isLoading) {
     return (
@@ -65,7 +67,7 @@ const PaymentHistory = () => {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm opacity-90">Total Spent</p>
-                  <p className="text-2xl font-bold">${(totalAmountSpent / 100).toFixed(2)}</p>
+                  <p className="text-2xl font-bold">{formatCurrency(totalAmountSpent / 100)}</p>
                 </div>
                 <CreditCard className="h-8 w-8 opacity-75" />
               </div>
@@ -142,11 +144,14 @@ const PaymentHistory = () => {
                       </p>
                     </div>
                   </div>
-                  <div className="text-right">
-                    <p className="font-medium">
-                      ${(payment.amount / 100).toFixed(2)} {payment.currency.toUpperCase()}
-                    </p>
-                    <div className="flex items-center gap-2">
+          <div className="text-right">
+            <p className="font-medium">
+              {(() => {
+                const fromId = currencies.find(c => c.code.toLowerCase() === payment.currency.toLowerCase())?.id || baseCurrency?.id;
+                return formatCurrency(payment.amount / 100, fromId, preferredCurrency?.id);
+              })()}
+            </p>
+            <div className="flex items-center gap-2">
                       <Badge className={getStatusColor(payment.status)}>
                         {payment.status}
                       </Badge>

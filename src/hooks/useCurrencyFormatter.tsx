@@ -20,13 +20,8 @@ export const useCurrencyFormatter = () => {
   // Invalidate related queries when currency changes
   useEffect(() => {
     if (preferredCurrency) {
-      // Invalidate all financial data queries to trigger re-rendering with new currency
-      queryClient.invalidateQueries({ queryKey: ['revenue_streams'] });
-      queryClient.invalidateQueries({ queryKey: ['financial_goals'] });
-      queryClient.invalidateQueries({ queryKey: ['transactions'] });
-      queryClient.invalidateQueries({ queryKey: ['budgets'] });
-      queryClient.invalidateQueries({ queryKey: ['balance_sheet_items'] });
-      queryClient.invalidateQueries({ queryKey: ['accounts'] });
+      // Invalidate all queries so currency-dependent data refreshes everywhere
+      queryClient.invalidateQueries({ predicate: () => true });
     }
   }, [preferredCurrency?.id, queryClient]);
 
