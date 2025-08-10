@@ -23,6 +23,7 @@ import {
   Globe
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import { supabase } from "@/integrations/supabase/client";
 
 interface Integration {
   id: string;
