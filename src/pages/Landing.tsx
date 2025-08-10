@@ -323,7 +323,14 @@ const Landing = () => {
             <Bot className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
             <span className="text-lg sm:text-xl font-bold">Accountant AI</span>
           </div>
-          <p className="text-muted-foreground text-sm sm:text-base">© 2025 Accountant AI. All rights reserved.</p>
+          <nav className="mt-2 flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-sm text-muted-foreground">
+            <Link to="/roadmap" className="story-link">Roadmap</Link>
+            <Link to="/pricing" className="story-link">Pricing</Link>
+            <Link to="/privacy" className="story-link">Privacy Policy</Link>
+            <Link to="/terms" className="story-link">Terms of Service</Link>
+            <Link to="/cookies" className="story-link">Cookie Policy</Link>
+          </nav>
+          <p className="text-muted-foreground text-sm sm:text-base mt-4">© 2025 Accountant AI. All rights reserved.</p>
         </div>
       </footer>
     </div>

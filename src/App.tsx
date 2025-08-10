@@ -9,6 +9,10 @@ import { CurrencyProvider } from "@/contexts/CurrencyContext";
 import Landing from "./pages/Landing";
 import Auth from "./pages/Auth";
 import Index from "./pages/Index";
+import Roadmap from "./pages/Roadmap";
+import Privacy from "./pages/Privacy";
+import Terms from "./pages/Terms";
+import Cookies from "./pages/Cookies";
 import "./App.css";
 
 const queryClient = new QueryClient();
@@ -25,6 +29,10 @@ function App() {
               <Routes>
                 <Route path="/" element={<Landing />} />
                 <Route path="/auth" element={<Auth />} />
+                <Route path="/roadmap" element={<Roadmap />} />
+                <Route path="/privacy" element={<Privacy />} />
+                <Route path="/terms" element={<Terms />} />
+                <Route path="/cookies" element={<Cookies />} />
                 <Route path="/*" element={<Index />} />
               </Routes>
             </BrowserRouter>
