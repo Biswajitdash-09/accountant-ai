@@ -6,8 +6,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useAccounts } from "@/hooks/useAccounts";
-import { Plus } from "lucide-react";
-
+import { Plus, Link2 } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/components/ui/use-toast";
 interface AddAccountModalProps {
   trigger?: React.ReactNode;
 }
@@ -19,9 +20,10 @@ const AddAccountModal = ({ trigger }: AddAccountModalProps) => {
     account_type: "",
     balance: "",
   });
+  const [linking, setLinking] = useState(false);
 
   const { createAccount } = useAccounts();
-
+  const { toast } = useToast();
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -47,6 +49,21 @@ const AddAccountModal = ({ trigger }: AddAccountModalProps) => {
     }
   };
 
+  const handleLinkBank = async () => {
+    try {
+      setLinking(true);
+      const { data, error } = await supabase.functions.invoke('yodlee-init');
+      if (error) throw error;
+      const message = (data as any)?.message || 'Bank linking initialized.';
+      toast({ title: 'Bank Linking', description: message });
+    } catch (err: any) {
+      console.error('Yodlee init error:', err);
+      toast({ title: 'Bank Linking Failed', description: 'Please check configuration and try again.', variant: 'destructive' });
+    } finally {
+      setLinking(false);
+    }
+  };
+
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
@@ -61,6 +78,17 @@ const AddAccountModal = ({ trigger }: AddAccountModalProps) => {
         <DialogHeader>
           <DialogTitle>Add New Account</DialogTitle>
         </DialogHeader>
+        <div className="rounded-lg border p-3 bg-muted/30">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium">Link your bank</p>
+              <p className="text-xs text-muted-foreground">Securely connect via Yodlee.</p>
+            </div>
+            <Button variant="secondary" size="sm" onClick={handleLinkBank} disabled={linking}>
+              <Link2 className="h-4 w-4 mr-2" /> {linking ? 'Checking...' : 'Link Bank'}
+            </Button>
+          </div>
+        </div>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="account_name">Account Name</Label>

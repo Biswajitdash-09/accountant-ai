@@ -86,7 +86,7 @@ const Header = ({ onMobileMenuToggle }: HeaderProps) => {
         {/* Right section */}
         <div className="flex items-center gap-2 flex-shrink-0">
           {/* Credit Balance - Always visible */}
-          <CreditBalance showBuyButton={false} />
+          <div className="hidden sm:flex"><CreditBalance showBuyButton={false} /></div>
           
           {/* Buy Credits Button - Show on non-pricing pages */}
           {location.pathname !== "/pricing" && (
@@ -169,8 +169,8 @@ const Header = ({ onMobileMenuToggle }: HeaderProps) => {
               {/* Mobile-only items */}
               {isMobile && (
                 <>
-                  <DropdownMenuItem asChild>
-                    <div className="p-2">
+                  <DropdownMenuItem asChild onSelect={(e) => e.preventDefault()}>
+                    <div className="p-2" onPointerDown={(e) => e.stopPropagation()}>
                       <CurrencySelector />
                     </div>
                   </DropdownMenuItem>
