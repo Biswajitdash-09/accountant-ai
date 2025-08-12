@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -21,9 +21,11 @@ interface FinancialGoalFormProps {
   onSubmit: (goalData: any) => void;
   onCancel: () => void;
   isSubmitting: boolean;
+  initialData?: Partial<any>;
+  mode?: 'create' | 'edit';
 }
 
-const FinancialGoalForm = ({ onSubmit, onCancel, isSubmitting }: FinancialGoalFormProps) => {
+const FinancialGoalForm = ({ onSubmit, onCancel, isSubmitting, initialData, mode = 'create' }: FinancialGoalFormProps) => {
   const [formData, setFormData] = useState<GoalFormState>({
     goal_name: "",
     description: "",
@@ -32,6 +34,19 @@ const FinancialGoalForm = ({ onSubmit, onCancel, isSubmitting }: FinancialGoalFo
     target_date: "",
     goal_type: "savings"
   });
+
+  useEffect(() => {
+    if (initialData) {
+      setFormData({
+        goal_name: String(initialData.goal_name ?? ""),
+        description: String(initialData.description ?? ""),
+        target_amount: initialData.target_amount !== undefined ? String(initialData.target_amount) : "",
+        current_amount: initialData.current_amount !== undefined ? String(initialData.current_amount) : "0",
+        target_date: String(initialData.target_date ?? ""),
+        goal_type: String(initialData.goal_type ?? "savings")
+      });
+    }
+  }, [initialData]);
 
   const handleInputChange = (field: keyof GoalFormState, value: string) => {
     setFormData(prev => ({

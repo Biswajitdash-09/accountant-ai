@@ -251,6 +251,94 @@ export const DeadlineTracker = () => {
           )}
         </div>
       </CardContent>
+      {/* Edit Deadline Dialog */}
+      {editingDeadline && (
+        <Dialog open={!!editingDeadline} onOpenChange={(open) => !open && setEditingDeadline(null)}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Edit Deadline</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4">
+              <div>
+                <Label htmlFor="edit_title">Title</Label>
+                <Input
+                  id="edit_title"
+                  value={editingDeadline.title}
+                  onChange={(e) => setEditingDeadline({ ...editingDeadline, title: e.target.value })}
+                  placeholder="Enter deadline title"
+                />
+              </div>
+              <div>
+                <Label htmlFor="edit_description">Description</Label>
+                <Textarea
+                  id="edit_description"
+                  value={editingDeadline.description || ''}
+                  onChange={(e) => setEditingDeadline({ ...editingDeadline, description: e.target.value })}
+                  placeholder="Enter deadline description"
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label>Type</Label>
+                  <Select
+                    value={editingDeadline.deadline_type}
+                    onValueChange={(value) => setEditingDeadline({ ...editingDeadline, deadline_type: value as any })}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="tax">Tax</SelectItem>
+                      <SelectItem value="financial">Financial</SelectItem>
+                      <SelectItem value="business">Business</SelectItem>
+                      <SelectItem value="personal">Personal</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label>Priority</Label>
+                  <Select
+                    value={editingDeadline.priority}
+                    onValueChange={(value) => setEditingDeadline({ ...editingDeadline, priority: value as any })}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="low">Low</SelectItem>
+                      <SelectItem value="medium">Medium</SelectItem>
+                      <SelectItem value="high">High</SelectItem>
+                      <SelectItem value="critical">Critical</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+              <div>
+                <Label htmlFor="edit_deadline_date">Deadline Date</Label>
+                <Input
+                  id="edit_deadline_date"
+                  type="date"
+                  value={editingDeadline.deadline_date}
+                  onChange={(e) => setEditingDeadline({ ...editingDeadline, deadline_date: e.target.value })}
+                />
+              </div>
+              <div className="flex justify-end gap-2">
+                <Button variant="outline" onClick={() => setEditingDeadline(null)}>Cancel</Button>
+                <Button onClick={() => {
+                  handleUpdateDeadline(editingDeadline!, {
+                    title: editingDeadline.title,
+                    description: editingDeadline.description,
+                    deadline_type: editingDeadline.deadline_type,
+                    priority: editingDeadline.priority,
+                    deadline_date: editingDeadline.deadline_date,
+                  });
+                  setEditingDeadline(null);
+                }}>Save Changes</Button>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
+      )}
     </Card>
   );
 };

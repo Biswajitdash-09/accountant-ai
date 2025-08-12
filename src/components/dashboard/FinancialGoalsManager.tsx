@@ -7,7 +7,7 @@ import { useFinancialGoals } from "@/hooks/useFinancialGoals";
 import { useCurrencyFormatter } from "@/hooks/useCurrencyFormatter";
 import { useDemoMode } from "@/hooks/useDemoMode";
 import { getDemoData } from "@/utils/demoData";
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
 import { 
   Plus, 
   Target, 
