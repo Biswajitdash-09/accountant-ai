@@ -27,58 +27,44 @@ const FinancialGoalsManager = () => {
   
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [editingGoal, setEditingGoal] = useState<any | null>(null);
 
   // Use demo data if in demo mode
   const displayGoals = isDemo ? getDemoData('goals') : financialGoals;
 
-  const handleCreateGoal = async (goalData: any) => {
+  const handleSubmitGoal = async (goalData: any) => {
     setIsSubmitting(true);
-    
-    console.log('Financial goal creation started', { goalData });
-    
+
     if (isDemo) {
-      // Simulate success for demo mode
       setTimeout(() => {
-        toast({ 
-          title: "Demo Mode",
-          description: 'Goal created successfully! (Demo data - not saved)' 
-        });
+        toast({ title: "Demo Mode", description: editingGoal ? 'Goal updated (demo only)' : 'Goal created (demo only)' });
         setIsFormOpen(false);
+        setEditingGoal(null);
         setIsSubmitting(false);
-      }, 1000);
+      }, 800);
       return;
     }
-    
+
     try {
-      console.log('Creating financial goal with data:', goalData);
-      await createFinancialGoal.mutateAsync(goalData);
-      console.log('Financial goal created successfully');
+      if (editingGoal) {
+        await updateFinancialGoal.mutateAsync({ id: editingGoal.id, ...goalData });
+        toast({ description: 'Goal updated successfully.' });
+      } else {
+        await createFinancialGoal.mutateAsync(goalData);
+        toast({ description: 'Goal created successfully.' });
+      }
       setIsFormOpen(false);
-      toast({ description: 'Goal created successfully.' });
+      setEditingGoal(null);
     } catch (error: any) {
-      console.error('Error creating financial goal:', error);
-      toast({
-        title: "Error",
-        description: error.message || "Failed to create goal",
-        variant: "destructive",
-      });
+      toast({ title: 'Error', description: error.message || 'Operation failed', variant: 'destructive' });
     } finally {
       setIsSubmitting(false);
     }
   };
 
   const handleEditGoal = (goal: any) => {
-    if (isDemo) {
-      toast({ 
-        title: "Demo Mode",
-        description: 'Edit functionality is simulated in demo mode.',
-        variant: "default"
-      });
-      return;
-    }
-    
-    // This would open an edit form - for now we'll just show a toast
-    toast({ description: 'Edit functionality will be implemented soon.' });
+    setEditingGoal(goal);
+    setIsFormOpen(true);
   };
 
   const handleDeleteGoal = async (goalId: string) => {
@@ -248,9 +234,11 @@ const FinancialGoalsManager = () => {
         <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4">
           <div className="bg-background rounded-lg max-w-2xl w-full max-h-[90vh] overflow-auto">
             <FinancialGoalForm
-              onSubmit={handleCreateGoal}
-              onCancel={() => setIsFormOpen(false)}
+              onSubmit={handleSubmitGoal}
+              onCancel={() => { setIsFormOpen(false); setEditingGoal(null); }}
               isSubmitting={isSubmitting}
+              initialData={editingGoal || undefined}
+              mode={editingGoal ? 'edit' : 'create'}
             />
           </div>
         </div>

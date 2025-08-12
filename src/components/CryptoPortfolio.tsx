@@ -303,8 +303,8 @@ const { formatCurrency, preferredCurrency } = useCurrencyFormatter();
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
             <div className="text-center p-4 bg-gradient-to-br from-primary/5 to-primary/10 rounded-lg border border-primary/20 hover-glow transition-all duration-200">
               <p className="text-xs sm:text-sm text-muted-foreground mb-1">Total Value</p>
-              <p className="text-lg sm:text-xl lg:text-2xl font-bold text-primary">
-                {formatCurrency(totalValue, undefined, undefined, { showSymbol: true })}
+              <p className="text-lg sm:text-xl lg:text-2xl font-bold text-primary break-words max-w-full">
+                {formatCurrency(totalValue, undefined, undefined, { showSymbol: true, decimals: 2 })}
               </p>
             </div>
             <div className="text-center p-4 bg-gradient-to-br from-green-500/5 to-green-500/10 rounded-lg border border-green-500/20 hover-glow transition-all duration-200">
@@ -473,7 +473,7 @@ const { formatCurrency, preferredCurrency } = useCurrencyFormatter();
                     <div className="grid grid-cols-2 gap-3 sm:gap-4 text-sm">
                       <div className="space-y-1">
                         <p className="text-muted-foreground text-xs">Current Price</p>
-                        <p className="font-semibold">
+                        <p className="font-semibold break-words max-w-full">
                           {formatCurrency(asset.current_price || 0, undefined, undefined, { showSymbol: true })}
                         </p>
                       </div>

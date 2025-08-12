@@ -166,7 +166,7 @@ export const TaskManager = () => {
       <CardContent>
         <div className="space-y-3">
           {tasks.map((task) => (
-            <div key={task.id} className="p-3 border rounded-lg">
+            <div key={task.id} className="p-3 border rounded-lg relative overflow-hidden">
               <div className="flex items-start justify-between">
                 <div className="flex-1">
                   <div className="flex items-center gap-2 mb-2">

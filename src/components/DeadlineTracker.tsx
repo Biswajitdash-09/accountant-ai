@@ -195,10 +195,10 @@ export const DeadlineTracker = () => {
             const urgency = getUrgencyIndicator(daysUntil);
             
             return (
-              <div key={deadline.id} className="p-3 border rounded-lg">
+              <div key={deadline.id} className="p-3 border rounded-lg relative overflow-hidden">
                 <div className="flex items-start justify-between">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-2">
+                  <div className="flex-1 min-w-0">
+                    <div className="flex flex-wrap items-center gap-2 mb-2">
                       <h4 className="font-medium">{deadline.title}</h4>
                       <Badge variant={getTypeColor(deadline.deadline_type)} className="text-xs">
                         {deadline.deadline_type}
