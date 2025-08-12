@@ -9,7 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { TrendingUp, RefreshCw, Plus, Trash2, Calculator, DollarSign } from "lucide-react";
 import { useCurrencyFormatter } from "@/hooks/useCurrencyFormatter";
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { useForm } from "react-hook-form";
 import { BackButton } from "@/components/ui/back-button";

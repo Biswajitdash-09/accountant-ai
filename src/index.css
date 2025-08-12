@@ -167,6 +167,16 @@
   }
 }
 
+/* Mobile safe area helpers */
+@layer utilities {
+  .mobile-header-safe { padding-top: env(safe-area-inset-top); }
+  .mobile-bottom-safe { padding-bottom: env(safe-area-inset-bottom); }
+  .mobile-safe {
+    padding-left: max(env(safe-area-inset-left), 0px);
+    padding-right: max(env(safe-area-inset-right), 0px);
+  }
+}
+
 @keyframes fadeIn {
   from {
     opacity: 0;
