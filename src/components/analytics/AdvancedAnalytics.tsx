@@ -86,8 +86,31 @@ export const AdvancedAnalytics = () => {
   }));
 
   const exportData = () => {
-    // In real app, implement data export functionality
-    console.log("Exporting analytics data...");
+    // Generate CSV content
+    const csvData = [
+      ['Period', 'Income', 'Expenses', 'Profit', 'Savings'],
+      ...analyticsData.map(item => [
+        item.period,
+        item.income.toString(),
+        item.expenses.toString(),
+        item.profit.toString(),
+        item.savings.toString()
+      ])
+    ];
+
+    const csvContent = csvData.map(row => row.join(',')).join('\n');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    
+    if (link.download !== undefined) {
+      const url = URL.createObjectURL(blob);
+      link.setAttribute('href', url);
+      link.setAttribute('download', `analytics-${selectedPeriod}-${new Date().toISOString().split('T')[0]}.csv`);
+      link.style.visibility = 'hidden';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
   };
 
   return (
@@ -95,9 +118,9 @@ export const AdvancedAnalytics = () => {
       {/* Header with Controls */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h2 className="text-3xl font-bold flex items-center gap-2">
+          <h2 className="text-3xl font-bold flex items-center gap-3">
             <BarChart3 className="h-8 w-8 text-primary" />
-            Advanced Analytics
+            Advanced Analytics 🧠 AI Insights
           </h2>
           <p className="text-muted-foreground">
             Comprehensive financial insights and performance metrics

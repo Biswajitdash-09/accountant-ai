@@ -150,22 +150,34 @@ export const TaxDashboard = () => {
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            <div className="p-4 border rounded-lg hover:bg-muted cursor-pointer transition-colors">
+            <div 
+              className="p-4 border rounded-lg hover:bg-muted cursor-pointer transition-colors"
+              onClick={() => window.location.href = '/tax'}
+            >
               <FileText className="h-6 w-6 mb-2 text-finance-highlight" />
               <h4 className="font-medium">Review Deductions</h4>
               <p className="text-sm text-muted-foreground">Check pending expense categories</p>
             </div>
-            <div className="p-4 border rounded-lg hover:bg-muted cursor-pointer transition-colors">
+            <div 
+              className="p-4 border rounded-lg hover:bg-muted cursor-pointer transition-colors"
+              onClick={() => window.location.href = '/tax'}
+            >
               <Calculator className="h-6 w-6 mb-2 text-finance-secondary" />
               <h4 className="font-medium">Calculate Tax</h4>
               <p className="text-sm text-muted-foreground">Run current period calculation</p>
             </div>
-            <div className="p-4 border rounded-lg hover:bg-muted cursor-pointer transition-colors">
+            <div 
+              className="p-4 border rounded-lg hover:bg-muted cursor-pointer transition-colors"
+              onClick={() => window.location.href = '/reports'}
+            >
               <TrendingUp className="h-6 w-6 mb-2 text-finance-accent" />
               <h4 className="font-medium">View Reports</h4>
               <p className="text-sm text-muted-foreground">Generate tax reports</p>
             </div>
-            <div className="p-4 border rounded-lg hover:bg-muted cursor-pointer transition-colors">
+            <div 
+              className="p-4 border rounded-lg hover:bg-muted cursor-pointer transition-colors"
+              onClick={() => window.location.href = '/tax'}
+            >
               <AlertTriangle className="h-6 w-6 mb-2 text-finance-highlight" />
               <h4 className="font-medium">Upcoming Deadlines</h4>
               <p className="text-sm text-muted-foreground">View tax calendar</p>

@@ -206,12 +206,12 @@ const AIFinancialInsights = () => {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <Card className="gradient-primary text-white">
+      <Card className="gradient-primary text-white dark:text-white">
         <CardContent className="p-6">
           <div className="flex items-center justify-between">
             <div>
-              <h3 className="text-xl font-heading font-bold mb-2">AI Financial Insights</h3>
-              <p className="opacity-90">Powered by machine learning to optimize your financial decisions</p>
+              <h3 className="text-xl font-heading font-bold mb-2 text-white dark:text-white">AI Financial Insights</h3>
+              <p className="opacity-90 text-white/90 dark:text-white/90">Powered by machine learning to optimize your financial decisions</p>
             </div>
             <div className="flex items-center gap-4">
               <Select value={timeRange} onValueChange={setTimeRange}>

@@ -46,8 +46,8 @@ const ExpenseChart = ({ data }: ExpenseChartProps) => {
               cx="50%"
               cy="50%"
               labelLine={false}
-              label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
-              outerRadius={80}
+              label={({ name, percent }) => `${name.length > 8 ? name.substring(0, 8) + '...' : name} ${(percent * 100).toFixed(0)}%`}
+              outerRadius={window.innerWidth < 768 ? 60 : 80}
               fill="#8884d8"
               dataKey="value"
             >
@@ -56,7 +56,10 @@ const ExpenseChart = ({ data }: ExpenseChartProps) => {
               ))}
             </Pie>
             <Tooltip content={<CustomTooltip />} />
-            <Legend />
+            <Legend 
+              wrapperStyle={{ fontSize: window.innerWidth < 768 ? '12px' : '14px' }}
+              iconSize={window.innerWidth < 768 ? 12 : 18}
+            />
           </PieChart>
         </ResponsiveContainer>
       </CardContent>

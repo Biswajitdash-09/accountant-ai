@@ -119,11 +119,17 @@ const DocumentSearch = ({ documents, onSearchResults }: DocumentSearchProps) => 
                 <SelectValue placeholder="Add tag filter" />
               </SelectTrigger>
               <SelectContent>
-                {allTags.map(tag => (
-                  <SelectItem key={tag} value={tag}>
-                    {tag}
+                {allTags.length > 0 ? (
+                  allTags.map(tag => (
+                    <SelectItem key={tag} value={tag}>
+                      {tag}
+                    </SelectItem>
+                  ))
+                ) : (
+                  <SelectItem value="no-tags" disabled>
+                    No tags available
                   </SelectItem>
-                ))}
+                )}
               </SelectContent>
             </Select>
           </div>
