@@ -30,26 +30,41 @@ const AIAssistantPage = () => {
 
       {/* AI Features Tabs */}
       <Tabs defaultValue="chatbot" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-5 max-w-2xl mx-auto">
-          <TabsTrigger value="chatbot" className="gap-2 text-xs">
+        <TabsList className="grid w-full grid-cols-5 max-w-2xl mx-auto h-auto p-1">
+          <TabsTrigger 
+            value="chatbot" 
+            className="gap-1 text-xs py-2 px-3 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
+          >
             <MessageCircle className="h-4 w-4" />
-            AI Chat
+            <span className="hidden sm:inline">AI Chat</span>
           </TabsTrigger>
-          <TabsTrigger value="voice" className="gap-2 text-xs">
+          <TabsTrigger 
+            value="voice" 
+            className="gap-1 text-xs py-2 px-3 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
+          >
             <Mic className="h-4 w-4" />
-            Voice Entry
+            <span className="hidden sm:inline">Voice Entry</span>
           </TabsTrigger>
-          <TabsTrigger value="documents" className="gap-2 text-xs">
+          <TabsTrigger 
+            value="documents" 
+            className="gap-1 text-xs py-2 px-3 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
+          >
             <Scan className="h-4 w-4" />
-            Smart OCR
+            <span className="hidden sm:inline">Smart OCR</span>
           </TabsTrigger>
-          <TabsTrigger value="insights" className="gap-2 text-xs">
+          <TabsTrigger 
+            value="insights" 
+            className="gap-1 text-xs py-2 px-3 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
+          >
             <Lightbulb className="h-4 w-4" />
-            AI Insights
+            <span className="hidden sm:inline">AI Insights</span>
           </TabsTrigger>
-          <TabsTrigger value="payment" className="gap-2 text-xs">
+          <TabsTrigger 
+            value="payment" 
+            className="gap-1 text-xs py-2 px-3 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
+          >
             <CreditCard className="h-4 w-4" />
-            Buy Credits
+            <span className="hidden sm:inline">Buy Credits</span>
           </TabsTrigger>
         </TabsList>
 

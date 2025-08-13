@@ -66,6 +66,9 @@ const CurrencySelector = () => {
       });
       
       setOpen(false);
+      
+      // Force a page refresh to update all currency displays
+      window.location.reload();
     } catch (error) {
       console.error('Error updating currency:', error);
       toast({

@@ -126,7 +126,7 @@ const Pricing = () => {
               </div>
               
               {/* Credits Display and Currency Switcher */}
-              <div className="flex items-center gap-4">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-4">
                 <CurrencySwitcher />
                 <CreditBalance showBuyButton={false} />
               </div>

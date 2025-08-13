@@ -44,15 +44,17 @@ export const FinancialGoalCard = ({ goal, formatCurrency, onEdit, onDelete }: Fi
           <div className="flex gap-2">
             <Button
               size="sm"
-              variant="outline"
+              variant="ghost"
               onClick={() => onEdit(goal)}
+              className="h-8 w-8 p-0 hover:bg-muted dark:hover:bg-muted"
             >
               <Edit className="h-4 w-4" />
             </Button>
             <Button
               size="sm"
-              variant="outline"
+              variant="ghost"
               onClick={() => onDelete(goal.id)}
+              className="h-8 w-8 p-0 hover:bg-destructive/10 hover:text-destructive dark:hover:bg-destructive/10 dark:hover:text-destructive"
             >
               <Trash2 className="h-4 w-4" />
             </Button>
