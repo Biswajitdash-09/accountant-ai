@@ -24,19 +24,19 @@ const BillingDashboard = () => {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-2 border-b">
         <div>
-          <h1 className="text-3xl font-heading font-bold">Billing & Credits</h1>
+          <h2 className="text-2xl font-heading font-bold">Billing & Credits</h2>
           <p className="text-muted-foreground">
             Manage your credits, payments, and billing preferences
           </p>
         </div>
-        <div className="flex items-center gap-2">
-          <Button variant="outline" size="sm">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2">
+          <Button variant="outline" size="sm" className="w-full sm:w-auto">
             <Download className="h-4 w-4 mr-2" />
             Export
           </Button>
-          <Button variant="outline" size="sm">
+          <Button variant="outline" size="sm" className="w-full sm:w-auto">
             <Settings className="h-4 w-4 mr-2" />
             Settings
           </Button>
@@ -44,18 +44,18 @@ const BillingDashboard = () => {
       </div>
 
       {/* Quick Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <motion.div
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ delay: 0.1 }}
         >
           <Card className="gradient-primary text-white">
-            <CardContent className="p-4">
+            <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm opacity-90">Available Credits</p>
-                  <p className="text-2xl font-bold">{availableCredits}</p>
+                  <p className="text-3xl font-bold">{availableCredits}</p>
                 </div>
                 <Zap className="h-8 w-8 opacity-75" />
               </div>
@@ -69,11 +69,11 @@ const BillingDashboard = () => {
           transition={{ delay: 0.2 }}
         >
           <Card>
-            <CardContent className="p-4">
+            <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-muted-foreground">Total Credits</p>
-                  <p className="text-2xl font-bold">{credits?.total_credits || 0}</p>
+                  <p className="text-3xl font-bold">{credits?.total_credits || 0}</p>
                 </div>
                 <div className="h-8 w-8 rounded-full bg-secondary/20 flex items-center justify-center">
                   <span className="text-secondary font-bold text-sm">T</span>
@@ -89,11 +89,11 @@ const BillingDashboard = () => {
           transition={{ delay: 0.3 }}
         >
           <Card>
-            <CardContent className="p-4">
+            <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-muted-foreground">Credits Used</p>
-                  <p className="text-2xl font-bold">{credits?.used_credits || 0}</p>
+                  <p className="text-3xl font-bold">{credits?.used_credits || 0}</p>
                 </div>
                 <div className="h-8 w-8 rounded-full bg-orange-100 dark:bg-orange-900 flex items-center justify-center">
                   <span className="text-orange-600 dark:text-orange-400 font-bold text-sm">U</span>
@@ -109,11 +109,11 @@ const BillingDashboard = () => {
           transition={{ delay: 0.4 }}
         >
             <Card>
-              <CardContent className="p-4">
+              <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm text-muted-foreground">Total Spent</p>
-                    <p className="text-2xl font-bold">{formatCurrency(totalAmountSpent / 100)}</p>
+                    <p className="text-3xl font-bold">{formatCurrency(totalAmountSpent / 100)}</p>
                   </div>
                   <CreditCard className="h-8 w-8 text-green-500" />
                 </div>

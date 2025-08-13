@@ -103,30 +103,31 @@ const Pricing = () => {
     <div className="container mx-auto p-4 max-w-7xl">
       <div className="space-y-6">
         {/* Header */}
-        <div className="flex items-center gap-4">
+        <div className="flex flex-col sm:flex-row items-start gap-4">
           <Button
             variant="outline"
             size="sm"
             onClick={() => navigate(-1)}
-            className="gap-2"
+            className="gap-2 flex-shrink-0"
           >
             <ArrowLeft className="h-4 w-4" />
             Back
           </Button>
-          <div className="flex-1">
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-              <div>
-                <h1 className="text-2xl sm:text-3xl font-bold flex items-center gap-2">
+          
+          <div className="flex-1 w-full">
+            <div className="flex flex-col gap-4">
+              <div className="text-center sm:text-left">
+                <h1 className="text-2xl sm:text-3xl font-bold flex items-center justify-center sm:justify-start gap-2">
                   <CreditCard className="h-8 w-8 text-primary" />
                   Buy Credits
                 </h1>
-                <p className="text-muted-foreground">
+                <p className="text-muted-foreground mt-2">
                   Purchase credits to unlock advanced AI features and premium functionality
                 </p>
               </div>
               
               {/* Credits Display and Currency Switcher */}
-              <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-4">
+              <div className="flex flex-col sm:flex-row items-center justify-center sm:justify-end gap-3">
                 <CurrencySwitcher />
                 <CreditBalance showBuyButton={false} />
               </div>
@@ -177,34 +178,38 @@ const Pricing = () => {
               Subscriptions
             </CardTitle>
           </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <CardContent className="space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               {[
                 { id: 'basic', name: 'Basic', price: 9.99, features: ['Core AI features', 'Email support'] },
                 { id: 'professional', name: 'Professional', price: 29.99, features: ['Everything in Basic', 'Advanced analytics', 'Priority support'] },
                 { id: 'enterprise', name: 'Enterprise', price: 99.0, features: ['Everything in Pro', 'SLA & SSO', 'Dedicated success'] },
               ].map((tier) => (
-                <Card key={tier.id} className="border">
-                  <CardHeader className="pb-2">
-                    <CardTitle className="text-lg flex items-center gap-2">
-                      <Sparkles className="h-4 w-4 text-primary" />
+                <Card key={tier.id} className="border-2 hover:border-primary/20 transition-colors">
+                  <CardHeader className="pb-4">
+                    <CardTitle className="text-xl flex items-center gap-2">
+                      <Sparkles className="h-5 w-5 text-primary" />
                       {tier.name}
                     </CardTitle>
                   </CardHeader>
-                  <CardContent className="space-y-3">
-                    <div className="text-3xl font-bold">
+                  <CardContent className="space-y-4">
+                    <div className="text-3xl font-bold text-center">
                       {formatCurrency(tier.price, baseCurrency?.id)}
                       <span className="text-sm text-muted-foreground">/mo</span>
                     </div>
-                    <ul className="text-sm text-muted-foreground space-y-1">
+                    <ul className="text-sm text-muted-foreground space-y-2">
                       {tier.features.map((f) => (
-                        <li key={f}>• {f}</li>
+                        <li key={f} className="flex items-center gap-2">
+                          <div className="w-1.5 h-1.5 bg-primary rounded-full flex-shrink-0" />
+                          {f}
+                        </li>
                       ))}
                     </ul>
                     <Button
                       onClick={() => startSubscription(tier.id as 'basic' | 'professional' | 'enterprise')}
                       disabled={loadingTier === tier.id}
-                      className="w-full"
+                      className="w-full mt-6"
+                      size="lg"
                     >
                       {loadingTier === tier.id ? 'Processing...' : `Choose ${tier.name}`}
                     </Button>
@@ -213,9 +218,13 @@ const Pricing = () => {
               ))}
             </div>
 
-            <div className="flex flex-wrap gap-2">
-              <Button variant="outline" onClick={manageSubscription}>Manage Subscription</Button>
-              <Button variant="outline" onClick={refreshSubscription}>Refresh Status</Button>
+            <div className="flex flex-col sm:flex-row justify-center gap-3 pt-4">
+              <Button variant="outline" onClick={manageSubscription} className="w-full sm:w-auto">
+                Manage Subscription
+              </Button>
+              <Button variant="outline" onClick={refreshSubscription} className="w-full sm:w-auto">
+                Refresh Status
+              </Button>
             </div>
           </CardContent>
         </Card>
