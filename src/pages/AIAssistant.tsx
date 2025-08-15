@@ -8,8 +8,17 @@ import SmartDocumentUpload from "@/components/SmartDocumentUpload";
 import AIFinancialInsights from "@/components/AIFinancialInsights";
 import AIChatbot from "@/components/ai/AIChatbot";
 import PaymentGateway from "@/components/PaymentGateway";
+import MobileAIAssistant from "@/components/MobileAIAssistant";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 const AIAssistantPage = () => {
+  const isMobile = useIsMobile();
+
+  // Use mobile-optimized component on mobile devices
+  if (isMobile) {
+    return <MobileAIAssistant />;
+  }
+
   return (
     <div className="container mx-auto p-4 max-w-7xl space-y-6">
       {/* Header */}
