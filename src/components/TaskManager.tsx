@@ -76,20 +76,20 @@ export const TaskManager = () => {
 
   return (
     <Card>
-      <CardHeader>
-        <div className="flex justify-between items-center">
-          <div>
+      <CardHeader className="pb-4">
+        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
+          <div className="min-w-0">
             <CardTitle className="flex items-center gap-2">
-              <CheckSquare className="h-5 w-5" />
-              Task Management
+              <CheckSquare className="h-5 w-5 flex-shrink-0" />
+              <span className="truncate">Task Management</span>
             </CardTitle>
-            <CardDescription>
+            <CardDescription className="break-words">
               Organize your tasks and stay productive
             </CardDescription>
           </div>
           <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
             <DialogTrigger asChild>
-              <Button>
+              <Button className="w-full sm:w-auto min-h-[44px]">
                 <Plus className="h-4 w-4 mr-2" />
                 Add Task
               </Button>
@@ -166,60 +166,76 @@ export const TaskManager = () => {
       <CardContent>
         <div className="space-y-3">
           {tasks.map((task) => (
-            <div key={task.id} className="p-3 border rounded-lg relative overflow-hidden">
-              <div className="flex items-start justify-between">
-                <div className="flex-1">
-                  <div className="flex items-center gap-2 mb-2">
-                    <Checkbox
-                      checked={task.status === 'completed'}
-                      onCheckedChange={(checked) => 
-                        handleUpdateTask(task, { 
-                          status: checked ? 'completed' : 'pending',
-                          completed_at: checked ? new Date().toISOString() : undefined
-                        })
-                      }
-                    />
-                    <h4 className={`font-medium ${task.status === 'completed' ? 'line-through text-muted-foreground' : ''}`}>
+            <div key={task.id} className="p-4 border rounded-lg bg-card">
+              <div className="space-y-3">
+                {/* Header row with checkbox, title and actions */}
+                <div className="flex items-start gap-3">
+                  <Checkbox
+                    checked={task.status === 'completed'}
+                    onCheckedChange={(checked) => 
+                      handleUpdateTask(task, { 
+                        status: checked ? 'completed' : 'pending',
+                        completed_at: checked ? new Date().toISOString() : undefined
+                      })
+                    }
+                    className="mt-1 min-w-[20px]"
+                  />
+                  <div className="flex-1 min-w-0">
+                    <h4 className={`font-medium break-words ${task.status === 'completed' ? 'line-through text-muted-foreground' : ''}`}>
                       {task.title}
                     </h4>
-                    <Badge variant={getPriorityColor(task.priority)} className="text-xs">
-                      {task.priority}
-                    </Badge>
-                    <Badge variant={getStatusColor(task.status)} className="text-xs">
-                      {task.status}
-                    </Badge>
                   </div>
-                  {task.description && (
-                    <p className="text-sm text-muted-foreground mb-2">{task.description}</p>
-                  )}
-                  <div className="flex items-center gap-4 text-xs text-muted-foreground">
-                    {task.due_date && (
-                      <span className="flex items-center gap-1">
-                        <Calendar className="h-3 w-3" />
-                        {format(new Date(task.due_date), 'MMM dd, yyyy')}
-                      </span>
-                    )}
-                    <span className="flex items-center gap-1">
-                      <Clock className="h-3 w-3" />
-                      {format(new Date(task.created_at), 'MMM dd, yyyy')}
-                    </span>
+                  <div className="flex items-center gap-1 flex-shrink-0">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setEditingTask(task)}
+                      className="min-h-[44px] min-w-[44px]"
+                    >
+                      <Edit className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleDeleteTask(task.id)}
+                      className="min-h-[44px] min-w-[44px]"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
                   </div>
                 </div>
-                <div className="flex items-center space-x-2">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => setEditingTask(task)}
-                  >
-                    <Edit className="h-4 w-4" />
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => handleDeleteTask(task.id)}
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
+
+                {/* Badges row */}
+                <div className="flex items-center gap-2 flex-wrap pl-8">
+                  <Badge variant={getPriorityColor(task.priority)} className="text-xs">
+                    {task.priority}
+                  </Badge>
+                  <Badge variant={getStatusColor(task.status)} className="text-xs">
+                    {task.status}
+                  </Badge>
+                </div>
+
+                {/* Description */}
+                {task.description && (
+                  <div className="pl-8">
+                    <p className="text-sm text-muted-foreground break-words line-clamp-2">
+                      {task.description}
+                    </p>
+                  </div>
+                )}
+
+                {/* Date info */}
+                <div className="flex flex-col sm:flex-row sm:items-center gap-2 text-xs text-muted-foreground pl-8">
+                  {task.due_date && (
+                    <span className="flex items-center gap-1">
+                      <Calendar className="h-3 w-3 flex-shrink-0" />
+                      <span className="break-words">Due: {format(new Date(task.due_date), 'MMM dd, yyyy')}</span>
+                    </span>
+                  )}
+                  <span className="flex items-center gap-1">
+                    <Clock className="h-3 w-3 flex-shrink-0" />
+                    <span className="break-words">Created: {format(new Date(task.created_at), 'MMM dd, yyyy')}</span>
+                  </span>
                 </div>
               </div>
             </div>

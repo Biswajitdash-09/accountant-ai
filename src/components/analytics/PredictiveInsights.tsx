@@ -125,40 +125,43 @@ export const PredictiveInsights = () => {
         <CardContent className="space-y-4">
           {predictions.map((prediction) => (
             <div key={prediction.id} className="p-4 border rounded-lg space-y-3">
-              <div className="flex items-start justify-between">
-                <div className="space-y-1">
-                  <h4 className="font-medium">{prediction.title}</h4>
-                  <p className="text-sm text-muted-foreground">
-                    {prediction.description}
-                  </p>
+              {/* Mobile-first layout */}
+              <div className="space-y-3">
+                <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2">
+                  <div className="flex-1 min-w-0">
+                    <h4 className="font-medium mb-1">{prediction.title}</h4>
+                    <p className="text-sm text-muted-foreground line-clamp-3 break-words">
+                      {prediction.description}
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <Badge className={getImpactColor(prediction.impact)}>
+                      {prediction.impact} impact
+                    </Badge>
+                    {prediction.trend === 'up' ? (
+                      <TrendingUp className="h-4 w-4 text-green-600 flex-shrink-0" />
+                    ) : prediction.trend === 'down' ? (
+                      <TrendingDown className="h-4 w-4 text-red-600 flex-shrink-0" />
+                    ) : (
+                      <div className="h-4 w-4" />
+                    )}
+                  </div>
                 </div>
-                <div className="flex items-center gap-2">
-                  <Badge className={getImpactColor(prediction.impact)}>
-                    {prediction.impact} impact
-                  </Badge>
-                  {prediction.trend === 'up' ? (
-                    <TrendingUp className="h-4 w-4 text-green-600" />
-                  ) : prediction.trend === 'down' ? (
-                    <TrendingDown className="h-4 w-4 text-red-600" />
-                  ) : (
-                    <div className="h-4 w-4" />
+                
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                  <div className="flex items-center gap-2 min-w-0">
+                    <span className="text-xs text-muted-foreground whitespace-nowrap">Confidence:</span>
+                    <Progress value={prediction.confidence} className="flex-1 sm:w-20 h-2" />
+                    <span className="text-xs text-muted-foreground whitespace-nowrap">
+                      {prediction.confidence}%
+                    </span>
+                  </div>
+                  {prediction.value && (
+                    <div className="text-sm font-medium whitespace-nowrap">
+                      {formatCurrency(prediction.value)}
+                    </div>
                   )}
                 </div>
-              </div>
-              
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <span className="text-xs text-muted-foreground">Confidence:</span>
-                  <Progress value={prediction.confidence} className="w-20 h-2" />
-                  <span className="text-xs text-muted-foreground">
-                    {prediction.confidence}%
-                  </span>
-                </div>
-                {prediction.value && (
-                  <div className="text-sm font-medium">
-                    {formatCurrency(prediction.value)}
-                  </div>
-                )}
               </div>
             </div>
           ))}
@@ -179,24 +182,29 @@ export const PredictiveInsights = () => {
         <CardContent className="space-y-4">
           {recommendations.map((recommendation) => (
             <Alert key={recommendation.id}>
-              <div className="flex items-start justify-between w-full">
-                <div className="space-y-2 flex-1">
-                  <div className="flex items-center gap-2">
+              <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 w-full">
+                <div className="space-y-2 flex-1 min-w-0">
+                  <div className="flex flex-col sm:flex-row sm:items-center gap-2">
                     <AlertTitle className="text-base">{recommendation.title}</AlertTitle>
-                    <Badge variant={getPriorityColor(recommendation.priority)}>
-                      {recommendation.priority} priority
-                    </Badge>
+                    <div className="flex items-center gap-2">
+                      <Badge variant={getPriorityColor(recommendation.priority)}>
+                        {recommendation.priority} priority
+                      </Badge>
+                      {recommendation.priority === 'high' && (
+                        <AlertTriangle className="h-4 w-4 text-orange-500 sm:hidden" />
+                      )}
+                    </div>
                   </div>
-                  <AlertDescription>{recommendation.description}</AlertDescription>
+                  <AlertDescription className="break-words">{recommendation.description}</AlertDescription>
                   {recommendation.potentialSavings && (
                     <div className="flex items-center gap-1 text-green-600 font-medium">
-                      <DollarSign className="h-4 w-4" />
-                      Potential monthly savings: {formatCurrency(recommendation.potentialSavings)}
+                      <DollarSign className="h-4 w-4 flex-shrink-0" />
+                      <span className="break-words">Potential monthly savings: {formatCurrency(recommendation.potentialSavings)}</span>
                     </div>
                   )}
                 </div>
                 {recommendation.priority === 'high' && (
-                  <AlertTriangle className="h-5 w-5 text-orange-500 mt-1" />
+                  <AlertTriangle className="h-5 w-5 text-orange-500 mt-1 hidden sm:block flex-shrink-0" />
                 )}
               </div>
             </Alert>

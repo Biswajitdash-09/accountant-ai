@@ -119,23 +119,23 @@ const FinancialGoalsManager = () => {
   return (
     <div className="space-y-6">
       <Card>
-        <CardHeader>
-          <div className="flex justify-between items-center">
-            <div>
-              <CardTitle className="flex items-center gap-2">
-                <Target className="h-5 w-5" />
-                Financial Goals
+        <CardHeader className="pb-4">
+          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
+            <div className="min-w-0">
+              <CardTitle className="flex items-center gap-2 flex-wrap">
+                <Target className="h-5 w-5 flex-shrink-0" />
+                <span className="truncate">Financial Goals</span>
                 {isDemo && (
-                  <Badge variant="secondary" className="ml-2">
+                  <Badge variant="secondary" className="text-xs">
                     Demo Data
                   </Badge>
                 )}
               </CardTitle>
-              <CardDescription>
+              <CardDescription className="break-words">
                 Track your progress towards financial objectives
               </CardDescription>
             </div>
-            <Button onClick={() => setIsFormOpen(true)}>
+            <Button onClick={() => setIsFormOpen(true)} className="w-full sm:w-auto min-h-[44px]">
               <Plus className="mr-2 h-4 w-4" />
               Add Goal
             </Button>
@@ -163,12 +163,35 @@ const FinancialGoalsManager = () => {
                 return (
                   <Card key={goal.id} className={`transition-all hover:shadow-md ${isAchieved ? 'bg-green-50 border-green-200' : ''}`}>
                     <CardContent className="p-4">
-                      <div className="flex justify-between items-start mb-3">
-                        <div className="flex items-center gap-3">
-                          <div className="flex items-center gap-2">
+                      <div className="space-y-3">
+                        {/* Header - goal name and actions */}
+                        <div className="flex items-start justify-between gap-3">
+                          <div className="flex items-center gap-2 min-w-0 flex-1">
                             {getGoalTypeIcon(goal.goal_type)}
-                            <h3 className="font-semibold">{goal.goal_name}</h3>
+                            <h3 className="font-semibold break-words">{goal.goal_name}</h3>
                           </div>
+                          <div className="flex gap-1 flex-shrink-0">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleEditGoal(goal)}
+                              className="min-h-[44px] min-w-[44px]"
+                            >
+                              <Edit2 className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleDeleteGoal(goal.id)}
+                              className="min-h-[44px] min-w-[44px]"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </div>
+                        
+                        {/* Badges row */}
+                        <div className="flex items-center gap-2 flex-wrap">
                           <Badge 
                             variant="outline" 
                             className={`text-xs ${getPriorityColor(goal.priority)} text-white border-none`}
@@ -176,47 +199,31 @@ const FinancialGoalsManager = () => {
                             {goal.priority}
                           </Badge>
                           {isAchieved && (
-                            <Badge variant="default" className="bg-green-500">
+                            <Badge variant="default" className="bg-green-500 text-xs">
                               Achieved!
                             </Badge>
                           )}
                         </div>
-                        <div className="flex gap-2">
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleEditGoal(goal)}
-                          >
-                            <Edit2 className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleDeleteGoal(goal.id)}
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </div>
                       </div>
                       
                       {goal.description && (
-                        <p className="text-sm text-muted-foreground mb-3">{goal.description}</p>
+                        <p className="text-sm text-muted-foreground break-words line-clamp-2 mb-3">{goal.description}</p>
                       )}
                       
                       <div className="space-y-2">
-                        <div className="flex justify-between text-sm">
+                        <div className="flex flex-col sm:flex-row sm:justify-between gap-1 text-sm">
                           <span>Progress</span>
-                          <span className="font-medium">
+                          <span className="font-medium break-words">
                             {formatCurrency(goal.current_amount)} / {formatCurrency(goal.target_amount)}
                           </span>
                         </div>
                         <Progress value={Math.min(progress, 100)} className="h-2" />
-                        <div className="flex justify-between text-xs text-muted-foreground">
+                        <div className="flex flex-col sm:flex-row sm:justify-between gap-1 text-xs text-muted-foreground">
                           <span>{Math.round(progress)}% complete</span>
                           {goal.target_date && (
                             <span className="flex items-center gap-1">
-                              <Calendar className="h-3 w-3" />
-                              {new Date(goal.target_date).toLocaleDateString()}
+                              <Calendar className="h-3 w-3 flex-shrink-0" />
+                              <span className="break-words">{new Date(goal.target_date).toLocaleDateString()}</span>
                             </span>
                           )}
                         </div>

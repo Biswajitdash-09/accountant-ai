@@ -69,7 +69,7 @@ export const AIAssistantWidget = ({ className }: AIAssistantWidgetProps) => {
   };
 
   return (
-    <div className={cn("fixed bottom-6 right-6 z-50", className)}>
+    <div className={cn("fixed bottom-4 right-4 z-50", className)}>
       <AnimatePresence>
         {isExpanded ? (
           <motion.div
@@ -77,26 +77,26 @@ export const AIAssistantWidget = ({ className }: AIAssistantWidgetProps) => {
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.8, y: 20 }}
             transition={{ duration: 0.3 }}
-            className="w-96"
+            className="w-full max-w-sm mx-4 sm:w-96 sm:mx-0"
           >
             <Card className="glass border border-white/20 shadow-2xl backdrop-blur-xl">
               <CardHeader className="pb-3">
                 <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 min-w-0">
                     <motion.div
                       animate={{ rotate: [0, 360] }}
                       transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
-                      className="p-2 rounded-full bg-gradient-primary"
+                      className="p-2 rounded-full bg-gradient-primary flex-shrink-0"
                     >
                       <Bot className="h-4 w-4 text-white" />
                     </motion.div>
-                    <CardTitle className="text-lg">AI Financial Assistant</CardTitle>
+                    <CardTitle className="text-base sm:text-lg truncate">AI Financial Assistant</CardTitle>
                   </div>
                   <Button
                     variant="ghost"
                     size="sm"
                     onClick={() => setIsExpanded(false)}
-                    className="text-muted-foreground hover:text-foreground"
+                    className="text-muted-foreground hover:text-foreground min-h-[44px] min-w-[44px] flex-shrink-0"
                   >
                     ×
                   </Button>
@@ -106,10 +106,10 @@ export const AIAssistantWidget = ({ className }: AIAssistantWidgetProps) => {
                   key={currentSuggestion}
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
-                  className="flex items-center gap-2 text-sm text-muted-foreground bg-muted/30 p-2 rounded-md"
+                  className="flex items-start gap-2 text-sm text-muted-foreground bg-muted/30 p-2 rounded-md"
                 >
-                  <Sparkles className="h-3 w-3 text-finance-highlight" />
-                  {aiSuggestions[currentSuggestion]}
+                  <Sparkles className="h-3 w-3 text-finance-highlight flex-shrink-0 mt-0.5" />
+                  <span className="break-words">{aiSuggestions[currentSuggestion]}</span>
                 </motion.div>
               </CardHeader>
               
@@ -117,17 +117,17 @@ export const AIAssistantWidget = ({ className }: AIAssistantWidgetProps) => {
                 {/* Quick Actions */}
                 <div className="space-y-2">
                   <h4 className="text-sm font-medium text-muted-foreground">Quick Actions</h4>
-                  <div className="grid grid-cols-2 gap-2">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                     {quickActions.map((action, index) => (
                       <motion.button
                         key={action.label}
                         whileHover={{ scale: 1.02 }}
                         whileTap={{ scale: 0.98 }}
                         onClick={() => handleQuickAction(action.query)}
-                        className="flex items-center gap-2 p-2 text-xs rounded-md border border-border hover:bg-muted/50 transition-colors"
+                        className="flex items-center gap-2 p-3 text-xs rounded-md border border-border hover:bg-muted/50 transition-colors min-h-[44px]"
                       >
-                        <action.icon className="h-3 w-3" />
-                        {action.label}
+                        <action.icon className="h-3 w-3 flex-shrink-0" />
+                        <span className="break-words">{action.label}</span>
                       </motion.button>
                     ))}
                   </div>
@@ -141,14 +141,14 @@ export const AIAssistantWidget = ({ className }: AIAssistantWidgetProps) => {
                       value={message}
                       onChange={(e) => setMessage(e.target.value)}
                       onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
-                      className="pr-10"
+                      className="pr-12 min-h-[44px]"
                     />
                     <Button
                       size="sm"
                       variant="ghost"
                       onClick={toggleVoice}
                       className={cn(
-                        "absolute right-1 top-1 h-8 w-8 p-0",
+                        "absolute right-1 top-1 h-10 w-10 p-0",
                         isListening && "text-finance-positive animate-pulse"
                       )}
                     >
@@ -159,7 +159,7 @@ export const AIAssistantWidget = ({ className }: AIAssistantWidgetProps) => {
                     size="sm"
                     onClick={handleSendMessage}
                     disabled={!message.trim()}
-                    className="shrink-0"
+                    className="shrink-0 min-h-[44px] min-w-[44px]"
                   >
                     <Send className="h-3 w-3" />
                   </Button>
