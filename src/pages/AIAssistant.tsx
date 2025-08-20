@@ -77,7 +77,7 @@ const AIAssistantPage = () => {
           </TabsTrigger>
         </TabsList>
 
-        <TabsContent value="chatbot" className="space-y-6">
+        <TabsContent value="chatbot" className="space-y-0">
           <AIChatbot />
         </TabsContent>
 
@@ -98,60 +98,6 @@ const AIAssistantPage = () => {
         </TabsContent>
       </Tabs>
 
-      {/* AI Capabilities Overview */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="font-heading text-center">AI Capabilities</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.1 }}
-              className="text-center space-y-3"
-            >
-              <div className="w-16 h-16 mx-auto gradient-primary rounded-full flex items-center justify-center">
-                <Mic className="h-8 w-8 text-white" />
-              </div>
-              <h3 className="font-heading font-semibold">Voice Recognition</h3>
-              <p className="text-sm text-muted-foreground">
-                Natural language processing extracts expense details from speech with 95%+ accuracy
-              </p>
-            </motion.div>
-
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.2 }}
-              className="text-center space-y-3"
-            >
-              <div className="w-16 h-16 mx-auto gradient-primary rounded-full flex items-center justify-center">
-                <Scan className="h-8 w-8 text-white" />
-              </div>
-              <h3 className="font-heading font-semibold">Document Intelligence</h3>
-              <p className="text-sm text-muted-foreground">
-                Advanced OCR and AI extraction from receipts, invoices, and financial documents
-              </p>
-            </motion.div>
-
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.3 }}
-              className="text-center space-y-3"
-            >
-              <div className="w-16 h-16 mx-auto gradient-primary rounded-full flex items-center justify-center">
-                <Lightbulb className="h-8 w-8 text-white" />
-              </div>
-              <h3 className="font-heading font-semibold">Smart Analytics</h3>
-              <p className="text-sm text-muted-foreground">
-                Machine learning algorithms provide personalized insights and financial optimization
-              </p>
-            </motion.div>
-          </div>
-        </CardContent>
-      </Card>
     </div>
   );
 };

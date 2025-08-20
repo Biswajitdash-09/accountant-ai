@@ -201,7 +201,7 @@ const AIChatbot = () => {
       </Card>
 
       {/* Chat Area */}
-      <Card className="h-[600px] flex flex-col">
+      <Card className="h-[calc(100vh-12rem)] min-h-[500px] max-h-[700px] flex flex-col">
         <CardHeader className="pb-4 border-b">
           <div className="flex items-center justify-between">
             <CardTitle className="text-lg">Chat</CardTitle>
@@ -246,13 +246,13 @@ const AIChatbot = () => {
                     )}
                     
                     <div 
-                      className={`max-w-[80%] p-3 rounded-lg ${
+                      className={`max-w-[85%] p-3 rounded-lg break-words ${
                         message.role === 'user' 
                           ? 'bg-primary text-primary-foreground ml-auto'
                           : 'bg-muted'
                       }`}
                     >
-                      <p className="text-sm whitespace-pre-wrap">{message.content}</p>
+                      <p className="text-sm whitespace-pre-wrap break-words leading-relaxed">{message.content}</p>
                       <p className={`text-xs mt-1 ${
                         message.role === 'user' 
                           ? 'text-primary-foreground/70'
