@@ -5,8 +5,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { useTheme } from "@/hooks/useTheme";
 import { useNavigate } from "react-router-dom";
 import { seedDemoData } from "@/utils/demoData";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useToast } from "@/components/ui/use-toast";
+import DemoTutorial from "@/components/DemoTutorial";
 import {
   CalculatorIcon,
   FileTextIcon,
@@ -26,6 +27,18 @@ const Landing = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [isDemoLoading, setIsDemoLoading] = useState(false);
+  const [showTutorial, setShowTutorial] = useState(false);
+
+  useEffect(() => {
+    // Show tutorial for first-time visitors
+    const hasSeenTutorial = localStorage.getItem('demoTutorialCompleted');
+    if (!hasSeenTutorial) {
+      const timer = setTimeout(() => {
+        setShowTutorial(true);
+      }, 2000); // Show tutorial after 2 seconds
+      return () => clearTimeout(timer);
+    }
+  }, []);
 
   const handleDemoMode = async () => {
     try {
@@ -145,6 +158,26 @@ const Landing = () => {
         </div>
       </header>
 
+      {/* Legal Disclaimer */}
+      <section className="py-6 px-4 sm:px-6 bg-yellow-50 dark:bg-yellow-900/20 border-l-4 border-yellow-400">
+        <div className="max-w-7xl mx-auto">
+          <div className="flex items-start gap-3">
+            <Shield className="h-5 w-5 text-yellow-600 dark:text-yellow-400 mt-0.5 flex-shrink-0" />
+            <div className="space-y-1">
+              <h3 className="font-semibold text-yellow-800 dark:text-yellow-300">Important Disclaimer</h3>
+              <p className="text-sm text-yellow-700 dark:text-yellow-200 leading-relaxed">
+                This is an AI accounting assistant tool. It cannot provide financial advice or be held liable for financial decisions. 
+                By using this tool, you agree to the{" "}
+                <Link to="/terms" className="underline hover:text-yellow-900 dark:hover:text-yellow-100">
+                  Terms of Use
+                </Link>
+                . Always consult with qualified professionals for important financial decisions.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* Hero Section */}
       <section className="py-12 sm:py-16 md:py-20 px-4 sm:px-6">
         <div className="max-w-7xl mx-auto text-center space-y-6 sm:space-y-8">
@@ -174,6 +207,14 @@ const Landing = () => {
               className="w-full sm:w-auto text-base sm:text-lg px-6 sm:px-8 py-4 sm:py-6 hover-scale transition-all duration-200 min-h-[44px]"
             >
               {isDemoLoading ? "Loading Demo..." : "Try Demo"}
+            </Button>
+            <Button 
+              variant="secondary" 
+              size="lg" 
+              onClick={() => setShowTutorial(true)}
+              className="w-full sm:w-auto text-base sm:text-lg px-6 sm:px-8 py-4 sm:py-6 hover-scale transition-all duration-200 min-h-[44px]"
+            >
+              Watch Tutorial
             </Button>
           </div>
         </div>
@@ -333,6 +374,12 @@ const Landing = () => {
           <p className="text-muted-foreground text-sm sm:text-base mt-4">© 2025 Accountant AI. All rights reserved.</p>
         </div>
       </footer>
+
+      {/* Demo Tutorial */}
+      <DemoTutorial 
+        isOpen={showTutorial} 
+        onClose={() => setShowTutorial(false)} 
+      />
     </div>
   );
 };

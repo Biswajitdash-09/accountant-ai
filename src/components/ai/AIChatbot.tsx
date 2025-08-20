@@ -4,10 +4,12 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Send, Bot, User, Loader2, Sparkles } from 'lucide-react';
+import { Send, Bot, User, Loader2, Sparkles, Download, Trash2 } from 'lucide-react';
 import { useAI } from '@/hooks/useAI';
+import { useChatHistory } from '@/hooks/useChatHistory';
 import { motion, AnimatePresence } from 'framer-motion';
 import CreditBalance from '@/components/CreditBalance';
+import { useToast } from '@/components/ui/use-toast';
 
 interface Message {
   id: string;
@@ -20,15 +22,33 @@ const AIChatbot = () => {
   const [messages, setMessages] = useState<Message[]>([
     {
       id: '1',
-      content: "Hi! I'm your AI assistant powered by Gemini. I can help you with any questions about finance, business, or anything else. What would you like to know?",
+      content: "Hi! I'm your AI accounting assistant powered by Gemini. I specialize in accounting tasks and bookkeeping. I can help you create financial statements, analyze documents, generate expense breakdowns, and check for errors in your books. This is an AI accounting assistant tool - it cannot provide financial advice or be held liable for financial decisions. How can I help with your accounting today?",
       role: 'assistant',
       timestamp: new Date()
     }
   ]);
   const [inputMessage, setInputMessage] = useState('');
   const { generateResponse, isLoading, availableCredits } = useAI();
+  const { 
+    sessions, 
+    currentSessionId, 
+    createNewSession, 
+    addMessageToSession,
+    getCurrentSession,
+    exportChatHistory,
+    clearAllHistory 
+  } = useChatHistory();
+  const { toast } = useToast();
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+
+  // Initialize session if none exists
+  useEffect(() => {
+    if (!currentSessionId && messages.length > 1) {
+      const sessionId = createNewSession('Accounting Chat');
+      messages.forEach(msg => addMessageToSession(sessionId, msg));
+    }
+  }, [messages.length]);
 
   const scrollToBottom = () => {
     if (scrollAreaRef.current) {
@@ -57,6 +77,11 @@ const AIChatbot = () => {
     setMessages(prev => [...prev, userMessage]);
     setInputMessage('');
 
+    // Add to session history
+    if (currentSessionId) {
+      addMessageToSession(currentSessionId, userMessage);
+    }
+
     try {
       const response = await generateResponse(inputMessage.trim());
       
@@ -68,6 +93,11 @@ const AIChatbot = () => {
       };
 
       setMessages(prev => [...prev, assistantMessage]);
+      
+      // Add to session history
+      if (currentSessionId) {
+        addMessageToSession(currentSessionId, assistantMessage);
+      }
     } catch (error) {
       console.error('Error getting AI response:', error);
       const errorMessage: Message = {
@@ -77,6 +107,11 @@ const AIChatbot = () => {
         timestamp: new Date()
       };
       setMessages(prev => [...prev, errorMessage]);
+      
+      // Add to session history
+      if (currentSessionId) {
+        addMessageToSession(currentSessionId, errorMessage);
+      }
     }
 
     // Focus back to input
@@ -86,16 +121,58 @@ const AIChatbot = () => {
   };
 
   const quickPrompts = [
-    "Help me create a budget plan",
-    "Explain compound interest",
-    "What are the best investment strategies?",
-    "How to reduce business expenses?",
-    "Tax planning tips for this year"
+    "From these figures, create a Profit & Loss sheet",
+    "Generate a pie chart breaking down my expenses",
+    "Cross-check my balance sheet for inconsistencies",
+    "Categorize these transactions by expense type",
+    "Create a cash flow statement from my data",
+    "Help me reconcile my bank statement"
   ];
 
   const handleQuickPrompt = (prompt: string) => {
     setInputMessage(prompt);
     inputRef.current?.focus();
+  };
+
+  const handleExportHistory = async () => {
+    try {
+      const exportData = exportChatHistory();
+      const blob = new Blob([exportData], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `chat-history-${new Date().toISOString().split('T')[0]}.json`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      
+      toast({
+        title: "Chat history exported",
+        description: "Your chat history has been downloaded successfully.",
+      });
+    } catch (error) {
+      toast({
+        title: "Export failed",
+        description: "Failed to export chat history. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleClearHistory = () => {
+    clearAllHistory();
+    setMessages([{
+      id: '1',
+      content: "Hi! I'm your AI accounting assistant powered by Gemini. I specialize in accounting tasks and bookkeeping. How can I help with your accounting today?",
+      role: 'assistant',
+      timestamp: new Date()
+    }]);
+    
+    toast({
+      title: "Chat history cleared",
+      description: "All chat history has been cleared.",
+    });
   };
 
   return (
@@ -128,7 +205,25 @@ const AIChatbot = () => {
         <CardHeader className="pb-4 border-b">
           <div className="flex items-center justify-between">
             <CardTitle className="text-lg">Chat</CardTitle>
-            <Badge variant="outline">{messages.length - 1} messages</Badge>
+            <div className="flex items-center gap-2">
+              <Badge variant="outline">{messages.length - 1} messages</Badge>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleExportHistory}
+                className="h-8 px-2"
+              >
+                <Download className="h-4 w-4" />
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleClearHistory}
+                className="h-8 px-2 text-destructive hover:text-destructive"
+              >
+                <Trash2 className="h-4 w-4" />
+              </Button>
+            </div>
           </div>
         </CardHeader>
 

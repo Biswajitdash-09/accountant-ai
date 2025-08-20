@@ -1,167 +1,104 @@
+import { useState, useEffect } from 'react';
 
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
-import { useAuth } from "@/contexts/AuthContext";
-import { useToast } from "@/hooks/use-toast";
-import { useCredits } from "@/hooks/useCredits";
-
-export interface ChatMessage {
+interface ChatMessage {
   id: string;
-  user_id: string;
-  message_content: string;
-  message_type: 'user' | 'assistant';
-  conversation_id: string;
-  created_at: string;
-  updated_at: string;
-  metadata?: any;
+  content: string;
+  role: 'user' | 'assistant';
+  timestamp: Date;
 }
 
-export const useChatHistory = (conversationId?: string) => {
-  const { user } = useAuth();
-  const { toast } = useToast();
-  const queryClient = useQueryClient();
-  const { availableCredits, useCredit } = useCredits();
+interface ChatSession {
+  id: string;
+  title: string;
+  messages: ChatMessage[];
+  createdAt: Date;
+  updatedAt: Date;
+}
 
-  const {
-    data: chatHistory = [],
-    isLoading,
-    error
-  } = useQuery({
-    queryKey: ['chat_history', conversationId],
-    queryFn: async () => {
-      if (!user) return [];
-      
-      let query = supabase
-        .from('chat_history')
-        .select('*')
-        .eq('user_id', user.id)
-        .order('created_at', { ascending: true });
+export const useChatHistory = () => {
+  const [sessions, setSessions] = useState<ChatSession[]>([]);
+  const [currentSessionId, setCurrentSessionId] = useState<string | null>(null);
 
-      if (conversationId) {
-        query = query.eq('conversation_id', conversationId);
+  // Load chat history from localStorage on mount
+  useEffect(() => {
+    const savedHistory = localStorage.getItem('chatHistory');
+    if (savedHistory) {
+      try {
+        const parsedHistory = JSON.parse(savedHistory);
+        setSessions(parsedHistory);
+      } catch (error) {
+        console.error('Failed to parse chat history:', error);
       }
+    }
+  }, []);
 
-      const { data, error } = await query;
+  // Save chat history to localStorage whenever sessions change
+  useEffect(() => {
+    if (sessions.length > 0) {
+      localStorage.setItem('chatHistory', JSON.stringify(sessions));
+    }
+  }, [sessions]);
 
-      if (error) throw error;
-      return data as ChatMessage[];
-    },
-    enabled: !!user,
-  });
+  const createNewSession = (title?: string): string => {
+    const newSession: ChatSession = {
+      id: Date.now().toString(),
+      title: title || `Chat ${sessions.length + 1}`,
+      messages: [],
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
 
-  const saveMessage = useMutation({
-    mutationFn: async (messageData: {
-      message_content: string;
-      message_type: 'user' | 'assistant';
-      conversation_id: string;
-      metadata?: any;
-    }) => {
-      if (!user) throw new Error('User not authenticated');
+    setSessions(prev => [newSession, ...prev]);
+    setCurrentSessionId(newSession.id);
+    return newSession.id;
+  };
 
-      // Use credit for assistant messages (AI responses)
-      if (messageData.message_type === 'assistant') {
-        if (availableCredits <= 0) {
-          throw new Error('Not enough credits for AI response');
-        }
-        
-        await useCredit.mutateAsync(1);
-      }
+  const addMessageToSession = (sessionId: string, message: ChatMessage) => {
+    setSessions(prev => prev.map(session => 
+      session.id === sessionId 
+        ? {
+            ...session,
+            messages: [...session.messages, message],
+            updatedAt: new Date()
+          }
+        : session
+    ));
+  };
 
-      const { data, error } = await supabase
-        .from('chat_history')
-        .insert({
-          ...messageData,
-          user_id: user.id,
-        })
-        .select()
-        .single();
+  const deleteSession = (sessionId: string) => {
+    setSessions(prev => prev.filter(session => session.id !== sessionId));
+    if (currentSessionId === sessionId) {
+      setCurrentSessionId(null);
+    }
+  };
 
-      if (error) throw error;
-      return data;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['chat_history'] });
-    },
-    onError: (error) => {
-      console.error('Error saving chat message:', error);
-      toast({
-        title: "Error",
-        description: error instanceof Error && error.message === 'Not enough credits for AI response' 
-          ? "Not enough credits for AI response. Please purchase more credits."
-          : "Failed to save chat message.",
-        variant: "destructive",
-      });
-    },
-  });
+  const getCurrentSession = (): ChatSession | null => {
+    return sessions.find(session => session.id === currentSessionId) || null;
+  };
 
-  const deleteConversation = useMutation({
-    mutationFn: async (convId: string) => {
-      if (!user) throw new Error('User not authenticated');
+  const exportChatHistory = (): string => {
+    return JSON.stringify({
+      exportDate: new Date().toISOString(),
+      totalSessions: sessions.length,
+      sessions: sessions
+    }, null, 2);
+  };
 
-      const { error } = await supabase
-        .from('chat_history')
-        .delete()
-        .eq('user_id', user.id)
-        .eq('conversation_id', convId);
-
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['chat_history'] });
-      toast({
-        title: "Success",
-        description: "Conversation deleted successfully.",
-      });
-    },
-    onError: (error) => {
-      toast({
-        title: "Error",
-        description: "Failed to delete conversation.",
-        variant: "destructive",
-      });
-    },
-  });
-
-  const getConversations = useQuery({
-    queryKey: ['chat_conversations'],
-    queryFn: async () => {
-      if (!user) return [];
-
-      const { data, error } = await supabase
-        .from('chat_history')
-        .select('conversation_id, created_at, message_content')
-        .eq('user_id', user.id)
-        .eq('message_type', 'user')
-        .order('created_at', { ascending: false })
-        .limit(50);
-
-      if (error) throw error;
-      
-      // Group by conversation_id and get the first message as title
-      const conversations = data.reduce((acc: any[], msg) => {
-        if (!acc.find(c => c.conversation_id === msg.conversation_id)) {
-          acc.push({
-            conversation_id: msg.conversation_id,
-            title: msg.message_content.slice(0, 50) + (msg.message_content.length > 50 ? '...' : ''),
-            created_at: msg.created_at
-          });
-        }
-        return acc;
-      }, []);
-
-      return conversations;
-    },
-    enabled: !!user,
-  });
+  const clearAllHistory = () => {
+    setSessions([]);
+    setCurrentSessionId(null);
+    localStorage.removeItem('chatHistory');
+  };
 
   return {
-    chatHistory,
-    isLoading,
-    error,
-    saveMessage,
-    deleteConversation,
-    conversations: getConversations.data || [],
-    isLoadingConversations: getConversations.isLoading,
-    availableCredits,
+    sessions,
+    currentSessionId,
+    createNewSession,
+    addMessageToSession,
+    deleteSession,
+    getCurrentSession,
+    exportChatHistory,
+    clearAllHistory,
+    setCurrentSessionId
   };
 };
