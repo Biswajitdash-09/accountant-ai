@@ -38,12 +38,21 @@ serve(async (req) => {
     let customerId = customers.data[0]?.id;
     if (!customerId) customerId = (await stripe.customers.create({ email: user.email, metadata: { userId: user.id } })).id;
 
-    // Price map (monthly) in base currency
+    // Price map (monthly) in USD cents
     const priceMapUSD: Record<string, number> = { basic: 999, professional: 2999, enterprise: 9999 }; // in cents
-    const amountUsdCents = priceMapUSD[tier] ?? priceMapUSD.basic;
+    const baseAmountUsdCents = priceMapUSD[tier] ?? priceMapUSD.basic;
+    
+    // Currency conversion rates (from USD to target currency)
+    const currencyRates: Record<string, number> = {
+      USD: 1,
+      INR: 84.5,  // 1 USD = 84.5 INR
+      NGN: 1650   // 1 USD = 1650 NGN
+    };
 
-    // Determine currency code
+    // Determine currency and amount
     const currency = (currencyCode || 'USD').toLowerCase();
+    const rate = currencyRates[currencyCode] || 1;
+    const amountInTargetCurrency = Math.round((baseAmountUsdCents / 100) * rate * 100); // Convert to target currency cents
 
     // Build session with inline recurring price
     const session = await stripe.checkout.sessions.create({
@@ -53,7 +62,7 @@ serve(async (req) => {
           price_data: {
             currency,
             product_data: { name: `${tier[0].toUpperCase()}${tier.slice(1)} Subscription` },
-            unit_amount: amountUsdCents, // Will be charged in chosen currency; adjust in production with currency tables
+            unit_amount: amountInTargetCurrency, // Amount in target currency cents
             recurring: { interval: 'month' },
           },
           quantity: 1,

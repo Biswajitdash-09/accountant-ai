@@ -91,33 +91,33 @@ const MobileAIAssistant = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background pb-safe">
       {/* Header */}
-      <div className="bg-gradient-primary text-white p-4">
+      <div className="bg-gradient-primary text-white p-4 safe-area-padding">
         <div className="flex items-center gap-3 mb-2">
           <Brain className="h-8 w-8" />
-          <h1 className="text-xl font-bold">AI Financial Assistant</h1>
+          <h1 className="text-xl sm:text-2xl font-bold">AI Financial Assistant</h1>
         </div>
-        <p className="text-white/90 text-sm">
+        <p className="text-white/90 text-sm leading-relaxed">
           Leverage artificial intelligence to streamline your financial management
         </p>
       </div>
 
       {/* Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-2 mx-4 mt-4 mb-0">
-          <TabsTrigger value="assistant" className="text-sm font-medium">
-            <MessageCircle className="h-4 w-4 mr-2" />
-            Assistant
+        <TabsList className="grid w-full grid-cols-2 mx-4 mt-4 mb-0 h-12">
+          <TabsTrigger value="assistant" className="text-sm font-medium min-h-[44px]">
+            <MessageCircle className="h-4 w-4 mr-1 sm:mr-2" />
+            <span className="truncate">Assistant</span>
           </TabsTrigger>
-          <TabsTrigger value="insights" className="text-sm font-medium">
-            <Lightbulb className="h-4 w-4 mr-2" />
-            Insights
+          <TabsTrigger value="insights" className="text-sm font-medium min-h-[44px]">
+            <Lightbulb className="h-4 w-4 mr-1 sm:mr-2" />
+            <span className="truncate">Insights</span>
           </TabsTrigger>
         </TabsList>
 
         {/* Assistant View */}
-        <TabsContent value="assistant" className="px-4 pb-4 space-y-4">
+        <TabsContent value="assistant" className="px-4 pb-4 space-y-4 min-h-0">
           {/* AI Assistant Card */}
           <Card className="shadow-lg border-0">
             <CardHeader className="pb-3">
@@ -230,7 +230,7 @@ const MobileAIAssistant = () => {
         </TabsContent>
 
         {/* Insights View */}
-        <TabsContent value="insights" className="px-4 pb-4 space-y-4">
+        <TabsContent value="insights" className="px-4 pb-4 space-y-4 min-h-0">
           {/* Header */}
           <Card className="shadow-lg border-0">
             <CardHeader className="pb-3">

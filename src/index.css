@@ -519,3 +519,18 @@
 ::-webkit-scrollbar-thumb:hover {
   background: hsl(var(--primary-glow));
 }
+
+/* Mobile-specific utilities */
+.pb-safe {
+  padding-bottom: env(safe-area-inset-bottom, 1rem);
+}
+
+.safe-area-padding {
+  padding-top: env(safe-area-inset-top, 0);
+}
+
+/* Improved mobile touch targets */
+.min-touch-target {
+  min-height: 44px;
+  min-width: 44px;
+}
