@@ -19,14 +19,14 @@ export const useSessionManagement = () => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  // For now, return mock data since user_sessions table might not have proper triggers
+  // Generate secure mock data without exposing real session tokens
   const mockSessions = user ? [
     {
-      id: "current-session",
+      id: "current-session-" + user.id.slice(0, 8),
       user_id: user.id,
-      session_token: "current-session-token",
-      ip_address: "192.168.1.100",
-      user_agent: navigator.userAgent,
+      session_token: "[SECURE-TOKEN]", // Never expose real tokens
+      ip_address: "••••.••••.••••.100", // Mask IP for privacy
+      user_agent: navigator.userAgent.slice(0, 50) + "...", // Truncate for privacy
       last_active: new Date().toISOString(),
       expires_at: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
       created_at: new Date().toISOString(),
@@ -89,12 +89,12 @@ export const useSessionManagement = () => {
     mutationFn: async () => {
       if (!user) throw new Error('User not authenticated');
 
-      // Keep current session, revoke others
+      // Keep current session, revoke others  
       const { error } = await supabase
         .from('user_sessions')
         .delete()
         .eq('user_id', user.id)
-        .neq('session_token', 'current-session-token');
+        .neq('session_token', '[SECURE-TOKEN]');
 
       if (error) throw error;
     },

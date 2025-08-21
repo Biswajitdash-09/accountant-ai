@@ -10,14 +10,10 @@ interface ProtectedRouteProps {
 
 const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
   const { user, loading } = useAuth();
-  const [isGuest, setIsGuest] = useState(false);
 
   useEffect(() => {
-    // Check if user is in guest mode
-    const guestMode = localStorage.getItem('isGuest') === 'true';
-    setIsGuest(guestMode);
-    console.log('Protected route check - User:', !!user, 'Guest mode:', guestMode);
-  }, []);
+    console.log('Protected route check - User authenticated:', !!user);
+  }, [user]);
 
   // Show loading spinner while checking authentication
   if (loading) {
@@ -31,13 +27,13 @@ const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
     );
   }
 
-  // Allow access if user is authenticated OR in guest mode
-  if (user || isGuest) {
-    console.log('Access granted - authenticated user or guest mode');
+  // Only allow access if user is authenticated
+  if (user) {
+    console.log('Access granted - authenticated user');
     return <>{children}</>;
   }
 
-  // Redirect to auth page if not authenticated and not in guest mode
+  // Redirect to auth page if not authenticated
   console.log('Access denied - redirecting to auth');
   return <Navigate to="/auth" replace />;
 };

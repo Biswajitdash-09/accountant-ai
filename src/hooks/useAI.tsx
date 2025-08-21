@@ -2,6 +2,7 @@
 import { useState } from 'react';
 import { useToast } from '@/components/ui/use-toast';
 import { useCredits } from '@/hooks/useCredits';
+import { supabase } from '@/integrations/supabase/client';
 
 interface AIResponse {
   text: string;
@@ -37,52 +38,19 @@ export const useAI = () => {
         throw new Error('Failed to use credit');
       }
 
-      const accountingSystemPrompt = `You are an AI accounting assistant. You ONLY help with accounting tasks and bookkeeping. You do NOT provide financial advice, investment advice, or personal financial planning. 
-
-Your capabilities include:
-- Creating financial statements (P&L, Balance Sheet, Cash Flow)
-- Analyzing uploaded documents and extracting financial data
-- Generating charts and visual breakdowns of expenses/income
-- Cross-checking balance sheets for inconsistencies or errors
-- Categorizing transactions and expenses
-- Explaining accounting concepts and procedures
-- Helping with tax preparation and compliance
-- Creating budgets and forecasts based on historical data
-
-Always respond with: "This is an AI accounting assistant tool. It cannot provide financial advice or be held liable for financial decisions."
-
-If asked about investments, financial planning, or personal finance advice, politely redirect to accounting-specific tasks.
-
-User message: ${message}`;
-
-      const response = await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-goog-api-key': 'AIzaSyD4_H2Ait-xlHICBtSB0qvbYYzmLM_x5LE',
-        },
-        body: JSON.stringify({
-          contents: [
-            {
-              parts: [
-                {
-                  text: accountingSystemPrompt
-                }
-              ]
-            }
-          ]
-        })
+      // Call secure AI edge function instead of direct API call
+      const { data, error } = await supabase.functions.invoke('ai-generate', {
+        body: { message }
       });
 
-      if (!response.ok) {
-        throw new Error(`API Error: ${response.status}`);
+      if (error) {
+        console.error('AI Edge Function Error:', error);
+        throw new Error(error.message || 'Failed to get AI response');
       }
 
-      const data = await response.json();
-      
-      if (data.candidates && data.candidates[0] && data.candidates[0].content) {
+      if (data && data.success && data.text) {
         return {
-          text: data.candidates[0].content.parts[0].text
+          text: data.text
         };
       } else {
         throw new Error('Invalid response format from AI');

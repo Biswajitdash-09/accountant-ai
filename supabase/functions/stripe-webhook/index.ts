@@ -38,15 +38,21 @@ serve(async (req) => {
     const body = await req.text();
     logStep("Request body received", { bodyLength: body.length });
 
-    // Note: In production, you should set STRIPE_WEBHOOK_SECRET
-    // For now, we'll process without signature verification for testing
+    // Verify webhook signature for security
+    const webhookSecret = Deno.env.get("STRIPE_WEBHOOK_SECRET");
+    if (!webhookSecret) {
+      logStep("ERROR: STRIPE_WEBHOOK_SECRET not configured");
+      throw new Error("STRIPE_WEBHOOK_SECRET is not set");
+    }
+
     let event;
     try {
-      event = JSON.parse(body);
-      logStep("Event parsed", { type: event.type, id: event.id });
+      // Verify the webhook signature
+      event = stripe.webhooks.constructEvent(body, signature, webhookSecret);
+      logStep("Event verified and parsed", { type: event.type, id: event.id });
     } catch (err) {
-      logStep("ERROR: Invalid JSON payload");
-      throw new Error("Invalid JSON payload");
+      logStep("ERROR: Webhook signature verification failed", { error: err.message });
+      throw new Error(`Webhook signature verification failed: ${err.message}`);
     }
 
     // Initialize Supabase client with service role key
