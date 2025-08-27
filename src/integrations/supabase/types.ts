@@ -2464,10 +2464,6 @@ export type Database = {
       }
     }
     Functions: {
-      add_credits: {
-        Args: { credits_to_add: number; user_id: string }
-        Returns: boolean
-      }
       admin_add_credits: {
         Args: { p_credits_to_add: number; p_user_id: string }
         Returns: boolean
@@ -2513,10 +2509,6 @@ export type Database = {
       }
       reset_daily_credits: {
         Args: { user_id: string }
-        Returns: boolean
-      }
-      use_credits: {
-        Args: { credits_to_use?: number; user_id: string }
         Returns: boolean
       }
       user_use_credits: {
