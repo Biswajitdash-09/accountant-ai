@@ -86,11 +86,11 @@ serve(async (req) => {
           throw new Error("Missing required metadata");
         }
 
-        // Add credits to user account
+        // Add credits for successful payment using secure admin function
         const { data: creditsResult, error: creditsError } = await supabase
-          .rpc('add_credits', {
-            user_id: userId,
-            credits_to_add: credits
+          .rpc('admin_add_credits', {
+            p_user_id: userId,
+            p_credits_to_add: credits
           });
 
         if (creditsError) {

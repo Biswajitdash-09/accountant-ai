@@ -2489,22 +2489,13 @@ export type Database = {
         }[]
       }
       log_security_event: {
-        Args:
-          | {
-              p_action_description: string
-              p_action_type: string
-              p_ip_address?: unknown
-              p_metadata?: Json
-              p_user_agent?: string
-            }
-          | {
-              p_action_description: string
-              p_action_type: string
-              p_ip_address?: unknown
-              p_metadata?: Json
-              p_user_agent?: string
-              p_user_id: string
-            }
+        Args: {
+          p_action_description: string
+          p_action_type: string
+          p_ip_address?: unknown
+          p_metadata?: Json
+          p_user_agent?: string
+        }
         Returns: undefined
       }
       reset_daily_credits: {

@@ -52,7 +52,6 @@ export const useSecurityAuditLogs = () => {
       if (!user) throw new Error('User not authenticated');
 
       const { error } = await supabase.rpc('log_security_event', {
-        p_user_id: user.id,
         p_action_type: action_type,
         p_action_description: action_description,
         p_ip_address: null, // Could be populated from headers

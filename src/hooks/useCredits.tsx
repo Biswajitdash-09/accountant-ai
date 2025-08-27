@@ -92,9 +92,8 @@ export const useCredits = () => {
       console.log(`Attempting to use ${amount} credits for user:`, user.id);
 
       const { data, error } = await supabase
-        .rpc('use_credits', { 
-          user_id: user.id,
-          credits_to_use: amount
+        .rpc('user_use_credits', { 
+          p_credits_to_use: amount
         });
 
       if (error) {
@@ -135,19 +134,9 @@ export const useCredits = () => {
 
       console.log(`Adding ${amount} credits for user:`, user.id);
 
-      const { data, error } = await supabase
-        .rpc('add_credits', {
-          user_id: user.id,
-          credits_to_add: amount
-        });
-
-      if (error) {
-        console.error('Error adding credits:', error);
-        throw error;
-      }
-
-      console.log('Credits added successfully');
-      return data;
+      // Note: Only service_role can call admin_add_credits
+      // This function should not be called from frontend
+      throw new Error('Adding credits requires admin privileges - use the payment system instead');
     },
     onSuccess: (data, amount) => {
       console.log('Credit addition successful, invalidating queries');

@@ -44,7 +44,7 @@ export const useSessionManagement = () => {
       
       const { data, error } = await supabase
         .from('user_sessions')
-        .select('*')
+        .select('id, user_id, ip_address, created_at, last_active, expires_at, user_agent')
         .eq('user_id', user.id)
         .gt('expires_at', new Date().toISOString())
         .order('last_active', { ascending: false });

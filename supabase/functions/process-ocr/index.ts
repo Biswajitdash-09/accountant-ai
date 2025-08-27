@@ -8,12 +8,39 @@ const corsHeaders = {
 };
 
 serve(async (req) => {
+  // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders });
   }
 
   try {
+    // Verify JWT and get user
+    const authHeader = req.headers.get('authorization');
+    if (!authHeader) {
+      return new Response(
+        JSON.stringify({ error: 'Authorization header required' }), 
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
     const supabase = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_ANON_KEY') ?? ''
+    );
+
+    const { data: { user }, error: authError } = await supabase.auth.getUser(
+      authHeader.replace('Bearer ', '')
+    );
+    
+    if (authError || !user) {
+      return new Response(
+        JSON.stringify({ error: 'Invalid authentication token' }), 
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Create service role client for database operations
+    const serviceSupabase = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     );
@@ -27,10 +54,10 @@ serve(async (req) => {
       );
     }
 
-    // Get the document
-    const { data: document, error: fetchError } = await supabase
+    // Verify document ownership before processing
+    const { data: document, error: fetchError } = await serviceSupabase
       .from('documents')
-      .select('*')
+      .select('user_id, storage_path, file_type')
       .eq('id', document_id)
       .single();
 
@@ -41,16 +68,24 @@ serve(async (req) => {
         { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
+    
+    if (document.user_id !== user.id) {
+      console.log(`Access denied: user ${user.id} tried to access document ${document_id} owned by ${document.user_id}`);
+      return new Response(
+        JSON.stringify({ error: 'Access denied: Document not owned by user' }), 
+        { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
 
     // Update status to processing
-    await supabase
+    await serviceSupabase
       .from('documents')
       .update({ processing_status: 'processing' })
       .eq('id', document_id);
 
     try {
       // Get signed URL for the document
-      const { data: signedUrlData } = await supabase.storage
+      const { data: signedUrlData } = await serviceSupabase.storage
         .from('documents')
         .createSignedUrl(document.storage_path, 3600);
 
@@ -75,7 +110,7 @@ serve(async (req) => {
       const aiConfidence = calculateConfidenceScore(extractedData, ocrText);
 
       // Update document with results
-      await supabase
+      await serviceSupabase
         .from('documents')
         .update({
           processing_status: 'completed',
@@ -86,13 +121,32 @@ serve(async (req) => {
         })
         .eq('id', document_id);
 
+      // Store OCR results in AI analysis table instead of returning sensitive data
+      const { error: insertError } = await serviceSupabase
+        .from('document_ai_analysis')
+        .insert({
+          document_id,
+          user_id: user.id,
+          analysis_type: 'ocr',
+          confidence_score: aiConfidence,
+          extracted_data: extractedData,
+          suggested_categorization: { 
+            category: documentType, 
+            confidence: aiConfidence 
+          }
+        });
+
+      if (insertError) {
+        console.error('Failed to store OCR results:', insertError);
+      }
+
       // Create transactions if extraction was successful and confidence is high
       if (extractedData.transactions && aiConfidence >= 0.7) {
         for (const transaction of extractedData.transactions) {
-          await supabase
+          await serviceSupabase
             .from('transactions')
             .insert({
-              user_id: document.user_id,
+              user_id: user.id,
               amount: transaction.amount,
               currency: transaction.currency || 'INR',
               category: transaction.category || documentType,
@@ -104,12 +158,11 @@ serve(async (req) => {
       }
 
       return new Response(
-        JSON.stringify({ 
-          success: true, 
-          ocrText, 
-          documentType, 
-          extractedData, 
-          aiConfidence 
+        JSON.stringify({
+          success: true,
+          message: 'OCR processing completed',
+          document_id,
+          confidence: aiConfidence
         }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
@@ -117,7 +170,7 @@ serve(async (req) => {
     } catch (error) {
       console.error('Processing error:', error);
       
-      await supabase
+      await serviceSupabase
         .from('documents')
         .update({
           processing_status: 'failed',
