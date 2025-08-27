@@ -45,8 +45,16 @@ const Landing = () => {
       setIsDemoLoading(true);
       console.log('Starting demo mode from landing page...');
       
+      // Clear any existing auth state first
+      localStorage.removeItem('sb-erqisavlnwynkyfvnltb-auth-token');
+      
+      // Set demo mode
       localStorage.setItem('isGuest', 'true');
+      
+      // Seed demo data
       await seedDemoData();
+      
+      console.log('Demo data seeded, isGuest set to:', localStorage.getItem('isGuest'));
       
       toast({
         title: "Demo Mode Active",
@@ -54,7 +62,9 @@ const Landing = () => {
       });
       
       console.log('Demo mode setup complete, navigating to dashboard');
-      navigate("/dashboard");
+      
+      // Force page reload to ensure demo state is properly recognized
+      window.location.href = '/dashboard';
     } catch (error) {
       console.error('Error setting up demo mode:', error);
       toast({

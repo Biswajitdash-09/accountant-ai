@@ -49,8 +49,13 @@ const Auth = () => {
       setIsLoading(true);
       console.log('Starting guest login...');
       
+      // Clear any existing auth state first
+      localStorage.removeItem('sb-erqisavlnwynkyfvnltb-auth-token');
+      
       localStorage.setItem('isGuest', 'true');
       await seedDemoData(); // Seed demo data immediately
+      
+      console.log('Demo data seeded, isGuest set to:', localStorage.getItem('isGuest'));
       
       toast({
         title: "Demo Mode",
@@ -58,7 +63,8 @@ const Auth = () => {
       });
       
       console.log('Guest login successful, navigating to dashboard');
-      navigate("/dashboard");
+      // Force page reload to ensure demo state is properly recognized
+      window.location.href = '/dashboard';
     } catch (error) {
       console.error('Error setting up guest mode:', error);
       toast({
