@@ -185,6 +185,11 @@ const Landing = () => {
             <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent leading-tight">
               AI-Powered Accounting
             </h1>
+            <div className="bg-gradient-primary/10 rounded-xl px-6 py-4 mx-4 max-w-2xl mx-auto backdrop-blur-sm border border-primary/20">
+              <p className="text-lg sm:text-xl md:text-2xl font-semibold text-primary">
+                "Accounting made easy, accounting in your pocket."
+              </p>
+            </div>
             <p className="text-base sm:text-lg md:text-xl lg:text-2xl text-muted-foreground max-w-3xl mx-auto px-4">
               Transform your financial management with intelligent automation, real-time insights, and seamless tax preparation.
             </p>

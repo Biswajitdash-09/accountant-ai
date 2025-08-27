@@ -7,7 +7,8 @@ import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import { useToast } from '@/components/ui/use-toast';
 import { useSessionManagement } from '@/hooks/useSessionManagement';
-import { Smartphone, Monitor, Tablet, Download, Mail, History } from 'lucide-react';
+import { ChatHistoryExport } from '@/components/ChatHistoryExport';
+import { Smartphone, Monitor, Tablet } from 'lucide-react';
 import { format } from 'date-fns';
 
 const SessionManagement = () => {
@@ -20,60 +21,24 @@ const SessionManagement = () => {
   const handleKeepLoggedInToggle = (checked: boolean) => {
     setKeepLoggedIn(checked);
     localStorage.setItem('keepLoggedIn', checked.toString());
+    
+    if (!checked) {
+      // Also clear remembered email when disabling keep logged in
+      localStorage.removeItem('rememberedEmail');
+    }
+    
     toast({
       title: checked ? "Keep me logged in enabled" : "Keep me logged in disabled",
       description: checked 
-        ? "You'll stay logged in across browser sessions" 
-        : "You'll need to log in each time",
+        ? "Your email will be remembered for future logins" 
+        : "Your login information will not be saved",
     });
   };
 
-  const exportChatHistory = async (format: 'email' | 'download') => {
-    try {
-      const chatHistory = localStorage.getItem('chatHistory') || '[]';
-      const messages = JSON.parse(chatHistory);
-      
-      const exportData = {
-        exportDate: new Date().toISOString(),
-        messageCount: messages.length,
-        messages: messages
-      };
-
-      if (format === 'email') {
-        const subject = `Chat History Export - ${new Date().toLocaleDateString()}`;
-        const body = `Your chat history export:\n\n${JSON.stringify(exportData, null, 2)}`;
-        window.open(`mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`);
-      } else {
-        const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `chat-history-${new Date().toISOString().split('T')[0]}.json`;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
-      }
-
-      toast({
-        title: "Chat history exported",
-        description: format === 'email' 
-          ? "Email client opened with your chat history" 
-          : "Chat history downloaded successfully",
-      });
-    } catch (error) {
-      toast({
-        title: "Export failed",
-        description: "Failed to export chat history. Please try again.",
-        variant: "destructive",
-      });
-    }
-  };
-
   const getDeviceIcon = (userAgent: string) => {
-    if (userAgent.includes('Mobile')) return <Smartphone className="h-4 w-4" />;
-    if (userAgent.includes('Tablet')) return <Tablet className="h-4 w-4" />;
-    return <Monitor className="h-4 w-4" />;
+    if (userAgent.includes('Mobile')) return <Smartphone className="h-4 w-4 text-muted-foreground" />;
+    if (userAgent.includes('Tablet')) return <Tablet className="h-4 w-4 text-muted-foreground" />;
+    return <Monitor className="h-4 w-4 text-muted-foreground" />;
   };
 
   return (
@@ -85,56 +50,32 @@ const SessionManagement = () => {
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="flex items-center justify-between">
-            <Label htmlFor="keep-logged-in" className="text-sm font-medium">
-              Keep me logged in
-            </Label>
+            <div className="space-y-1">
+              <Label htmlFor="keep-logged-in" className="text-sm font-medium">
+                Keep me logged in
+              </Label>
+              <p className="text-xs text-muted-foreground">
+                Remember your email for faster login
+              </p>
+            </div>
             <Switch
               id="keep-logged-in"
               checked={keepLoggedIn}
               onCheckedChange={handleKeepLoggedInToggle}
             />
           </div>
-          <p className="text-sm text-muted-foreground">
-            Stay logged in across browser sessions for convenience
-          </p>
+          {keepLoggedIn && (
+            <div className="p-3 bg-muted/50 rounded-lg">
+              <p className="text-sm text-muted-foreground">
+                ✓ Your email will be remembered (password remains secure)
+              </p>
+            </div>
+          )}
         </CardContent>
       </Card>
 
-      {/* Session History & Export */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-lg font-semibold flex items-center gap-2">
-            <History className="h-5 w-5" />
-            Chat History & Export
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <p className="text-sm text-muted-foreground">
-            Export your chat history for your records
-          </p>
-          
-          <div className="flex gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => exportChatHistory('download')}
-              className="flex items-center gap-2"
-            >
-              <Download className="h-4 w-4" />
-              Download
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => exportChatHistory('email')}
-              className="flex items-center gap-2"
-            >
-              <Mail className="h-4 w-4" />
-              Email
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
+      {/* Chat History & Export */}
+      <ChatHistoryExport />
 
       {/* Active Sessions */}
       <Card>
@@ -143,47 +84,55 @@ const SessionManagement = () => {
         </CardHeader>
         <CardContent className="space-y-4">
           {sessions.length === 0 ? (
-            <p className="text-sm text-muted-foreground">No active sessions found.</p>
+            <div className="text-center py-8">
+              <p className="text-sm text-muted-foreground mb-2">No active sessions found.</p>
+              <p className="text-xs text-muted-foreground">
+                Sessions will appear here when you log in from different devices.
+              </p>
+            </div>
           ) : (
             <>
-              {sessions.map((session) => (
-                <div key={session.id} className="flex items-center justify-between p-4 border rounded-lg">
-                  <div className="flex items-center gap-3">
-                    {getDeviceIcon(session.user_agent || '')}
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <p className="font-medium text-sm">
-                          {session.user_agent?.includes('Mobile') ? 'Mobile Device' : 
-                           session.user_agent?.includes('Tablet') ? 'Tablet' : 'Desktop'}
+              <div className="space-y-3">
+                {sessions.map((session) => (
+                  <div key={session.id} className="flex items-center justify-between p-4 border rounded-lg hover:bg-muted/50 transition-colors">
+                    <div className="flex items-center gap-3 min-w-0 flex-1">
+                      {getDeviceIcon(session.user_agent || '')}
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center gap-2 mb-1">
+                          <p className="font-medium text-sm truncate">
+                            {session.user_agent?.includes('Mobile') ? 'Mobile Device' : 
+                             session.user_agent?.includes('Tablet') ? 'Tablet' : 'Desktop'}
+                          </p>
+                          {session.id.includes('current-session') && (
+                            <Badge variant="secondary" className="text-xs">Current</Badge>
+                          )}
+                        </div>
+                        <p className="text-xs text-muted-foreground">
+                          Last active: {format(new Date(session.last_active), 'MMM d, yyyy HH:mm')}
                         </p>
-                        {session.id === 'current-session' && (
-                          <Badge variant="secondary" className="text-xs">Current</Badge>
-                        )}
+                        <p className="text-xs text-muted-foreground">
+                          IP: {session.ip_address || 'Unknown'}
+                        </p>
                       </div>
-                      <p className="text-xs text-muted-foreground">
-                        Last active: {format(new Date(session.last_active), 'MMM d, yyyy HH:mm')}
-                      </p>
-                      <p className="text-xs text-muted-foreground">
-                        IP: {session.ip_address || 'Unknown'}
-                      </p>
                     </div>
+                    {!session.id.includes('current-session') && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => revokeSession.mutate(session.id)}
+                        disabled={revokeSession.isPending}
+                        className="ml-2 shrink-0"
+                      >
+                        Terminate
+                      </Button>
+                    )}
                   </div>
-                  {session.id !== 'current-session' && (
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => revokeSession.mutate(session.id)}
-                      disabled={revokeSession.isPending}
-                    >
-                      Terminate
-                    </Button>
-                  )}
-                </div>
-              ))}
+                ))}
+              </div>
               
               <Separator />
               
-              <div className="flex justify-between items-center">
+              <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
                 <p className="text-sm text-muted-foreground">
                   {sessions.length > 1 ? `${sessions.length} active sessions` : '1 active session'}
                 </p>
@@ -193,6 +142,7 @@ const SessionManagement = () => {
                     size="sm"
                     onClick={() => revokeAllSessions.mutate()}
                     disabled={revokeAllSessions.isPending}
+                    className="self-start sm:self-auto"
                   >
                     Terminate All Others
                   </Button>

@@ -1,8 +1,9 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Loader2 } from "lucide-react";
@@ -20,6 +21,19 @@ const AuthForm = ({ type, isLoading, setIsLoading, onSuccess, onSwitchMode }: Au
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [fullName, setFullName] = useState("");
+  const [keepLoggedIn, setKeepLoggedIn] = useState(false);
+
+  // Load saved email on component mount
+  useEffect(() => {
+    if (type === "login") {
+      const savedEmail = localStorage.getItem('rememberedEmail');
+      const shouldKeepLoggedIn = localStorage.getItem('keepLoggedIn') === 'true';
+      if (savedEmail && shouldKeepLoggedIn) {
+        setEmail(savedEmail);
+        setKeepLoggedIn(true);
+      }
+    }
+  }, [type]);
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -98,6 +112,15 @@ const AuthForm = ({ type, isLoading, setIsLoading, onSuccess, onSwitchMode }: Au
 
       if (error) {
         throw error;
+      }
+
+      // Save email if "Keep me logged in" is checked
+      if (keepLoggedIn) {
+        localStorage.setItem('rememberedEmail', email);
+        localStorage.setItem('keepLoggedIn', 'true');
+      } else {
+        localStorage.removeItem('rememberedEmail');
+        localStorage.removeItem('keepLoggedIn');
       }
 
       toast({
@@ -184,6 +207,22 @@ const AuthForm = ({ type, isLoading, setIsLoading, onSuccess, onSwitchMode }: Au
           </p>
         )}
       </div>
+
+      {type === "login" && (
+        <div className="flex items-center space-x-2">
+          <Checkbox
+            id="keep-logged-in"
+            checked={keepLoggedIn}
+            onCheckedChange={(checked) => setKeepLoggedIn(checked as boolean)}
+          />
+          <Label 
+            htmlFor="keep-logged-in" 
+            className="text-sm font-normal cursor-pointer"
+          >
+            Keep me logged in
+          </Label>
+        </div>
+      )}
       
       <Button
         type="submit"
