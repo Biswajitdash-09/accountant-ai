@@ -7,7 +7,7 @@ export type Json =
   | Json[]
 
 export type Database = {
-  // Allows to automatically instanciate createClient with right options
+  // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
     PostgrestVersion: "12.2.12 (cd3cf9e)"
@@ -2432,33 +2432,86 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      user_sessions_secure: {
+        Row: {
+          created_at: string | null
+          expires_at: string | null
+          id: string | null
+          ip_address: unknown | null
+          last_active: string | null
+          session_token: string | null
+          user_agent: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          expires_at?: string | null
+          id?: string | null
+          ip_address?: unknown | null
+          last_active?: string | null
+          session_token?: never
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          expires_at?: string | null
+          id?: string | null
+          ip_address?: unknown | null
+          last_active?: string | null
+          session_token?: never
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       add_credits: {
-        Args: { user_id: string; credits_to_add: number }
+        Args: { credits_to_add: number; user_id: string }
         Returns: boolean
       }
+      admin_add_credits: {
+        Args: { p_credits_to_add: number; p_user_id: string }
+        Returns: boolean
+      }
+      cache_upsert: {
+        Args: {
+          p_cache_data: Json
+          p_cache_key: string
+          p_expires_at: string
+          p_user_scoped?: boolean
+        }
+        Returns: string
+      }
       get_user_crypto_assets: {
-        Args: { p_user_id: string }
+        Args: { p_user_id?: string }
         Returns: {
-          id: string
-          user_id: string
-          symbol: string
-          quantity: number
           avg_buy_price: number
           created_at: string
+          id: string
+          quantity: number
+          symbol: string
+          user_id: string
         }[]
       }
       log_security_event: {
-        Args: {
-          p_user_id: string
-          p_action_type: string
-          p_action_description: string
-          p_ip_address?: unknown
-          p_user_agent?: string
-          p_metadata?: Json
-        }
+        Args:
+          | {
+              p_action_description: string
+              p_action_type: string
+              p_ip_address?: unknown
+              p_metadata?: Json
+              p_user_agent?: string
+            }
+          | {
+              p_action_description: string
+              p_action_type: string
+              p_ip_address?: unknown
+              p_metadata?: Json
+              p_user_agent?: string
+              p_user_id: string
+            }
         Returns: undefined
       }
       reset_daily_credits: {
@@ -2466,7 +2519,11 @@ export type Database = {
         Returns: boolean
       }
       use_credits: {
-        Args: { user_id: string; credits_to_use?: number }
+        Args: { credits_to_use?: number; user_id: string }
+        Returns: boolean
+      }
+      user_use_credits: {
+        Args: { p_credits_to_use?: number }
         Returns: boolean
       }
     }
