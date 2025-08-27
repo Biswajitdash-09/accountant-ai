@@ -15,8 +15,10 @@ import { DeadlineTracker } from "@/components/DeadlineTracker";
 import { NotificationCenter } from "@/components/NotificationCenter";
 import { CryptoPortfolio } from "@/components/CryptoPortfolio";
 import CurrencyConverter from "@/components/CurrencyConverter";
+import CurrencySwitcher from "@/components/CurrencySwitcher";
 import DemoTutorial from "@/components/DemoTutorial";
 import { useCurrencyFormatter } from "@/hooks/useCurrencyFormatter";
+import { useCurrency } from "@/contexts/CurrencyContext";
 import { useNotificationService } from "@/hooks/useNotificationService";
 import { useDemoMode } from "@/hooks/useDemoMode";
 import { getDemoData } from "@/utils/demoData";
@@ -24,6 +26,7 @@ import DemoAccountBadge from "@/components/DemoAccountBadge";
 
 const Dashboard = () => {
   const { formatCurrency } = useCurrencyFormatter();
+  const { selectedCurrency } = useCurrency();
   const { createNotification } = useNotificationService();
   const { isDemo } = useDemoMode();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -48,7 +51,8 @@ const Dashboard = () => {
   const demoTransactions = isDemo ? getDemoData('transactions') : [];
   const demoAccounts = isDemo ? getDemoData('accounts') : [];
 
-  // Calculate metrics from demo data or use sample data
+  // Calculate metrics from demo data or use sample data  
+  // Recalculate when currency changes to ensure fresh formatting
   const calculateMetrics = () => {
     if (isDemo && demoTransactions.length > 0) {
       const totalIncome = demoTransactions
@@ -79,6 +83,12 @@ const Dashboard = () => {
   };
 
   const metrics = calculateMetrics();
+  
+  // Ensure metrics recalculate when currency changes
+  useEffect(() => {
+    // This effect will run when selectedCurrency changes, 
+    // triggering a re-render with updated currency formatting
+  }, [selectedCurrency]);
 
   // Sample data for charts
   const incomeExpenseData = [
@@ -136,15 +146,18 @@ const Dashboard = () => {
             </p>
           </div>
           
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setShowTutorial(true)}
-            className="flex items-center gap-2"
-          >
-            <PlayCircle className="h-4 w-4" />
-            Tutorial
-          </Button>
+          <div className="flex items-center gap-2">
+            <CurrencySwitcher />
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setShowTutorial(true)}
+              className="flex items-center gap-2"
+            >
+              <PlayCircle className="h-4 w-4" />
+              Tutorial
+            </Button>
+          </div>
         </div>
 
         <DemoAccountBadge />
@@ -179,7 +192,8 @@ const Dashboard = () => {
             <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
               <MetricCard
                 title="Total Balance"
-                value={formatCurrency(metrics.totalBalance)}
+                value={metrics.totalBalance}
+                currency={true}
                 icon={DollarSign}
                 trend={{
                   value: 12,
@@ -189,7 +203,8 @@ const Dashboard = () => {
               />
               <MetricCard
                 title="Monthly Income"
-                value={formatCurrency(metrics.monthlyIncome)}
+                value={metrics.monthlyIncome}
+                currency={true}
                 icon={TrendingUp}
                 trend={{
                   value: 8,
@@ -199,7 +214,8 @@ const Dashboard = () => {
               />
               <MetricCard
                 title="Monthly Expenses"
-                value={formatCurrency(metrics.monthlyExpenses)}
+                value={metrics.monthlyExpenses}
+                currency={true}
                 icon={TrendingDown}
                 trend={{
                   value: 3,

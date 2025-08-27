@@ -2,6 +2,8 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
+import { useQueryClient } from "@tanstack/react-query";
+import { useToast } from "@/components/ui/use-toast";
 
 interface Currency {
   id: string;
@@ -31,6 +33,8 @@ export const useCurrency = () => useContext(CurrencyContext);
 
 export const CurrencyProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { user } = useAuth();
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
   const [selectedCurrency, setSelectedCurrency] = useState<Currency | null>(null);
   const [currencies, setCurrencies] = useState<Currency[]>([]);
   const [loading, setLoading] = useState(true);
@@ -117,7 +121,17 @@ export const CurrencyProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   }, [user, currencies]);
 
   const setCurrency = async (currency: Currency) => {
+    const previousCurrency = selectedCurrency;
     setSelectedCurrency(currency);
+    
+    // Invalidate all queries to refresh data with new currency
+    queryClient.invalidateQueries();
+    
+    // Show success toast
+    toast({
+      title: "Currency Updated",
+      description: `Currency changed to ${currency.name} (${currency.code})`,
+    });
     
     // Save user preference if logged in
     if (user) {
@@ -131,6 +145,13 @@ export const CurrencyProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         });
       } catch (error) {
         console.error('Error saving currency preference:', error);
+        // Revert on error
+        setSelectedCurrency(previousCurrency);
+        toast({
+          title: "Error",
+          description: "Failed to save currency preference",
+          variant: "destructive",
+        });
       }
     }
   };

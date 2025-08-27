@@ -8,6 +8,7 @@ import { useFinancialGoals } from "@/hooks/useFinancialGoals";
 import { useBudgets } from "@/hooks/useBudgets";
 import { useAccounts } from "@/hooks/useAccounts";
 import { useCurrencyFormatter } from "@/hooks/useCurrencyFormatter";
+import { useCurrency } from "@/contexts/CurrencyContext";
 import { TrendingUp, TrendingDown, Target, Wallet, PieChart, Calendar } from "lucide-react";
 
 const FinancialOverview = () => {
@@ -16,6 +17,7 @@ const FinancialOverview = () => {
   const { budgets } = useBudgets();
   const { accounts } = useAccounts();
   const { formatCurrency } = useCurrencyFormatter();
+  const { selectedCurrency } = useCurrency();
 
   // Calculate current month data
   const currentMonth = new Date().getMonth();
