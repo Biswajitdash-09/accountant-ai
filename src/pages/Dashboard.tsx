@@ -3,7 +3,8 @@ import React, { useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { DollarSign, TrendingUp, TrendingDown, PieChart, CheckSquare, Calendar, Bell, Bitcoin } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { DollarSign, TrendingUp, TrendingDown, PieChart, CheckSquare, Calendar, Bell, Bitcoin, PlayCircle } from "lucide-react";
 import { MetricCard } from "@/components/dashboard/MetricCard";
 import IncomeExpenseChart from "@/components/dashboard/IncomeExpenseChart";
 import ExpenseChart from "@/components/dashboard/ExpenseChart";
@@ -14,6 +15,7 @@ import { DeadlineTracker } from "@/components/DeadlineTracker";
 import { NotificationCenter } from "@/components/NotificationCenter";
 import { CryptoPortfolio } from "@/components/CryptoPortfolio";
 import CurrencyConverter from "@/components/CurrencyConverter";
+import DemoTutorial from "@/components/DemoTutorial";
 import { useCurrencyFormatter } from "@/hooks/useCurrencyFormatter";
 import { useNotificationService } from "@/hooks/useNotificationService";
 import { useDemoMode } from "@/hooks/useDemoMode";
@@ -26,6 +28,7 @@ const Dashboard = () => {
   const { isDemo } = useDemoMode();
   const [searchParams, setSearchParams] = useSearchParams();
   const [activeTab, setActiveTab] = useState(searchParams.get('tab') || 'overview');
+  const [showTutorial, setShowTutorial] = useState(false);
 
   // Handle tab changes from URL params
   useEffect(() => {
@@ -125,14 +128,31 @@ const Dashboard = () => {
   return (
     <div className="container mx-auto p-4 max-w-7xl">
       <div className="space-y-6">
-        <div>
-          <h1 className="text-2xl sm:text-3xl font-bold">Dashboard</h1>
-          <p className="text-muted-foreground">
-            Welcome back! Here's an overview of your financial activity.
-          </p>
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl sm:text-3xl font-bold">Dashboard</h1>
+            <p className="text-muted-foreground">
+              Welcome back! Here's an overview of your financial activity.
+            </p>
+          </div>
+          
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setShowTutorial(true)}
+            className="flex items-center gap-2"
+          >
+            <PlayCircle className="h-4 w-4" />
+            Tutorial
+          </Button>
         </div>
 
         <DemoAccountBadge />
+
+        <DemoTutorial 
+          isOpen={showTutorial} 
+          onClose={() => setShowTutorial(false)} 
+        />
 
         <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
           <TabsList className="grid w-full grid-cols-2 sm:grid-cols-5 h-auto">
