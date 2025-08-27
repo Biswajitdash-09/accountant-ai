@@ -1,4 +1,3 @@
-
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
@@ -54,10 +53,10 @@ serve(async (req) => {
       );
     }
 
-    // Get the voice entry
-    const { data: entry, error: fetchError } = await supabase
+    // Get the voice entry and verify ownership
+    const { data: entry, error: fetchError } = await serviceSupabase
       .from('voice_entries')
-      .select('*')
+      .select('user_id, storage_path')
       .eq('id', entry_id)
       .single();
 
@@ -68,16 +67,24 @@ serve(async (req) => {
         { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
+    
+    if (entry.user_id !== user.id) {
+      console.log(`Access denied: user ${user.id} tried to access voice entry ${entry_id} owned by ${entry.user_id}`);
+      return new Response(
+        JSON.stringify({ error: 'Access denied: Voice entry not owned by user' }), 
+        { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
 
     // Update status to processing
-    await supabase
+    await serviceSupabase
       .from('voice_entries')
       .update({ status: 'processing' })
       .eq('id', entry_id);
 
     try {
       // Get signed URL for the audio file
-      const { data: signedUrlData } = await supabase.storage
+      const { data: signedUrlData } = await serviceSupabase.storage
         .from('voice')
         .createSignedUrl(entry.storage_path, 3600);
 
@@ -96,7 +103,7 @@ serve(async (req) => {
       const parsed = await enhancedTransactionParsing(transcript);
 
       // Update voice entry with results
-      await supabase
+      await serviceSupabase
         .from('voice_entries')
         .update({
           status: 'done',
@@ -108,10 +115,10 @@ serve(async (req) => {
 
       // Create transaction if parsing was successful and confidence is high
       if (parsed && parsed.amount && parsed.confidence >= 0.7) {
-        const { error: txnError } = await supabase
+        const { error: txnError } = await serviceSupabase
           .from('transactions')
           .insert({
-            user_id: entry.user_id,
+            user_id: user.id,
             amount: parsed.amount,
             currency: parsed.currency || 'INR',
             category: parsed.category || 'Other',
@@ -126,7 +133,12 @@ serve(async (req) => {
       }
 
       return new Response(
-        JSON.stringify({ success: true, transcript, parsed }),
+        JSON.stringify({ 
+          success: true, 
+          message: 'Voice processing completed',
+          entry_id,
+          confidence: parsed?.confidence || 0
+        }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
 
