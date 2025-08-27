@@ -162,16 +162,16 @@ const MobileAIAssistant = () => {
                   Quick prompts to get started:
                 </p>
                 <div className="grid grid-cols-1 gap-2">
-                  {promptButtons.map((prompt, index) => (
-                    <Button
-                      key={index}
-                      variant="outline"
-                      className="h-auto p-3 text-left justify-start text-sm text-wrap"
-                      onClick={() => handlePromptClick(prompt)}
-                    >
-                      {prompt}
-                    </Button>
-                  ))}
+                   {promptButtons.map((prompt, index) => (
+                     <Button
+                       key={index}
+                       variant="outline"
+                       className="h-auto p-3 text-left justify-start text-sm text-wrap min-h-[44px] touch-manipulation"
+                       onClick={() => handlePromptClick(prompt)}
+                     >
+                       {prompt}
+                     </Button>
+                   ))}
                 </div>
               </div>
 
@@ -255,9 +255,9 @@ const MobileAIAssistant = () => {
           <div className="space-y-3">
             <div className="flex items-center justify-between">
               <h3 className="text-base font-semibold">Smart Insights (4)</h3>
-              <Button variant="outline" size="sm" className="text-xs">
-                Refresh Insights
-              </Button>
+               <Button variant="outline" size="sm" className="text-xs min-h-[36px] min-w-[80px] touch-manipulation">
+                 Refresh Insights
+               </Button>
             </div>
 
             {/* Insight Cards */}

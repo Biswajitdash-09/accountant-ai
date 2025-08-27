@@ -97,13 +97,13 @@ const FinancialGoalsManager = () => {
     );
   }
 
-  const getPriorityColor = (priority: string) => {
+  const getPriorityVariant = (priority: string) => {
     switch (priority) {
-      case 'critical': return 'bg-red-500';
-      case 'high': return 'bg-orange-500';
-      case 'medium': return 'bg-yellow-500';
-      case 'low': return 'bg-green-500';
-      default: return 'bg-gray-500';
+      case 'critical': return 'destructive';
+      case 'high': return 'destructive';
+      case 'medium': return 'default';
+      case 'low': return 'secondary';
+      default: return 'outline';
     }
   };
 
@@ -160,9 +160,9 @@ const FinancialGoalsManager = () => {
                 const progress = goal.target_amount > 0 ? (goal.current_amount / goal.target_amount) * 100 : 0;
                 const isAchieved = progress >= 100 || goal.is_achieved;
                 
-                return (
-                  <Card key={goal.id} className={`transition-all hover:shadow-md ${isAchieved ? 'bg-green-50 border-green-200' : ''}`}>
-                    <CardContent className="p-4">
+                 return (
+                   <Card key={goal.id} className={`transition-all hover:shadow-md ${isAchieved ? 'bg-success/5 border-success/20 dark:bg-success/10 dark:border-success/30' : ''}`}>
+                     <CardContent className="p-4 overflow-hidden">
                       <div className="space-y-3">
                         {/* Header - goal name and actions */}
                         <div className="flex items-start justify-between gap-3">
@@ -191,19 +191,19 @@ const FinancialGoalsManager = () => {
                         </div>
                         
                         {/* Badges row */}
-                        <div className="flex items-center gap-2 flex-wrap">
-                          <Badge 
-                            variant="outline" 
-                            className={`text-xs ${getPriorityColor(goal.priority)} text-white border-none`}
-                          >
-                            {goal.priority}
-                          </Badge>
-                          {isAchieved && (
-                            <Badge variant="default" className="bg-green-500 text-xs">
-                              Achieved!
-                            </Badge>
-                          )}
-                        </div>
+                         <div className="flex items-center gap-2 flex-wrap">
+                           <Badge 
+                             variant={getPriorityVariant(goal.priority)}
+                             className="text-xs"
+                           >
+                             {goal.priority}
+                           </Badge>
+                           {isAchieved && (
+                             <Badge variant="default" className="bg-success text-success-foreground text-xs">
+                               Achieved!
+                             </Badge>
+                           )}
+                         </div>
                       </div>
                       
                       {goal.description && (
