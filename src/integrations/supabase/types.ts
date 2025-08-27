@@ -2439,7 +2439,6 @@ export type Database = {
           id: string | null
           ip_address: unknown | null
           last_active: string | null
-          session_token: string | null
           user_agent: string | null
           user_id: string | null
         }
@@ -2449,7 +2448,6 @@ export type Database = {
           id?: string | null
           ip_address?: unknown | null
           last_active?: string | null
-          session_token?: never
           user_agent?: string | null
           user_id?: string | null
         }
@@ -2459,7 +2457,6 @@ export type Database = {
           id?: string | null
           ip_address?: unknown | null
           last_active?: string | null
-          session_token?: never
           user_agent?: string | null
           user_id?: string | null
         }
