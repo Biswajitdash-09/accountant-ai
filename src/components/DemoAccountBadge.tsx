@@ -24,13 +24,13 @@ const DemoAccountBadge = ({ variant = 'default', showExitButton = false }: DemoA
   }
 
   return (
-    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 p-3 sm:p-4 bg-orange-50 border border-orange-200 rounded-lg">
-      <div className="flex items-center gap-2">
-        <AlertTriangle className="h-4 w-4 text-orange-600 shrink-0" />
+    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 p-3 sm:p-4 bg-gradient-to-r from-orange-50 to-amber-50 border border-orange-200 rounded-lg shadow-sm">
+      <div className="flex items-center gap-3">
+        <AlertTriangle className="h-5 w-5 text-orange-600 shrink-0" />
         <div>
-          <p className="text-sm font-medium text-orange-800">Demo Account</p>
+          <p className="text-sm font-semibold text-orange-800">You are using Demo Mode</p>
           <p className="text-xs text-orange-700">
-            You're exploring with sample data. Sign up to save your actual data.
+            Your data will not be saved permanently. <span className="font-medium">Sign up to keep your records.</span>
           </p>
         </div>
       </div>
@@ -39,10 +39,10 @@ const DemoAccountBadge = ({ variant = 'default', showExitButton = false }: DemoA
           variant="outline"
           size="sm"
           onClick={exitDemoMode}
-          className="border-orange-300 text-orange-700 hover:bg-orange-100 text-xs sm:text-sm min-h-[32px] shrink-0"
+          className="border-orange-300 text-orange-700 hover:bg-orange-100 text-xs sm:text-sm min-h-[32px] shrink-0 font-medium"
         >
           <LogOut className="h-3 w-3 mr-1" />
-          Exit Demo
+          Sign Up
         </Button>
       )}
     </div>

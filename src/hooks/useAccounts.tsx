@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/components/ui/use-toast";
 import { useEffect } from "react";
+import { useDemoAwareData } from "./useDemoAwareData";
 
 export interface Account {
   id: string;
@@ -20,10 +21,11 @@ export const useAccounts = () => {
   const { user } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { isDemo, showDemoSavePrompt, getAccountsData } = useDemoAwareData();
 
-  // Set up real-time subscription
+  // Set up real-time subscription only for authenticated users
   useEffect(() => {
-    if (!user) return;
+    if (!user || isDemo) return;
 
     const channel = supabase
       .channel('accounts-changes')
@@ -44,7 +46,7 @@ export const useAccounts = () => {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [user, queryClient]);
+  }, [user, queryClient, isDemo]);
 
   const {
     data: accounts = [],
@@ -53,6 +55,11 @@ export const useAccounts = () => {
   } = useQuery({
     queryKey: ['accounts'],
     queryFn: async () => {
+      // Return demo data if in demo mode
+      if (isDemo) {
+        return getAccountsData();
+      }
+
       if (!user) return [];
       
       const { data, error } = await supabase
@@ -64,11 +71,17 @@ export const useAccounts = () => {
       if (error) throw error;
       return data as Account[];
     },
-    enabled: !!user,
+    enabled: !!(user || isDemo),
   });
 
   const createAccount = useMutation({
     mutationFn: async (newAccount: Omit<Account, 'id' | 'user_id' | 'created_at' | 'updated_at'>) => {
+      if (isDemo) {
+        showDemoSavePrompt();
+        // Simulate success for demo
+        return { id: `demo-${Date.now()}`, ...newAccount, user_id: 'demo', created_at: new Date().toISOString() };
+      }
+
       if (!user) throw new Error('User not authenticated');
 
       const { data, error } = await supabase
@@ -81,24 +94,33 @@ export const useAccounts = () => {
       return data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['accounts'] });
+      if (!isDemo) {
+        queryClient.invalidateQueries({ queryKey: ['accounts'] });
+      }
       toast({
         title: "Success",
         description: "Account created successfully",
       });
     },
     onError: (error) => {
-      toast({
-        title: "Error",
-        description: "Failed to create account",
-        variant: "destructive",
-      });
-      console.error('Create account error:', error);
+      if (!isDemo) {
+        toast({
+          title: "Error",
+          description: "Failed to create account",
+          variant: "destructive",
+        });
+        console.error('Create account error:', error);
+      }
     },
   });
 
   const updateAccount = useMutation({
     mutationFn: async ({ id, ...updates }: Partial<Account> & { id: string }) => {
+      if (isDemo) {
+        showDemoSavePrompt();
+        return { id, ...updates };
+      }
+
       const { data, error } = await supabase
         .from('accounts')
         .update(updates)
@@ -110,23 +132,32 @@ export const useAccounts = () => {
       return data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['accounts'] });
+      if (!isDemo) {
+        queryClient.invalidateQueries({ queryKey: ['accounts'] });
+      }
       toast({
         title: "Success",
         description: "Account updated successfully",
       });
     },
     onError: () => {
-      toast({
-        title: "Error",
-        description: "Failed to update account",
-        variant: "destructive",
-      });
+      if (!isDemo) {
+        toast({
+          title: "Error",
+          description: "Failed to update account",
+          variant: "destructive",
+        });
+      }
     },
   });
 
   const deleteAccount = useMutation({
     mutationFn: async (id: string) => {
+      if (isDemo) {
+        showDemoSavePrompt();
+        return;
+      }
+
       const { error } = await supabase
         .from('accounts')
         .delete()
@@ -135,25 +166,29 @@ export const useAccounts = () => {
       if (error) throw error;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['accounts'] });
+      if (!isDemo) {
+        queryClient.invalidateQueries({ queryKey: ['accounts'] });
+      }
       toast({
         title: "Success",
         description: "Account deleted successfully",
       });
     },
     onError: () => {
-      toast({
-        title: "Error",
-        description: "Failed to delete account",
-        variant: "destructive",
-      });
+      if (!isDemo) {
+        toast({
+          title: "Error",
+          description: "Failed to delete account",
+          variant: "destructive",
+        });
+      }
     },
   });
 
   return {
     accounts,
-    isLoading,
-    error,
+    isLoading: isDemo ? false : isLoading,
+    error: isDemo ? null : error,
     createAccount,
     updateAccount,
     deleteAccount,
