@@ -1,1 +1,8 @@
 project_id = "erqisavlnwynkyfvnltb"
+
+# Edge function configurations for security
+[functions.stripe-webhook]
+verify_jwt = false  # Stripe calls without JWT
+
+[functions.send-chat-export]
+verify_jwt = true   # Require authentication
