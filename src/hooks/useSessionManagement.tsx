@@ -42,10 +42,11 @@ export const useSessionManagement = () => {
     queryFn: async () => {
       if (!user) return [];
       
-      // Use secure view that excludes sensitive session tokens
+      // Query base table but only select non-sensitive columns
       const { data, error } = await supabase
-        .from('user_sessions_secure')
+        .from('user_sessions')
         .select('id, user_id, ip_address, created_at, last_active, expires_at, user_agent')
+        .eq('user_id', user.id)
         .gt('expires_at', new Date().toISOString())
         .order('last_active', { ascending: false });
 
