@@ -44,8 +44,62 @@ serve(async (req) => {
     const cashfreeSecretKey = Deno.env.get("CASHFREE_SECRET_KEY");
     const cashfreeEnvironment = Deno.env.get("CASHFREE_ENVIRONMENT") || "sandbox"; // sandbox or production
     
+    // For testing without credentials, return mock response
     if (!cashfreeAppId || !cashfreeSecretKey) {
-      throw new Error("Cashfree credentials not configured");
+      logStep("TESTING MODE: Cashfree credentials not configured, returning mock response");
+      
+      const orderId = `mock_order_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      
+      // Store mock payment record in Supabase
+      const supabaseService = createClient(
+        Deno.env.get("SUPABASE_URL") ?? "",
+        Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "",
+        { auth: { persistSession: false } }
+      );
+
+      const { data: paymentData, error: paymentError } = await supabaseService
+        .from('payments')
+        .insert({
+          user_id: user.id,
+          amount: parseFloat(amount),
+          currency: currency,
+          status: 'pending',
+          plan_id: planId,
+          payment_method: 'upi',
+          provider: 'cashfree',
+          provider_order_id: orderId,
+          provider_session_id: `mock_session_${orderId}`,
+          payment_link: `https://test.cashfree.com/mock-payment/${orderId}`,
+          metadata: {
+            mock_payment: true,
+            customer_details: {
+              customer_id: user.id,
+              customer_name: user.user_metadata?.full_name || user.email.split('@')[0],
+              customer_email: user.email,
+              customer_phone: user.user_metadata?.phone || "9999999999"
+            }
+          }
+        })
+        .select()
+        .single();
+
+      if (paymentError) {
+        logStep("ERROR: Failed to store mock payment record", paymentError);
+        throw new Error(`Failed to store payment: ${paymentError.message}`);
+      }
+
+      logStep("Mock payment record stored", { paymentId: paymentData.id });
+
+      return new Response(JSON.stringify({
+        success: true,
+        orderId: orderId,
+        paymentLink: `https://test.cashfree.com/mock-payment/${orderId}`,
+        sessionToken: `mock_session_${orderId}`,
+        isMock: true
+      }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 200,
+      });
     }
 
     // Generate unique order ID
