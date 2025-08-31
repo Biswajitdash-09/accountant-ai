@@ -225,6 +225,92 @@ export type Database = {
           },
         ]
       }
+      barcode_scans: {
+        Row: {
+          confidence: number | null
+          created_at: string | null
+          id: string
+          parsed_data: Json
+          raw_content: string
+          scan_type: string
+          status: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          confidence?: number | null
+          created_at?: string | null
+          id?: string
+          parsed_data?: Json
+          raw_content: string
+          scan_type: string
+          status?: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          confidence?: number | null
+          created_at?: string | null
+          id?: string
+          parsed_data?: Json
+          raw_content?: string
+          scan_type?: string
+          status?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      barcode_spreadsheets: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          headers: Json
+          id: string
+          is_active: boolean
+          rows: Json
+          source_scan_id: string | null
+          title: string
+          updated_at: string | null
+          user_id: string
+          version: number
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          headers?: Json
+          id?: string
+          is_active?: boolean
+          rows?: Json
+          source_scan_id?: string | null
+          title: string
+          updated_at?: string | null
+          user_id: string
+          version?: number
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          headers?: Json
+          id?: string
+          is_active?: boolean
+          rows?: Json
+          source_scan_id?: string | null
+          title?: string
+          updated_at?: string | null
+          user_id?: string
+          version?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "barcode_spreadsheets_source_scan_id_fkey"
+            columns: ["source_scan_id"]
+            isOneToOne: false
+            referencedRelation: "barcode_scans"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       budget_templates: {
         Row: {
           budget_period: string
@@ -1043,6 +1129,36 @@ export type Database = {
         }
         Relationships: []
       }
+      payment_webhook_logs: {
+        Row: {
+          id: string
+          payload: Json
+          provider: string
+          raw_headers: Json
+          received_at: string
+          signature: string | null
+          status: string
+        }
+        Insert: {
+          id?: string
+          payload?: Json
+          provider: string
+          raw_headers?: Json
+          received_at?: string
+          signature?: string | null
+          status?: string
+        }
+        Update: {
+          id?: string
+          payload?: Json
+          provider?: string
+          raw_headers?: Json
+          received_at?: string
+          signature?: string | null
+          status?: string
+        }
+        Relationships: []
+      }
       payments: {
         Row: {
           amount: number
@@ -1052,13 +1168,19 @@ export type Database = {
           failure_reason: string | null
           id: string
           metadata: Json | null
+          payment_link: string | null
           payment_method: string | null
           plan_id: string
           plan_name: string | null
+          provider: string
+          provider_order_id: string | null
+          provider_payment_id: string | null
+          provider_session_id: string | null
           status: string
           stripe_payment_intent_id: string | null
           stripe_session_id: string | null
           updated_at: string
+          upi_vpa: string | null
           user_id: string
         }
         Insert: {
@@ -1069,13 +1191,19 @@ export type Database = {
           failure_reason?: string | null
           id?: string
           metadata?: Json | null
+          payment_link?: string | null
           payment_method?: string | null
           plan_id: string
           plan_name?: string | null
+          provider?: string
+          provider_order_id?: string | null
+          provider_payment_id?: string | null
+          provider_session_id?: string | null
           status?: string
           stripe_payment_intent_id?: string | null
           stripe_session_id?: string | null
           updated_at?: string
+          upi_vpa?: string | null
           user_id: string
         }
         Update: {
@@ -1086,13 +1214,19 @@ export type Database = {
           failure_reason?: string | null
           id?: string
           metadata?: Json | null
+          payment_link?: string | null
           payment_method?: string | null
           plan_id?: string
           plan_name?: string | null
+          provider?: string
+          provider_order_id?: string | null
+          provider_payment_id?: string | null
+          provider_session_id?: string | null
           status?: string
           stripe_payment_intent_id?: string | null
           stripe_session_id?: string | null
           updated_at?: string
+          upi_vpa?: string | null
           user_id?: string
         }
         Relationships: []
