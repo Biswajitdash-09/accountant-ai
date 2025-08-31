@@ -18,6 +18,21 @@ export interface BarcodeSpreadsheet {
   updated_at: string;
 }
 
+// Type for the raw database response
+interface BarcodeSpreadsheetRaw {
+  id: string;
+  user_id: string;
+  title: string;
+  description?: string;
+  headers: any;
+  rows: any;
+  source_scan_id?: string;
+  version: number;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
 export const useBarcodeSpreadsheets = () => {
   const { user } = useAuth();
   const { toast } = useToast();
@@ -40,7 +55,11 @@ export const useBarcodeSpreadsheets = () => {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      return data as BarcodeSpreadsheet[];
+      return (data as BarcodeSpreadsheetRaw[]).map(item => ({
+        ...item,
+        headers: Array.isArray(item.headers) ? item.headers : [],
+        rows: Array.isArray(item.rows) ? item.rows : []
+      })) as BarcodeSpreadsheet[];
     },
     enabled: !!user,
   });
@@ -96,7 +115,12 @@ export const useBarcodeSpreadsheets = () => {
         .single();
 
       if (error) throw error;
-      return data;
+      const rawData = data as BarcodeSpreadsheetRaw;
+      return {
+        ...rawData,
+        headers: Array.isArray(rawData.headers) ? rawData.headers : [],
+        rows: Array.isArray(rawData.rows) ? rawData.rows : []
+      } as BarcodeSpreadsheet;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['barcode_spreadsheets'] });

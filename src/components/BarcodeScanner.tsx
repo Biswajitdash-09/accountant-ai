@@ -8,7 +8,7 @@ import { motion } from 'framer-motion';
 import { useToast } from '@/components/ui/use-toast';
 import { useBarcodeScans } from '@/hooks/useBarcodeScans';
 import { useBarcodeSpreadsheets } from '@/hooks/useBarcodeSpreadsheets';
-import { BrowserBarcodeReader } from '@zxing/browser';
+import { BrowserMultiFormatReader } from '@zxing/browser';
 import { BarcodeFormat } from '@zxing/library';
 
 interface BarcodeScannerProps {
@@ -23,15 +23,10 @@ const BarcodeScanner: React.FC<BarcodeScannerProps> = ({ onScanComplete }) => {
   const { createScan } = useBarcodeScans();
   const { createSpreadsheet } = useBarcodeSpreadsheets();
   const videoRef = useRef<HTMLVideoElement>(null);
-  const readerRef = useRef<BrowserBarcodeReader>();
+  const readerRef = useRef<BrowserMultiFormatReader>();
 
   useEffect(() => {
-    readerRef.current = new BrowserBarcodeReader();
-    return () => {
-      if (readerRef.current) {
-        readerRef.current.reset();
-      }
-    };
+    readerRef.current = new BrowserMultiFormatReader();
   }, []);
 
   const startScanning = async () => {
@@ -53,7 +48,7 @@ const BarcodeScanner: React.FC<BarcodeScannerProps> = ({ onScanComplete }) => {
     } catch (error) {
       console.error('Scanning error:', error);
       toast({
-        title: "Scanning Error",
+        title: "Scanning Error",  
         description: "Failed to scan barcode. Please try again.",
         variant: "destructive",
       });
@@ -63,9 +58,6 @@ const BarcodeScanner: React.FC<BarcodeScannerProps> = ({ onScanComplete }) => {
   };
 
   const stopScanning = () => {
-    if (readerRef.current) {
-      readerRef.current.reset();
-    }
     setIsScanning(false);
   };
 
