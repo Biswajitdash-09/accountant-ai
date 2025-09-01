@@ -27,6 +27,7 @@ import Privacy from "./pages/Privacy";
 import Terms from "./pages/Terms";
 import Cookies from "./pages/Cookies";
 import NotFound from "./pages/NotFound";
+import BarcodeManager from "./pages/BarcodeManager";
 import "./App.css";
 
 function App() {
@@ -146,6 +147,13 @@ function App() {
           <ProtectedRoute>
             <Layout>
               <Notifications />
+            </Layout>
+          </ProtectedRoute>
+        } />
+        <Route path="/barcode" element={
+          <ProtectedRoute>
+            <Layout>
+              <BarcodeManager />
             </Layout>
           </ProtectedRoute>
         } />

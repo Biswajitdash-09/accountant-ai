@@ -22,6 +22,7 @@ import {
   ChevronRight,
   Dot,
   CreditCard,
+  QrCode,
 } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
@@ -138,6 +139,12 @@ const Sidebar = ({ isCollapsed, onToggle, isMobileOpen = false, onMobileToggle }
           label: "Markets",
           icon: TrendingUp,
           badge: null,
+        },
+        {
+          href: "/barcode",
+          label: "Barcode & QR",
+          icon: QrCode,
+          badge: "New",
         },
         {
           href: "/performance",
