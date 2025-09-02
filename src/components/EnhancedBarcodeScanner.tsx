@@ -71,87 +71,156 @@ const EnhancedBarcodeScanner: React.FC<EnhancedBarcodeScannerProps> = ({
 
   // Initialize scanner
   useEffect(() => {
-    readerRef.current = new BrowserMultiFormatReader();
-    
-    // Set up supported formats
-    const hints = new Map();
-    hints.set(2, [
-      BarcodeFormat.QR_CODE,
-      BarcodeFormat.DATA_MATRIX,
-      BarcodeFormat.AZTEC,
-      BarcodeFormat.PDF_417,
-      BarcodeFormat.CODE_39,
-      BarcodeFormat.CODE_93,
-      BarcodeFormat.CODE_128,
-      BarcodeFormat.EAN_8,
-      BarcodeFormat.EAN_13,
-      BarcodeFormat.UPC_A,
-      BarcodeFormat.UPC_E,
-      BarcodeFormat.ITF,
-      BarcodeFormat.CODABAR
-    ]);
-    
-    readerRef.current.setHints(hints);
+    const initializeScanner = async () => {
+      try {
+        readerRef.current = new BrowserMultiFormatReader();
+        
+        // Set up supported formats for better detection
+        const hints = new Map();
+        hints.set(2, [
+          BarcodeFormat.QR_CODE,
+          BarcodeFormat.DATA_MATRIX,
+          BarcodeFormat.AZTEC,
+          BarcodeFormat.PDF_417,
+          BarcodeFormat.CODE_39,
+          BarcodeFormat.CODE_93,
+          BarcodeFormat.CODE_128,
+          BarcodeFormat.EAN_8,
+          BarcodeFormat.EAN_13,
+          BarcodeFormat.UPC_A,
+          BarcodeFormat.UPC_E,
+          BarcodeFormat.ITF,
+          BarcodeFormat.CODABAR
+        ]);
+        
+        readerRef.current.setHints(hints);
 
-    // Check camera permissions
-    navigator.permissions?.query({ name: 'camera' as PermissionName })
-      .then(result => {
-        setHasPermission(result.state === 'granted');
-        result.onchange = () => setHasPermission(result.state === 'granted');
-      })
-      .catch(() => setHasPermission(null));
+        // Request camera permissions immediately
+        try {
+          const stream = await navigator.mediaDevices.getUserMedia({ 
+            video: { 
+              facingMode: 'environment',
+              width: { ideal: 1920 },
+              height: { ideal: 1080 }
+            } 
+          });
+          setHasPermission(true);
+          console.log('✅ Camera permission granted');
+          
+          // Stop the stream immediately, we'll start it again when needed
+          stream.getTracks().forEach(track => track.stop());
+        } catch (error) {
+          console.warn('Camera permission denied or not available:', error);
+          setHasPermission(false);
+        }
+      } catch (error) {
+        console.error('Scanner initialization failed:', error);
+      }
+    };
+
+    initializeScanner();
 
     return () => {
       if (scanningControlsRef.current) {
         scanningControlsRef.current.stop();
+        scanningControlsRef.current = null;
       }
     };
   }, []);
 
+  // Auto-start camera when switching to camera mode
+  useEffect(() => {
+    if (activeMode === 'camera' && hasPermission === true && !isScanning && readerRef.current) {
+      console.log('🚀 Auto-starting camera for instant scanning...');
+      // Small delay to ensure video element is ready
+      const timer = setTimeout(() => {
+        if (videoRef.current && !isScanning) {
+          startCameraScanning();
+        }
+      }, 300);
+      
+      return () => clearTimeout(timer);
+    }
+  }, [activeMode, hasPermission]);
+
   // Camera scanning functions
   const startCameraScanning = async () => {
     try {
-      if (!readerRef.current || !videoRef.current) return;
+      if (!readerRef.current || !videoRef.current) {
+        console.error('Scanner or video element not ready');
+        return;
+      }
 
+      console.log('Starting camera scanning...');
       setIsScanning(true);
       setProgress(0);
 
-      // Start continuous scanning
+      // Clear any existing scanning session
+      if (scanningControlsRef.current) {
+        scanningControlsRef.current.stop();
+        scanningControlsRef.current = null;
+      }
+
+      // Start continuous scanning with optimized settings
       scanningControlsRef.current = await readerRef.current.decodeFromVideoDevice(
-        undefined,
+        undefined, // Use default camera (back camera on mobile)
         videoRef.current,
         (result, error) => {
           if (result) {
             const scannedText = result.getText();
             const format = result.getBarcodeFormat();
-            console.log('Code detected:', { text: scannedText, format });
+            console.log('✅ Code detected instantly:', { 
+              text: scannedText, 
+              format: format?.toString(),
+              type: detectCodeType(scannedText, format)
+            });
             
+            // Process immediately without stopping
             handleScanResult(scannedText, format);
-            stopScanning();
+            
+            // Auto-stop after successful scan
+            setTimeout(() => {
+              stopScanning();
+            }, 500);
           }
           
-          if (error && error.name !== 'NotFoundException') {
-            console.error('Scanning error:', error);
+          // Only log actual errors, not normal "not found" messages
+          if (error && error.name !== 'NotFoundException' && error.name !== 'ChecksumException') {
+            console.warn('Scanning error:', error.name, error.message);
           }
         }
       );
 
+      console.log('✅ Camera started successfully');
       setHasPermission(true);
+      
     } catch (error: any) {
-      console.error('Failed to start scanning:', error);
+      console.error('❌ Failed to start camera scanning:', error);
       setIsScanning(false);
       
-      if (error.name === 'NotAllowedError') {
+      if (error.name === 'NotAllowedError' || error.name === 'PermissionDeniedError') {
         setHasPermission(false);
         toast({
-          title: "Camera Permission Denied",
-          description: "Please allow camera access to scan codes.",
+          title: "Camera Access Denied",
+          description: "Please allow camera permission and refresh the page.",
+          variant: "destructive",
+        });
+      } else if (error.name === 'NotFoundError') {
+        toast({
+          title: "No Camera Found",
+          description: "No camera device was found on your device.",
+          variant: "destructive",
+        });
+      } else if (error.name === 'NotReadableError') {
+        toast({
+          title: "Camera In Use",
+          description: "Camera is being used by another application.",
           variant: "destructive",
         });
       } else {
         toast({
-          title: "Camera Error",
-          description: "Failed to access camera. Please try again.",
+          title: "Camera Error", 
+          description: `Failed to start camera: ${error.message}`,
           variant: "destructive",
         });
       }
@@ -159,9 +228,15 @@ const EnhancedBarcodeScanner: React.FC<EnhancedBarcodeScannerProps> = ({
   };
 
   const stopScanning = () => {
+    console.log('🛑 Stopping camera scanning...');
     if (scanningControlsRef.current) {
-      scanningControlsRef.current.stop();
-      scanningControlsRef.current = null;
+      try {
+        scanningControlsRef.current.stop();
+        scanningControlsRef.current = null;
+        console.log('✅ Camera stopped successfully');
+      } catch (error) {
+        console.error('Error stopping camera:', error);
+      }
     }
     setIsScanning(false);
     setProgress(0);
