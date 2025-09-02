@@ -19,14 +19,33 @@ const BarcodeScanner: React.FC<BarcodeScannerProps> = ({ onScanComplete }) => {
   const [isScanning, setIsScanning] = useState(false);
   const [scanType, setScanType] = useState<'receipt' | 'spreadsheet' | 'upi'>('receipt');
   const [lastResult, setLastResult] = useState<string>('');
+  const [hasPermission, setHasPermission] = useState<boolean | null>(null);
   const { toast } = useToast();
   const { createScan } = useBarcodeScans();
   const { createSpreadsheet } = useBarcodeSpreadsheets();
   const videoRef = useRef<HTMLVideoElement>(null);
   const readerRef = useRef<BrowserMultiFormatReader>();
+  const scanningControlsRef = useRef<any>();
 
   useEffect(() => {
     readerRef.current = new BrowserMultiFormatReader();
+    
+    // Check camera permissions
+    navigator.permissions?.query({ name: 'camera' as PermissionName })
+      .then(result => {
+        setHasPermission(result.state === 'granted');
+        result.onchange = () => setHasPermission(result.state === 'granted');
+      })
+      .catch(() => {
+        // Permissions API not supported, assume we need to request
+        setHasPermission(null);
+      });
+
+    return () => {
+      if (scanningControlsRef.current) {
+        scanningControlsRef.current.stop();
+      }
+    };
   }, []);
 
   const startScanning = async () => {
@@ -34,30 +53,56 @@ const BarcodeScanner: React.FC<BarcodeScannerProps> = ({ onScanComplete }) => {
       if (!readerRef.current || !videoRef.current) return;
 
       setIsScanning(true);
-      
-      const result = await readerRef.current.decodeOnceFromVideoDevice(
-        undefined,
-        videoRef.current
+      setHasPermission(null);
+
+      // Start continuous scanning
+      scanningControlsRef.current = await readerRef.current.decodeFromVideoDevice(
+        undefined, // Use default camera
+        videoRef.current,
+        (result, error) => {
+          if (result) {
+            const scannedText = result.getText();
+            console.log('QR Code detected:', scannedText);
+            setLastResult(scannedText);
+            processScanResult(scannedText);
+            
+            // Stop scanning after successful read
+            stopScanning();
+          }
+          
+          if (error && error.name !== 'NotFoundException') {
+            console.error('Scanning error:', error);
+          }
+        }
       );
 
-      if (result) {
-        const scannedText = result.getText();
-        setLastResult(scannedText);
-        await processScanResult(scannedText);
-      }
-    } catch (error) {
-      console.error('Scanning error:', error);
-      toast({
-        title: "Scanning Error",  
-        description: "Failed to scan barcode. Please try again.",
-        variant: "destructive",
-      });
-    } finally {
+      setHasPermission(true);
+    } catch (error: any) {
+      console.error('Failed to start scanning:', error);
       setIsScanning(false);
+      
+      if (error.name === 'NotAllowedError' || error.name === 'PermissionDeniedError') {
+        setHasPermission(false);
+        toast({
+          title: "Camera Permission Denied",
+          description: "Please allow camera access to scan QR codes.",
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Camera Error",
+          description: "Failed to access camera. Please try again.",
+          variant: "destructive",
+        });
+      }
     }
   };
 
   const stopScanning = () => {
+    if (scanningControlsRef.current) {
+      scanningControlsRef.current.stop();
+      scanningControlsRef.current = null;
+    }
     setIsScanning(false);
   };
 
@@ -236,6 +281,29 @@ const BarcodeScanner: React.FC<BarcodeScannerProps> = ({ onScanComplete }) => {
               <div className="text-center space-y-2">
                 <Camera className="h-12 w-12 mx-auto text-gray-400" />
                 <p className="text-sm text-gray-500">Camera preview will appear here</p>
+                {hasPermission === false && (
+                  <div className="mt-3 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
+                    <p className="text-sm text-red-600 dark:text-red-400">
+                      Camera permission is required to scan QR codes.
+                      Please allow camera access and try again.
+                    </p>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+          
+          {isScanning && (
+            <div className="absolute inset-0 pointer-events-none">
+              {/* Scanning overlay */}
+              <div className="absolute inset-4 border-2 border-primary rounded-lg">
+                <div className="absolute top-0 left-0 w-6 h-6 border-t-4 border-l-4 border-primary"></div>
+                <div className="absolute top-0 right-0 w-6 h-6 border-t-4 border-r-4 border-primary"></div>
+                <div className="absolute bottom-0 left-0 w-6 h-6 border-b-4 border-l-4 border-primary"></div>
+                <div className="absolute bottom-0 right-0 w-6 h-6 border-b-4 border-r-4 border-primary"></div>
+              </div>
+              <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-black/70 text-white px-3 py-1 rounded text-sm">
+                Scanning for QR codes...
               </div>
             </div>
           )}
