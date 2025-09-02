@@ -6,3 +6,6 @@ verify_jwt = false  # Stripe calls without JWT
 
 [functions.send-chat-export]
 verify_jwt = true   # Require authentication
+
+[functions.process-ocr]
+verify_jwt = true   # Require authentication for OCR processing

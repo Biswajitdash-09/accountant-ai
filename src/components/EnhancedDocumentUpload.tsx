@@ -117,9 +117,16 @@ export const EnhancedDocumentUpload = () => {
         });
 
         if (processError) {
-          console.warn('OCR processing trigger failed:', processError);
-          throw new Error('Processing failed');
+          console.error('OCR processing trigger failed:', processError);
+          console.error('Error details:', {
+            message: processError.message,
+            context: processError.context,
+            details: processError.details
+          });
+          throw new Error(`Processing failed: ${processError.message || 'Unknown error'}`);
         }
+
+        console.log('OCR processing result:', processResult);
 
         // Update status to completed
         setFiles(prev => prev.map(f => 
