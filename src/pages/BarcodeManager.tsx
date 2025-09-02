@@ -2,36 +2,45 @@
 import React, { useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { QrCode, Table, History, Smartphone } from 'lucide-react';
-import BarcodeScanner from '@/components/BarcodeScanner';
+import { QrCode, Table, History, Smartphone, Package, Zap } from 'lucide-react';
+import EnhancedBarcodeScanner from '@/components/EnhancedBarcodeScanner';
 import SpreadsheetViewer from '@/components/SpreadsheetViewer';
 import { useBarcodeScans } from '@/hooks/useBarcodeScans';
 import { useBarcodeSpreadsheets } from '@/hooks/useBarcodeSpreadsheets';
+import { useProductLookup } from '@/hooks/useProductLookup';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 
 const BarcodeManager = () => {
   const [selectedSpreadsheet, setSelectedSpreadsheet] = useState(null);
+  const [recentScans, setRecentScans] = useState([]);
+  const [activeTab, setActiveTab] = useState('scanner');
   const { scans, isLoading: scansLoading } = useBarcodeScans();
   const { spreadsheets, isLoading: spreadsheetsLoading } = useBarcodeSpreadsheets();
+  const { isLoading: productLoading } = useProductLookup();
 
   return (
     <div className="container mx-auto px-4 py-8 space-y-8">
       <div>
         <h1 className="text-3xl font-bold mb-2 flex items-center gap-2">
-          <QrCode className="h-8 w-8 text-primary" />
-          Barcode & QR Manager
+          <Zap className="h-8 w-8 text-primary" />
+          AI-Powered Barcode & QR Manager
         </h1>
         <p className="text-muted-foreground">
-          Scan barcodes and QR codes to automatically extract receipt data, create spreadsheets, and process UPI payments.
+          Advanced scanning with OCR, product lookup, UPI payments, receipt processing, and spreadsheet generation. 
+          Supports both camera scanning and image uploads with AI-powered data extraction.
         </p>
       </div>
 
-      <Tabs defaultValue="scanner" className="w-full">
-        <TabsList className="grid w-full grid-cols-4">
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+        <TabsList className="grid w-full grid-cols-5">
           <TabsTrigger value="scanner" className="gap-2">
             <QrCode className="h-4 w-4" />
             Scanner
+          </TabsTrigger>
+          <TabsTrigger value="products" className="gap-2">
+            <Package className="h-4 w-4" />
+            Products
           </TabsTrigger>
           <TabsTrigger value="spreadsheets" className="gap-2">
             <Table className="h-4 w-4" />
@@ -39,7 +48,7 @@ const BarcodeManager = () => {
           </TabsTrigger>
           <TabsTrigger value="history" className="gap-2">
             <History className="h-4 w-4" />
-            Scan History
+            History
           </TabsTrigger>
           <TabsTrigger value="upi" className="gap-2">
             <Smartphone className="h-4 w-4" />
@@ -48,11 +57,47 @@ const BarcodeManager = () => {
         </TabsList>
 
         <TabsContent value="scanner" className="space-y-6">
-          <BarcodeScanner 
-            onScanComplete={(data) => {
-              console.log('Scan completed:', data);
+          <EnhancedBarcodeScanner 
+            onScanComplete={(result) => {
+              console.log('Scan completed:', result);
+              setRecentScans(prev => [result, ...prev.slice(0, 4)]);
             }}
           />
+        </TabsContent>
+
+        <TabsContent value="products" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>Product Barcode Lookup</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-center py-8">
+                <Package className="h-16 w-16 mx-auto text-primary mb-4" />
+                <h3 className="text-lg font-semibold mb-2">Product Database</h3>
+                <p className="text-muted-foreground mb-4">
+                  Scan product barcodes to get detailed information including:
+                </p>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-md mx-auto text-sm">
+                  <div className="space-y-2">
+                    <p>✓ Product Name & Brand</p>
+                    <p>✓ Category & Price</p>
+                    <p>✓ Availability Status</p>
+                  </div>
+                  <div className="space-y-2">
+                    <p>✓ Nutritional Information</p>
+                    <p>✓ Product Images</p>
+                    <p>✓ Store Availability</p>
+                  </div>
+                </div>
+                <Button 
+                  className="mt-4" 
+                  onClick={() => setActiveTab('scanner')}
+                >
+                  Start Product Scanning
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
         </TabsContent>
 
         <TabsContent value="spreadsheets" className="space-y-6">
