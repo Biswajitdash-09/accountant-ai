@@ -28,6 +28,7 @@ import Terms from "./pages/Terms";
 import Cookies from "./pages/Cookies";
 import NotFound from "./pages/NotFound";
 import BarcodeManager from "./pages/BarcodeManager";
+import ScanHistory from "./pages/ScanHistory";
 import "./App.css";
 
 function App() {
@@ -154,6 +155,13 @@ function App() {
           <ProtectedRoute>
             <Layout>
               <BarcodeManager />
+            </Layout>
+          </ProtectedRoute>
+        } />
+        <Route path="/scan-history" element={
+          <ProtectedRoute>
+            <Layout>
+              <ScanHistory />
             </Layout>
           </ProtectedRoute>
         } />

@@ -141,10 +141,10 @@ const Sidebar = ({ isCollapsed, onToggle, isMobileOpen = false, onMobileToggle }
           badge: null,
         },
         {
-          href: "/barcode",
-          label: "Barcode & QR",
+          href: "/scan-history",
+          label: "Scan History", 
           icon: QrCode,
-          badge: "New",
+          badge: null,
         },
         {
           href: "/performance",
