@@ -1,4 +1,4 @@
-import { createWorker, Worker as TesseractWorker, PSM } from 'tesseract.js';
+import { createWorker, Worker as TesseractWorker } from 'tesseract.js';
 
 let worker: TesseractWorker | null = null;
 let isInitialized = false;
@@ -21,7 +21,7 @@ const initWorker = async () => {
     // Configure for better receipt recognition
     await worker.setParameters({
       tessedit_char_whitelist: '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz.,:-/₹$€£¥ \n',
-      tessedit_pageseg_mode: '6', // Uniform block of text
+      tessedit_pageseg_mode: '6' as any, // Uniform block of text
       tessedit_ocr_engine_mode: '1', // LSTM only
     });
 
@@ -87,7 +87,7 @@ self.onmessage = async (event) => {
           // Configure for receipt-specific OCR
           await tesseractWorker.setParameters({
             tessedit_char_whitelist: '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz.,:-/₹$€£¥ \n()[]',
-            tessedit_pageseg_mode: '6', // Uniform block of text
+            tessedit_pageseg_mode: '6' as any, // Uniform block of text
             tessedit_ocr_engine_mode: '1', // LSTM only
           });
 
