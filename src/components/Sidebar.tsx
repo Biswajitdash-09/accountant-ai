@@ -129,6 +129,18 @@ const Sidebar = ({ isCollapsed, onToggle, isMobileOpen = false, onMobileToggle }
           badge: null,
         },
         {
+          href: "/barcode",
+          label: "Scanner",
+          icon: QrCode,
+          badge: "New",
+        },
+        {
+          href: "/scan-history",
+          label: "Scan History", 
+          icon: QrCode,
+          badge: null,
+        },
+        {
           href: "/assistant",
           label: "AI Assistant",
           icon: Bot,
@@ -138,12 +150,6 @@ const Sidebar = ({ isCollapsed, onToggle, isMobileOpen = false, onMobileToggle }
           href: "/markets",
           label: "Markets",
           icon: TrendingUp,
-          badge: null,
-        },
-        {
-          href: "/scan-history",
-          label: "Scan History", 
-          icon: QrCode,
           badge: null,
         },
         {
