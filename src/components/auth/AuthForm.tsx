@@ -6,7 +6,8 @@ import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { Loader2 } from "lucide-react";
+import { Loader2, User } from "lucide-react";
+import SavedCredentialsManager from "./SavedCredentialsManager";
 
 interface AuthFormProps {
   type: "login" | "signup";
@@ -151,20 +152,34 @@ const AuthForm = ({ type, isLoading, setIsLoading, onSuccess, onSwitchMode }: Au
   const handleSubmit = type === "login" ? handleLogin : handleSignUp;
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
-      {type === "signup" && (
-        <div className="space-y-2">
-          <Label htmlFor="fullName">Full Name</Label>
-          <Input
-            id="fullName"
-            placeholder="John Doe"
-            value={fullName}
-            onChange={(e) => setFullName(e.target.value)}
-            required
-            className="transition-all duration-200 focus:scale-[1.02]"
-          />
-        </div>
+    <div className="space-y-4">
+      {type === "login" && (
+        <SavedCredentialsManager
+          onCredentialSelect={(selectedEmail, selectedPassword) => {
+            setEmail(selectedEmail);
+            setPassword(selectedPassword);
+            setKeepLoggedIn(true);
+          }}
+          onAddCredential={(newEmail, newPassword, nickname) => {
+            // Credentials are already saved in SavedCredentialsManager
+          }}
+        />
       )}
+      
+      <form onSubmit={handleSubmit} className="space-y-4">
+        {type === "signup" && (
+          <div className="space-y-2">
+            <Label htmlFor="fullName">Full Name</Label>
+            <Input
+              id="fullName"
+              placeholder="John Doe"
+              value={fullName}
+              onChange={(e) => setFullName(e.target.value)}
+              required
+              className="transition-all duration-200 focus:scale-[1.02]"
+            />
+          </div>
+        )}
       
       <div className="space-y-2">
         <Label htmlFor={`${type}-email`}>Email</Label>
@@ -239,6 +254,7 @@ const AuthForm = ({ type, isLoading, setIsLoading, onSuccess, onSwitchMode }: Au
         )}
       </Button>
     </form>
+    </div>
   );
 };
 

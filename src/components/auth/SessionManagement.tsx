@@ -8,6 +8,7 @@ import { Separator } from '@/components/ui/separator';
 import { useToast } from '@/components/ui/use-toast';
 import { useSessionManagement } from '@/hooks/useSessionManagement';
 import { ChatHistoryExport } from '@/components/ChatHistoryExport';
+import BusinessDataExport from '@/components/BusinessDataExport';
 import { Smartphone, Monitor, Tablet } from 'lucide-react';
 import { format } from 'date-fns';
 
@@ -76,6 +77,9 @@ const SessionManagement = () => {
 
       {/* Chat History & Export */}
       <ChatHistoryExport />
+
+      {/* Business Data Export */}
+      <BusinessDataExport />
 
       {/* Active Sessions */}
       <Card>
