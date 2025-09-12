@@ -22,7 +22,7 @@ const AIChatbot = () => {
   const [messages, setMessages] = useState<Message[]>([
     {
       id: '1',
-      content: "Hi! I'm your AI accounting assistant powered by Gemini. I specialize in accounting tasks and bookkeeping. I can help you create financial statements, analyze documents, generate expense breakdowns, and check for errors in your books. This is an AI accounting assistant tool - it cannot provide financial advice or be held liable for financial decisions. How can I help with your accounting today?",
+      content: "Hi! I'm your comprehensive AI Financial Assistant powered by Gemini. I can help with:\n\n📊 **Budgeting & Forecasting** - Create budgets, predict cash flows, analyze spending patterns\n💼 **Business Advisory** - Strategic planning, market analysis, growth strategies\n🏛️ **Authority Liaison** - Tax compliance, regulatory guidance, institutional communication\n📋 **Business Plans** - Complete business plan creation, market research, financial projections\n💰 **Funding & Loans** - Grant applications, loan proposals, investor presentations\n📈 **Investment Advice** - Portfolio analysis, risk assessment, market insights\n💡 **Financial Management** - Optimization tips, cost reduction, revenue enhancement\n📚 **Accounting & Bookkeeping** - Financial statements, transaction analysis, compliance\n\nI provide both proactive insights and respond to your specific questions. How can I assist with your financial needs today?",
       role: 'assistant',
       timestamp: new Date()
     }
@@ -121,12 +121,18 @@ const AIChatbot = () => {
   };
 
   const quickPrompts = [
-    "From these figures, create a Profit & Loss sheet",
-    "Generate a pie chart breaking down my expenses",
-    "Cross-check my balance sheet for inconsistencies",
-    "Categorize these transactions by expense type",
-    "Create a cash flow statement from my data",
-    "Help me reconcile my bank statement"
+    "Create a comprehensive budget for my business",
+    "Generate 12-month cash flow forecast",
+    "Draft a business plan for my startup",
+    "Help me apply for a small business loan",
+    "Analyze my investment portfolio",
+    "Create tax optimization strategies",
+    "Generate expense reduction recommendations",
+    "Prepare financial projections for investors",
+    "Draft a grant application proposal",
+    "Analyze market opportunities in my industry",
+    "Create a debt management plan",
+    "Generate financial KPI dashboard"
   ];
 
   const handleQuickPrompt = (prompt: string) => {
@@ -164,7 +170,7 @@ const AIChatbot = () => {
     clearAllHistory();
     setMessages([{
       id: '1',
-      content: "Hi! I'm your AI accounting assistant powered by Gemini. I specialize in accounting tasks and bookkeeping. How can I help with your accounting today?",
+      content: "Hi! I'm your comprehensive AI Financial Assistant. I can help with budgeting, forecasting, business planning, investment advice, tax strategies, and much more. How can I assist you today?",
       role: 'assistant',
       timestamp: new Date()
     }]);
