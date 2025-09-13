@@ -1,7 +1,7 @@
 import React from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Brain, Mic, Scan, Lightbulb, MessageCircle, CreditCard } from "lucide-react";
+import { Brain, Mic, Scan, Lightbulb, MessageCircle, CreditCard, Gavel } from "lucide-react";
 import { motion } from "framer-motion";
 import VoiceExpenseEntry from "@/components/VoiceExpenseEntry";
 import SmartDocumentUpload from "@/components/SmartDocumentUpload";
@@ -10,6 +10,7 @@ import AIChatbot from "@/components/ai/AIChatbot";
 import BusinessPlanGenerator from "@/components/ai/BusinessPlanGenerator";
 import InvestmentAdvisor from "@/components/ai/InvestmentAdvisor";
 import BudgetForecastingTool from "@/components/ai/BudgetForecastingTool";
+import ForensicAnalyzer from "@/components/ai/ForensicAnalyzer";
 import PaymentGateway from "@/components/PaymentGateway";
 import MobileAIAssistant from "@/components/MobileAIAssistant";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -42,7 +43,7 @@ const AIAssistantPage = () => {
 
       {/* AI Features Tabs */}
       <Tabs defaultValue="chatbot" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-4 lg:grid-cols-8 max-w-6xl mx-auto h-auto p-1 gap-1">
+        <TabsList className="grid w-full grid-cols-4 lg:grid-cols-9 max-w-7xl mx-auto h-auto p-1 gap-1">
           <TabsTrigger 
             value="chatbot" 
             className="gap-1 text-xs py-2 px-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
@@ -70,6 +71,13 @@ const AIAssistantPage = () => {
           >
             <CreditCard className="h-4 w-4" />
             <span className="hidden sm:inline">Investment</span>
+          </TabsTrigger>
+          <TabsTrigger 
+            value="forensic" 
+            className="gap-1 text-xs py-2 px-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
+          >
+            <Gavel className="h-4 w-4" />
+            <span className="hidden sm:inline">Forensic</span>
           </TabsTrigger>
           <TabsTrigger 
             value="voice" 
@@ -115,6 +123,10 @@ const AIAssistantPage = () => {
 
         <TabsContent value="investment" className="space-y-6">
           <InvestmentAdvisor />
+        </TabsContent>
+
+        <TabsContent value="forensic" className="space-y-6">
+          <ForensicAnalyzer />
         </TabsContent>
 
         <TabsContent value="voice" className="space-y-6">
