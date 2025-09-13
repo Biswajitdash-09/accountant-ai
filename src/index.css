@@ -374,14 +374,16 @@
   
   /* Enhanced Mobile Utilities */
   .mobile-touch {
-    min-height: 44px;
-    min-width: 44px;
+    min-height: 48px;
+    min-width: 48px;
     touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
   }
   
   .mobile-scroll {
     -webkit-overflow-scrolling: touch;
     overscroll-behavior-y: contain;
+    scroll-behavior: smooth;
   }
   
   .mobile-card {
@@ -431,11 +433,17 @@
   .mobile-caption { font-size: clamp(0.75rem, 2vw, 0.875rem); }
   
   /* Mobile Spacing */
-  .mobile-px { padding-left: 1rem; padding-right: 1rem; }
-  .mobile-py { padding-top: 1rem; padding-bottom: 1rem; }
-  .mobile-gap { gap: 1rem; }
-  .mobile-gap-sm { gap: 0.75rem; }
-  .mobile-gap-lg { gap: 1.5rem; }
+  .mobile-px { 
+    padding-left: clamp(1rem, 4vw, 1.5rem); 
+    padding-right: clamp(1rem, 4vw, 1.5rem); 
+  }
+  .mobile-py { 
+    padding-top: clamp(0.75rem, 3vw, 1.25rem); 
+    padding-bottom: clamp(0.75rem, 3vw, 1.25rem); 
+  }
+  .mobile-gap { gap: clamp(0.75rem, 3vw, 1.25rem); }
+  .mobile-gap-sm { gap: clamp(0.5rem, 2vw, 0.875rem); }
+  .mobile-gap-lg { gap: clamp(1rem, 4vw, 1.75rem); }
   
   /* Mobile Grid */
   .mobile-grid-1 { grid-template-columns: 1fr; }

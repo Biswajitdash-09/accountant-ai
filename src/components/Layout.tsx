@@ -47,11 +47,11 @@ const Layout = ({ children }: LayoutProps) => {
 
   if (isMobile) {
     return (
-      <div className="min-h-screen bg-background w-full overflow-x-hidden">
+      <div className="min-h-screen bg-background w-full overflow-x-hidden relative">
         {/* Mobile Overlay */}
         {isMobileMenuOpen && (
           <div 
-            className="fixed inset-0 bg-black/50 z-40 transition-opacity duration-300"
+            className="fixed inset-0 bg-black/60 z-40 backdrop-blur-sm transition-all duration-300 animate-fade-in"
             onClick={() => setIsMobileMenuOpen(false)}
           />
         )}
@@ -68,20 +68,20 @@ const Layout = ({ children }: LayoutProps) => {
         <MobileHeader onMenuToggle={toggleMobileMenu} />
         
         {/* Main Content with Bottom Navigation Space */}
-        <main className="min-h-[calc(100vh-3.5rem)] pb-20 mobile-scroll">
+        <main className="min-h-[calc(100vh-4rem)] pb-24 mobile-scroll bg-background">
           {/* Demo Badge */}
-          <div className="mobile-px pt-4">
+          <div className="px-4 pt-6">
             <DemoAccountBadge showExitButton />
           </div>
           
           {/* Breadcrumbs - Hidden on mobile by default */}
-          <div className="mobile-px hidden sm:block">
+          <div className="px-4 hidden sm:block">
             <NavigationBreadcrumbs />
           </div>
           
           {/* Page Content */}
-          <div className="mobile-px pb-8">
-            <div className="max-w-7xl mx-auto w-full">
+          <div className="px-4 pb-8">
+            <div className="max-w-screen-xl mx-auto w-full">
               {children}
             </div>
           </div>
