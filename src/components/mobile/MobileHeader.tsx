@@ -7,10 +7,11 @@ import { useAuth } from '@/contexts/AuthContext';
 
 interface MobileHeaderProps {
   onMenuToggle: () => void;
+  onSearchToggle?: () => void;
   className?: string;
 }
 
-const MobileHeader = ({ onMenuToggle, className }: MobileHeaderProps) => {
+const MobileHeader = ({ onMenuToggle, onSearchToggle, className }: MobileHeaderProps) => {
   const { user } = useAuth();
 
   return (
@@ -51,6 +52,7 @@ const MobileHeader = ({ onMenuToggle, className }: MobileHeaderProps) => {
           <Button
             variant="ghost"
             size="sm"
+            onClick={onSearchToggle}
             className="mobile-touch p-3 h-12 w-12 rounded-xl touch-feedback hover:bg-accent/50 active:scale-95 transition-all duration-200"
             aria-label="Search"
           >

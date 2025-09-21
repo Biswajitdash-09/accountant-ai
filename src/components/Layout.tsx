@@ -8,6 +8,9 @@ import { NavigationBreadcrumbs } from "./Navigation/Breadcrumbs";
 import { useIsMobile } from "@/hooks/use-mobile-enhanced";
 import { cn } from "@/lib/utils";
 import DemoAccountBadge from "./DemoAccountBadge";
+import { GlobalSearch } from "@/components/advanced/GlobalSearch";
+import { useGlobalSearch } from "@/hooks/useGlobalSearch";
+import PWAEnhancements from "@/components/PWAEnhancements";
 
 interface LayoutProps {
   children: ReactNode;
@@ -17,6 +20,7 @@ const Layout = ({ children }: LayoutProps) => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const isMobile = useIsMobile();
+  const { isOpen: isSearchOpen, openSearch, closeSearch } = useGlobalSearch();
 
   // Close mobile menu when switching to desktop
   useEffect(() => {
@@ -65,12 +69,20 @@ const Layout = ({ children }: LayoutProps) => {
         />
 
         {/* Mobile Header */}
-        <MobileHeader onMenuToggle={toggleMobileMenu} />
+        <MobileHeader 
+          onMenuToggle={toggleMobileMenu}
+          onSearchToggle={openSearch}
+        />
         
         {/* Main Content with Bottom Navigation Space */}
         <main className="min-h-[calc(100vh-4rem)] pb-24 mobile-scroll bg-background">
+          {/* PWA Enhancements */}
+          <div className="px-4 pt-2">
+            <PWAEnhancements />
+          </div>
+          
           {/* Demo Badge */}
-          <div className="px-4 pt-6">
+          <div className="px-4 pt-4">
             <DemoAccountBadge showExitButton />
           </div>
           
@@ -89,6 +101,9 @@ const Layout = ({ children }: LayoutProps) => {
 
         {/* Mobile Bottom Navigation */}
         <MobileBottomNav />
+        
+        {/* Global Search */}
+        <GlobalSearch isOpen={isSearchOpen} onClose={closeSearch} />
       </div>
     );
   }
@@ -115,8 +130,13 @@ const Layout = ({ children }: LayoutProps) => {
         
         {/* Content Area */}
         <main className="flex-1 min-h-[calc(100vh-4rem)] max-w-full">
+          {/* PWA Enhancements */}
+          <div className="px-4 sm:px-6 lg:px-8 pt-2">
+            <PWAEnhancements />
+          </div>
+          
           {/* Demo Badge */}
-          <div className="px-4 sm:px-6 lg:px-8 pt-4">
+          <div className="px-4 sm:px-6 lg:px-8 pt-2">
             <DemoAccountBadge showExitButton />
           </div>
           
@@ -132,6 +152,9 @@ const Layout = ({ children }: LayoutProps) => {
             </div>
           </div>
         </main>
+        
+        {/* Global Search */}
+        <GlobalSearch isOpen={isSearchOpen} onClose={closeSearch} />
       </div>
     </div>
   );

@@ -22,9 +22,10 @@ import { Menu } from "lucide-react";
 
 interface HeaderProps {
   onMobileMenuToggle: () => void;
+  onSearchToggle?: () => void;
 }
 
-const Header = ({ onMobileMenuToggle }: HeaderProps) => {
+const Header = ({ onMobileMenuToggle, onSearchToggle }: HeaderProps) => {
   const { signOut } = useAuth();
   const { theme, toggleTheme } = useTheme();
   const { unreadCount } = useNotifications();

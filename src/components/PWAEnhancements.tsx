@@ -1,375 +1,176 @@
-import React, { useState, useEffect } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Switch } from "@/components/ui/switch";
-import { Label } from "@/components/ui/label";
-import { Progress } from "@/components/ui/progress";
-import { useToast } from "@/components/ui/use-toast";
-import { 
-  Smartphone,
-  Download,
-  Wifi,
-  WifiOff,
-  Gauge,
-  Zap,
-  Monitor,
-  Bell,
-  Palette,
-  Settings,
-  CheckCircle,
-  Globe
-} from "lucide-react";
-import { motion } from "framer-motion";
+import { useEffect, useState } from 'react';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Download, Bell, Wifi, WifiOff } from 'lucide-react';
+import { toast } from 'sonner';
 
-interface PWAFeatures {
-  offlineSupport: boolean;
-  pushNotifications: boolean;
-  installPrompt: boolean;
-  backgroundSync: boolean;
+interface BeforeInstallPromptEvent extends Event {
+  readonly platforms: string[];
+  readonly userChoice: Promise<{
+    outcome: 'accepted' | 'dismissed';
+    platform: string;
+  }>;
+  prompt(): Promise<void>;
 }
 
 const PWAEnhancements = () => {
-  const { toast } = useToast();
+  const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
+  const [isInstallable, setIsInstallable] = useState(false);
   const [isOnline, setIsOnline] = useState(navigator.onLine);
-  const [installPrompt, setInstallPrompt] = useState<any>(null);
-  const [isInstalled, setIsInstalled] = useState(false);
-  const [features, setFeatures] = useState<PWAFeatures>({
-    offlineSupport: false,
-    pushNotifications: false,
-    installPrompt: false,
-    backgroundSync: false
-  });
+  const [notificationPermission, setNotificationPermission] = useState<NotificationPermission>('default');
 
   useEffect(() => {
-    // Check if app is installed
-    const checkInstalled = () => {
-      if (window.matchMedia('(display-mode: standalone)').matches) {
-        setIsInstalled(true);
-      }
-    };
+    // Register service worker
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/sw.js')
+        .then((registration) => {
+          console.log('SW registered: ', registration);
+        })
+        .catch((registrationError) => {
+          console.log('SW registration failed: ', registrationError);
+        });
+    }
 
-    // Listen for install prompt
-    const handleBeforeInstallPrompt = (e: any) => {
+    // Handle install prompt
+    const handleBeforeInstallPrompt = (e: Event) => {
       e.preventDefault();
-      setInstallPrompt(e);
-      setFeatures(prev => ({ ...prev, installPrompt: true }));
+      setDeferredPrompt(e as BeforeInstallPromptEvent);
+      setIsInstallable(true);
     };
 
-    // Listen for online/offline status
-    const handleOnlineStatus = () => setIsOnline(navigator.onLine);
-    const handleOfflineStatus = () => setIsOnline(navigator.onLine);
+    // Handle online/offline status
+    const handleOnline = () => {
+      setIsOnline(true);
+      toast.success('Connection restored');
+    };
+
+    const handleOffline = () => {
+      setIsOnline(false);
+      toast.error('You are offline. Some features may be limited.');
+    };
 
     window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
-    window.addEventListener('online', handleOnlineStatus);
-    window.addEventListener('offline', handleOfflineStatus);
-    
-    checkInstalled();
-    
-    // Enable PWA features
-    setFeatures(prev => ({
-      ...prev,
-      offlineSupport: 'serviceWorker' in navigator,
-      pushNotifications: 'Notification' in window,
-      backgroundSync: 'serviceWorker' in navigator && 'sync' in window.ServiceWorkerRegistration.prototype
-    }));
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+
+    // Check notification permission
+    if ('Notification' in window) {
+      setNotificationPermission(Notification.permission);
+    }
 
     return () => {
       window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
-      window.removeEventListener('online', handleOnlineStatus);
-      window.removeEventListener('offline', handleOfflineStatus);
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
     };
   }, []);
 
-  const handleInstallApp = async () => {
-    if (!installPrompt) return;
+  const handleInstall = async () => {
+    if (!deferredPrompt) return;
 
-    const result = await installPrompt.prompt();
-    if (result.outcome === 'accepted') {
-      setIsInstalled(true);
-      toast({
-        title: "App installed!",
-        description: "You can now access the app from your home screen.",
-      });
+    deferredPrompt.prompt();
+    const { outcome } = await deferredPrompt.userChoice;
+    
+    if (outcome === 'accepted') {
+      toast.success('App installed successfully!');
     }
-    setInstallPrompt(null);
+    
+    setDeferredPrompt(null);
+    setIsInstallable(false);
   };
 
-  const requestNotificationPermission = async () => {
+  const handleNotificationPermission = async () => {
     if (!('Notification' in window)) {
-      toast({
-        title: "Notifications not supported",
-        description: "Your browser doesn't support notifications.",
-        variant: "destructive"
-      });
+      toast.error('This browser does not support notifications');
       return;
     }
 
     const permission = await Notification.requestPermission();
+    setNotificationPermission(permission);
+
     if (permission === 'granted') {
-      toast({
-        title: "Notifications enabled!",
-        description: "You'll receive important updates and reminders.",
-      });
+      toast.success('Notifications enabled!');
+      // Register for push notifications
+      if ('serviceWorker' in navigator && 'PushManager' in window) {
+        try {
+          const registration = await navigator.serviceWorker.ready;
+          const subscription = await registration.pushManager.subscribe({
+            userVisibleOnly: true,
+            applicationServerKey: 'your-vapid-public-key' // You'll need to generate VAPID keys
+          });
+          console.log('Push subscription:', subscription);
+        } catch (error) {
+          console.error('Failed to subscribe to push notifications:', error);
+        }
+      }
+    } else {
+      toast.error('Notifications denied');
     }
   };
 
-  const performanceScore = 85; // Mock score - in real app would be calculated
-  const mobileOptimization = 92;
-  const loadTime = 1.2;
+  // Don't show install prompt if already installed or not installable
+  if (!isInstallable && notificationPermission === 'granted') {
+    return null;
+  }
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <Card className="gradient-primary text-white">
-        <CardContent className="p-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <h3 className="text-xl font-heading font-bold mb-2">PWA & Performance</h3>
-              <p className="opacity-90">Progressive Web App features and mobile optimization</p>
-            </div>
-            <div className="flex items-center gap-4">
-              <div className="text-center">
-                <div className="flex items-center gap-1">
-                  {isOnline ? (
-                    <Wifi className="h-5 w-5 text-green-400" />
-                  ) : (
-                    <WifiOff className="h-5 w-5 text-red-400" />
-                  )}
-                  <span className="text-sm">{isOnline ? 'Online' : 'Offline'}</span>
-                </div>
-              </div>
-              <Smartphone className="h-12 w-12 opacity-75" />
-            </div>
+    <>
+      {/* Connection Status Indicator */}
+      <div className="fixed top-4 right-4 z-50">
+        {!isOnline && (
+          <div className="flex items-center gap-2 bg-destructive text-destructive-foreground px-3 py-1 rounded-full text-sm">
+            <WifiOff className="h-3 w-3" />
+            Offline
           </div>
-        </CardContent>
-      </Card>
-
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Performance Metrics */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="font-heading flex items-center gap-2">
-              <Gauge className="h-5 w-5" />
-              Performance Metrics
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            <div className="space-y-4">
-              <div>
-                <div className="flex justify-between text-sm mb-2">
-                  <span>Overall Performance</span>
-                  <span className="font-bold">{performanceScore}/100</span>
-                </div>
-                <Progress value={performanceScore} className="h-3" />
-                <p className="text-xs text-muted-foreground mt-1">
-                  Excellent performance score
-                </p>
-              </div>
-
-              <div>
-                <div className="flex justify-between text-sm mb-2">
-                  <span>Mobile Optimization</span>
-                  <span className="font-bold">{mobileOptimization}/100</span>
-                </div>
-                <Progress value={mobileOptimization} className="h-3" />
-                <p className="text-xs text-muted-foreground mt-1">
-                  Highly optimized for mobile devices
-                </p>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4 pt-4 border-t">
-                <div className="text-center">
-                  <p className="text-2xl font-bold text-green-600">{loadTime}s</p>
-                  <p className="text-sm text-muted-foreground">Load Time</p>
-                </div>
-                <div className="text-center">
-                  <p className="text-2xl font-bold text-blue-600">A+</p>
-                  <p className="text-sm text-muted-foreground">Grade</p>
-                </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* PWA Features */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="font-heading flex items-center gap-2">
-              <Zap className="h-5 w-5" />
-              PWA Features
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <Monitor className="h-4 w-4" />
-                  <Label className="text-sm">Offline Support</Label>
-                </div>
-                <div className="flex items-center gap-2">
-                  {features.offlineSupport ? (
-                    <CheckCircle className="h-4 w-4 text-green-500" />
-                  ) : (
-                    <Badge variant="outline">Not Available</Badge>
-                  )}
-                </div>
-              </div>
-
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <Bell className="h-4 w-4" />
-                  <Label className="text-sm">Push Notifications</Label>
-                </div>
-                <div className="flex items-center gap-2">
-                  {features.pushNotifications ? (
-                    <Button 
-                      variant="outline" 
-                      size="sm"
-                      onClick={requestNotificationPermission}
-                    >
-                      Enable
-                    </Button>
-                  ) : (
-                    <Badge variant="outline">Not Available</Badge>
-                  )}
-                </div>
-              </div>
-
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <Download className="h-4 w-4" />
-                  <Label className="text-sm">Install App</Label>
-                </div>
-                <div className="flex items-center gap-2">
-                  {isInstalled ? (
-                    <Badge className="bg-green-100 text-green-800">
-                      Installed
-                    </Badge>
-                  ) : installPrompt ? (
-                    <Button 
-                      variant="outline" 
-                      size="sm"
-                      onClick={handleInstallApp}
-                    >
-                      Install
-                    </Button>
-                  ) : (
-                    <Badge variant="outline">Not Available</Badge>
-                  )}
-                </div>
-              </div>
-
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <Globe className="h-4 w-4" />
-                  <Label className="text-sm">Background Sync</Label>
-                </div>
-                <div className="flex items-center gap-2">
-                  {features.backgroundSync ? (
-                    <CheckCircle className="h-4 w-4 text-green-500" />
-                  ) : (
-                    <Badge variant="outline">Not Available</Badge>
-                  )}
-                </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Mobile Optimizations */}
-        <Card className="lg:col-span-2">
-          <CardHeader>
-            <CardTitle className="font-heading">Mobile Optimizations</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.1 }}
-                className="text-center p-4 border rounded-lg"
-              >
-                <Smartphone className="h-8 w-8 mx-auto mb-2 text-blue-500" />
-                <h4 className="font-medium mb-1">Responsive Design</h4>
-                <p className="text-sm text-muted-foreground">
-                  Optimized for all screen sizes
-                </p>
-              </motion.div>
-
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.2 }}
-                className="text-center p-4 border rounded-lg"
-              >
-                <Zap className="h-8 w-8 mx-auto mb-2 text-yellow-500" />
-                <h4 className="font-medium mb-1">Fast Loading</h4>
-                <p className="text-sm text-muted-foreground">
-                  Lazy loading and code splitting
-                </p>
-              </motion.div>
-
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.3 }}
-                className="text-center p-4 border rounded-lg"
-              >
-                <Monitor className="h-8 w-8 mx-auto mb-2 text-green-500" />
-                <h4 className="font-medium mb-1">Touch Optimized</h4>
-                <p className="text-sm text-muted-foreground">
-                  Large touch targets and gestures
-                </p>
-              </motion.div>
-
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.4 }}
-                className="text-center p-4 border rounded-lg"
-              >
-                <Palette className="h-8 w-8 mx-auto mb-2 text-purple-500" />
-                <h4 className="font-medium mb-1">Dark Mode</h4>
-                <p className="text-sm text-muted-foreground">
-                  Automatic theme switching
-                </p>
-              </motion.div>
-            </div>
-          </CardContent>
-        </Card>
+        )}
       </div>
 
-      {/* Quick Actions */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="font-heading flex items-center gap-2">
-            <Settings className="h-5 w-5" />
-            Performance Actions
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
-            <Button variant="outline" className="justify-start gap-2">
-              <Download className="h-4 w-4" />
-              Clear Cache
-            </Button>
-            <Button variant="outline" className="justify-start gap-2">
-              <Zap className="h-4 w-4" />
-              Optimize Images
-            </Button>
-            <Button variant="outline" className="justify-start gap-2">
-              <Globe className="h-4 w-4" />
-              Update Service Worker
-            </Button>
-            <Button variant="outline" className="justify-start gap-2">
-              <Gauge className="h-4 w-4" />
-              Run Performance Audit
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
-    </div>
+      {/* PWA Features Card */}
+      {(isInstallable || notificationPermission !== 'granted') && (
+        <Card className="mb-6">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Download className="h-5 w-5" />
+              Enhance Your Experience
+            </CardTitle>
+            <CardDescription>
+              Get the best experience with our mobile app features
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            {isInstallable && (
+              <div className="flex items-center justify-between p-3 bg-accent rounded-lg">
+                <div>
+                  <h4 className="font-medium">Install App</h4>
+                  <p className="text-sm text-muted-foreground">
+                    Add Accountant AI to your home screen for quick access
+                  </p>
+                </div>
+                <Button onClick={handleInstall} size="sm">
+                  <Download className="h-4 w-4 mr-2" />
+                  Install
+                </Button>
+              </div>
+            )}
+
+            {notificationPermission !== 'granted' && (
+              <div className="flex items-center justify-between p-3 bg-accent rounded-lg">
+                <div>
+                  <h4 className="font-medium">Enable Notifications</h4>
+                  <p className="text-sm text-muted-foreground">
+                    Get alerts for payment due dates, budget limits, and more
+                  </p>
+                </div>
+                <Button onClick={handleNotificationPermission} size="sm" variant="outline">
+                  <Bell className="h-4 w-4 mr-2" />
+                  Enable
+                </Button>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
+    </>
   );
 };
 
