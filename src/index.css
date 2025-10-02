@@ -2,6 +2,22 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Ensure text remains visible during font load */
+@font-face {
+  font-family: 'Poppins';
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Outfit';
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'JetBrains Mono';
+  font-display: swap;
+}
+
 @layer base {
   :root {
     --background: 210 40% 98%;
@@ -170,6 +186,10 @@
     font-family: "Poppins", system-ui, sans-serif;
     font-feature-settings: "rlig" 1, "calt" 1;
     font-optical-sizing: auto;
+    /* Optimize text rendering for faster LCP */
+    text-rendering: optimizeSpeed;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
   
   h1, h2, h3, h4, h5, h6 {
