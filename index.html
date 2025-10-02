@@ -16,6 +16,12 @@
     <meta name="twitter:site" content="@lovable_dev" />
     <meta name="twitter:image" content="https://lovable.dev/opengraph-image-p98pqg.png" />
     
+    <!-- Critical resource hints - must come before other resources -->
+    <link rel="preconnect" href="https://erqisavlnwynkyfvnltb.supabase.co" crossorigin>
+    <link rel="dns-prefetch" href="https://erqisavlnwynkyfvnltb.supabase.co">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    
     <!-- PWA Manifest -->
     <link rel="manifest" href="/manifest.json" />
     <meta name="theme-color" content="#8B5CF6" />
@@ -23,20 +29,15 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="default" />
     <meta name="apple-mobile-web-app-title" content="Accountant AI" />
     
-    <!-- Performance hints -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
-    <noscript><link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet"></noscript>
-    <link rel="dns-prefetch" href="https://erqisavlnwynkyfvnltb.supabase.co">
-    <link rel="preconnect" href="https://erqisavlnwynkyfvnltb.supabase.co" crossorigin>
-    <link rel="modulepreload" href="/src/main.tsx" />
-    
     <style>
       /* Critical CSS for LCP optimization - ensure text is visible immediately */
       body { font-family: system-ui, sans-serif; }
       .text-muted-foreground { color: hsl(215 16% 47%); }
     </style>
+    
+    <!-- Async font loading - non-blocking -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+    <noscript><link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet"></noscript>
   </head>
 
   <body>
