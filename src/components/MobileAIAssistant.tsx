@@ -93,47 +93,58 @@ const MobileAIAssistant = () => {
   return (
     <div className="min-h-screen bg-background pb-safe">
       {/* Header */}
-      <div className="bg-gradient-primary text-white p-4 safe-area-padding">
-        <div className="flex items-center gap-3 mb-2">
-          <Brain className="h-8 w-8" />
-          <h1 className="text-xl sm:text-2xl font-bold">AI Financial Assistant</h1>
+      <div className="bg-gradient-primary text-white p-6 safe-area-padding shadow-large animate-fade-in">
+        <div className="flex items-center gap-4 mb-3">
+          <div className="p-3 bg-white/10 rounded-2xl backdrop-blur-sm">
+            <Brain className="h-8 w-8" />
+          </div>
+          <div>
+            <h1 className="text-2xl sm:text-3xl font-bold">AI Financial Assistant</h1>
+            <p className="text-white/80 text-sm mt-1">Powered by Gemini AI</p>
+          </div>
         </div>
-        <p className="text-white/90 text-sm leading-relaxed">
+        <p className="text-white/90 text-base leading-relaxed pl-1">
           Leverage artificial intelligence to streamline your financial management
         </p>
       </div>
 
       {/* Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-2 mx-4 mt-4 mb-0 h-12">
-          <TabsTrigger value="assistant" className="text-sm font-medium min-h-[44px]">
-            <MessageCircle className="h-4 w-4 mr-1 sm:mr-2" />
+        <TabsList className="grid w-full grid-cols-2 mx-4 mt-6 mb-0 h-14 p-1 gap-2 bg-muted/30 rounded-2xl shadow-soft">
+          <TabsTrigger 
+            value="assistant" 
+            className="text-base font-semibold min-h-[52px] rounded-xl data-[state=active]:bg-background data-[state=active]:shadow-medium transition-all duration-300"
+          >
+            <MessageCircle className="h-5 w-5 mr-2" />
             <span className="truncate">Assistant</span>
           </TabsTrigger>
-          <TabsTrigger value="insights" className="text-sm font-medium min-h-[44px]">
-            <Lightbulb className="h-4 w-4 mr-1 sm:mr-2" />
+          <TabsTrigger 
+            value="insights" 
+            className="text-base font-semibold min-h-[52px] rounded-xl data-[state=active]:bg-background data-[state=active]:shadow-medium transition-all duration-300"
+          >
+            <Lightbulb className="h-5 w-5 mr-2" />
             <span className="truncate">Insights</span>
           </TabsTrigger>
         </TabsList>
 
         {/* Assistant View */}
-        <TabsContent value="assistant" className="px-4 pb-4 space-y-4 min-h-0">
+        <TabsContent value="assistant" className="px-4 pb-4 space-y-5 min-h-0 animate-fade-in">
           {/* AI Assistant Card */}
-          <Card className="shadow-lg border-0">
-            <CardHeader className="pb-3">
+          <Card className="shadow-large border-0 rounded-2xl overflow-hidden bg-gradient-to-br from-card to-card/50">
+            <CardHeader className="pb-4">
               <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <div className="w-8 h-8 bg-gradient-primary rounded-full flex items-center justify-center">
-                    <Brain className="h-4 w-4 text-white" />
+                <div className="flex items-center gap-3">
+                  <div className="w-12 h-12 bg-gradient-primary rounded-2xl flex items-center justify-center shadow-medium">
+                    <Brain className="h-6 w-6 text-white" />
                   </div>
                   <div>
-                    <CardTitle className="text-base">AI Assistant</CardTitle>
-                    <Badge variant="secondary" className="text-xs mt-1">
+                    <CardTitle className="text-lg font-bold">AI Assistant</CardTitle>
+                    <Badge variant="secondary" className="text-xs mt-1.5 px-2 py-0.5">
                       Powered by Google Gemini
                     </Badge>
                   </div>
                 </div>
-                <Badge variant="outline" className="text-xs text-success">
+                <Badge variant="outline" className="text-xs text-success font-semibold px-3 py-1">
                   Free to Use
                 </Badge>
               </div>
@@ -141,32 +152,32 @@ const MobileAIAssistant = () => {
           </Card>
 
           {/* Chat Section */}
-          <Card className="shadow-md">
-            <CardContent className="p-4">
-              <div className="bg-muted/30 rounded-lg p-3 mb-4">
-                <div className="flex items-start gap-2">
-                  <div className="w-6 h-6 bg-primary rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
-                    <Brain className="h-3 w-3 text-white" />
+          <Card className="shadow-large rounded-2xl border-0">
+            <CardContent className="p-5">
+              <div className="bg-primary/5 rounded-2xl p-4 mb-5 border border-primary/10">
+                <div className="flex items-start gap-3">
+                  <div className="w-10 h-10 bg-gradient-primary rounded-2xl flex items-center justify-center flex-shrink-0 shadow-soft">
+                    <Brain className="h-5 w-5 text-white" />
                   </div>
                   <div className="flex-1">
-                    <p className="text-sm text-foreground">
+                    <p className="text-base text-foreground leading-relaxed">
                       Hi! I'm your AI assistant powered by Gemini. I can help you with any questions about finance, business, or anything else. What would you like to know?
                     </p>
-                    <span className="text-xs text-muted-foreground mt-1 block">10:02:23</span>
+                    <span className="text-xs text-muted-foreground mt-2 block font-medium">10:02:23</span>
                   </div>
                 </div>
               </div>
 
-              <div className="mb-4">
-                <p className="text-sm font-medium text-muted-foreground mb-3">
+              <div className="mb-5">
+                <p className="text-base font-semibold text-foreground mb-4">
                   Quick prompts to get started:
                 </p>
-                <div className="grid grid-cols-1 gap-2">
+                <div className="grid grid-cols-1 gap-3">
                    {promptButtons.map((prompt, index) => (
                      <Button
                        key={index}
                        variant="outline"
-                       className="h-auto p-3 text-left justify-start text-sm text-wrap min-h-[44px] touch-manipulation"
+                       className="h-auto p-4 text-left justify-start text-base text-wrap min-h-[56px] touch-manipulation hover:bg-accent/50 hover:scale-[1.02] transition-all duration-200 rounded-xl shadow-soft hover:shadow-medium"
                        onClick={() => handlePromptClick(prompt)}
                      >
                        {prompt}
@@ -176,21 +187,21 @@ const MobileAIAssistant = () => {
               </div>
 
               {/* Message Input */}
-              <div className="flex gap-2">
+              <div className="flex gap-3">
                 <Input
                   placeholder="Type your message..."
                   value={message}
                   onChange={(e) => setMessage(e.target.value)}
                   onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
-                  className="flex-1"
+                  className="flex-1 h-14 text-base rounded-xl border-2 focus:border-primary transition-colors"
                 />
                 <Button 
                   size="icon" 
                   onClick={handleSendMessage}
                   disabled={!message.trim()}
-                  className="min-w-[44px] h-[44px]"
+                  className="min-w-[56px] h-14 rounded-xl shadow-medium hover:shadow-large transition-all duration-200"
                 >
-                  <Send className="h-4 w-4" />
+                  <Send className="h-5 w-5" />
                 </Button>
               </div>
             </CardContent>

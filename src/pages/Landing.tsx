@@ -189,27 +189,27 @@ const Landing = () => {
       </section>
 
       {/* Hero Section */}
-      <section className="py-12 sm:py-16 md:py-20 px-4 sm:px-6">
-        <div className="max-w-7xl mx-auto text-center space-y-6 sm:space-y-8">
-          <div className="space-y-4 animate-fade-in">
-            <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent leading-tight">
+      <section className="py-16 sm:py-20 md:py-24 px-4 sm:px-6">
+        <div className="max-w-7xl mx-auto text-center space-y-8 sm:space-y-10">
+          <div className="space-y-6 animate-fade-in">
+            <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl font-bold bg-gradient-to-r from-primary via-primary to-primary/60 bg-clip-text text-transparent leading-[1.1] tracking-tight">
               AI-Powered Accounting
             </h1>
-            <div className="bg-gradient-primary/10 rounded-xl px-6 py-4 mx-4 max-w-2xl mx-auto backdrop-blur-sm border border-primary/20">
-              <p className="text-lg sm:text-xl md:text-2xl font-semibold text-primary">
+            <div className="bg-gradient-primary/10 rounded-2xl px-6 py-5 mx-auto max-w-2xl backdrop-blur-sm border-2 border-primary/20 shadow-soft hover:shadow-medium transition-all duration-300">
+              <p className="text-xl sm:text-2xl md:text-3xl font-bold text-primary leading-relaxed">
                 "Accounting made easy, accounting in your pocket."
               </p>
             </div>
-            <p className="text-base sm:text-lg md:text-xl lg:text-2xl text-muted-foreground max-w-3xl mx-auto px-4">
+            <p className="text-lg sm:text-xl md:text-2xl lg:text-3xl text-muted-foreground max-w-4xl mx-auto px-2 leading-relaxed">
               Transform your financial management with intelligent automation, real-time insights, and seamless tax preparation.
             </p>
           </div>
           
-          <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center items-center animate-slide-up px-4">
+          <div className="flex flex-col sm:flex-row gap-4 sm:gap-5 justify-center items-center animate-slide-up px-2">
             <Link to="/auth" className="w-full sm:w-auto">
               <Button 
                 size="lg" 
-                className="w-full sm:w-auto text-base sm:text-lg px-6 sm:px-8 py-4 sm:py-6 hover-scale transition-all duration-200 min-h-[44px]"
+                className="w-full sm:w-auto text-lg sm:text-xl px-8 sm:px-10 py-6 sm:py-7 hover-scale hover:shadow-large transition-all duration-300 min-h-[56px] sm:min-h-[60px] rounded-xl font-semibold shadow-medium"
               >
                 Start Free Trial
               </Button>
@@ -219,7 +219,7 @@ const Landing = () => {
               size="lg" 
               onClick={handleDemoMode}
               disabled={isDemoLoading}
-              className="w-full sm:w-auto text-base sm:text-lg px-6 sm:px-8 py-4 sm:py-6 hover-scale transition-all duration-200 min-h-[44px]"
+              className="w-full sm:w-auto text-lg sm:text-xl px-8 sm:px-10 py-6 sm:py-7 hover-scale hover:shadow-large transition-all duration-300 min-h-[56px] sm:min-h-[60px] rounded-xl font-semibold shadow-soft"
             >
               {isDemoLoading ? "Loading Demo..." : "Try Demo"}
             </Button>
@@ -227,7 +227,7 @@ const Landing = () => {
               variant="secondary" 
               size="lg" 
               onClick={() => setShowTutorial(true)}
-              className="w-full sm:w-auto text-base sm:text-lg px-6 sm:px-8 py-4 sm:py-6 hover-scale transition-all duration-200 min-h-[44px]"
+              className="w-full sm:w-auto text-lg sm:text-xl px-8 sm:px-10 py-6 sm:py-7 hover-scale hover:shadow-large transition-all duration-300 min-h-[56px] sm:min-h-[60px] rounded-xl font-semibold shadow-soft"
             >
               Watch Tutorial
             </Button>

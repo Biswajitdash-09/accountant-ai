@@ -75,24 +75,24 @@ const Layout = ({ children }: LayoutProps) => {
         />
         
         {/* Main Content with Bottom Navigation Space */}
-        <main className="min-h-[calc(100vh-4rem)] pb-24 mobile-scroll bg-background">
+        <main className="min-h-[calc(100vh-5rem)] pb-28 mobile-scroll bg-background">
           {/* PWA Enhancements */}
-          <div className="px-4 pt-2">
+          <div className="px-5 pt-3">
             <PWAEnhancements />
           </div>
           
           {/* Demo Badge */}
-          <div className="px-4 pt-4">
+          <div className="px-5 pt-4">
             <DemoAccountBadge showExitButton />
           </div>
           
           {/* Breadcrumbs - Hidden on mobile by default */}
-          <div className="px-4 hidden sm:block">
+          <div className="px-5 hidden sm:block pt-2">
             <NavigationBreadcrumbs />
           </div>
           
           {/* Page Content */}
-          <div className="px-4 pb-8">
+          <div className="px-5 pb-10 pt-4">
             <div className="max-w-screen-xl mx-auto w-full">
               {children}
             </div>
