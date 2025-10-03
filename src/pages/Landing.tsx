@@ -8,6 +8,7 @@ import { seedDemoData } from "@/utils/demoData";
 import { useState, useEffect } from "react";
 import { useToast } from "@/components/ui/use-toast";
 import DemoTutorial from "@/components/DemoTutorial";
+import VideoTutorial from "@/components/VideoTutorial";
 import {
   CalculatorIcon,
   FileTextIcon,
@@ -28,6 +29,7 @@ const Landing = () => {
   const { toast } = useToast();
   const [isDemoLoading, setIsDemoLoading] = useState(false);
   const [showTutorial, setShowTutorial] = useState(false);
+  const [showVideoTutorial, setShowVideoTutorial] = useState(false);
 
   useEffect(() => {
     // Show tutorial for first-time visitors
@@ -176,12 +178,10 @@ const Landing = () => {
             <div className="space-y-1">
               <h3 className="font-semibold text-yellow-800 dark:text-yellow-300">Important Disclaimer</h3>
               <p className="text-sm text-yellow-700 dark:text-yellow-200 leading-relaxed">
-                This is an AI accounting assistant tool. It cannot provide financial advice or be held liable for financial decisions. 
-                By using this tool, you agree to the{" "}
+                This is an AI accounting assistant tool. By using this tool, you agree to the{" "}
                 <Link to="/terms" className="underline hover:text-yellow-900 dark:hover:text-yellow-100">
                   Terms of Use
-                </Link>
-                . Always consult with qualified professionals for important financial decisions.
+                </Link>.
               </p>
             </div>
           </div>
@@ -226,7 +226,7 @@ const Landing = () => {
             <Button 
               variant="secondary" 
               size="lg" 
-              onClick={() => setShowTutorial(true)}
+              onClick={() => setShowVideoTutorial(true)}
               className="w-full sm:w-auto text-lg sm:text-xl px-8 sm:px-10 py-6 sm:py-7 hover-scale hover:shadow-large transition-all duration-300 min-h-[56px] sm:min-h-[60px] rounded-xl font-semibold shadow-soft"
             >
               Watch Tutorial
@@ -394,6 +394,16 @@ const Landing = () => {
       <DemoTutorial 
         isOpen={showTutorial} 
         onClose={() => setShowTutorial(false)} 
+      />
+
+      {/* Video Tutorial */}
+      <VideoTutorial 
+        isOpen={showVideoTutorial} 
+        onClose={() => setShowVideoTutorial(false)}
+        onShowStepByStep={() => {
+          setShowVideoTutorial(false);
+          setShowTutorial(true);
+        }}
       />
     </div>
   );

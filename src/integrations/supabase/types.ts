@@ -2593,6 +2593,10 @@ export type Database = {
           user_id: string
         }[]
       }
+      has_role: {
+        Args: { _role_type: string; _user_id: string }
+        Returns: boolean
+      }
       log_security_event: {
         Args: {
           p_action_description: string

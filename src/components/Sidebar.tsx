@@ -1,5 +1,6 @@
 
 import React, { useState } from "react";
+import { useUserRole } from "@/hooks/useUserRole";
 import {
   Sheet,
   SheetContent,
@@ -42,6 +43,7 @@ const Sidebar = ({ isCollapsed, onToggle, isMobileOpen = false, onMobileToggle }
   const { signOut } = useAuth();
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const isMobile = useIsMobile();
+  const { isTechnicalTeam } = useUserRole();
 
   const handleSignOut = async () => {
     setIsLoggingOut(true);
@@ -109,12 +111,14 @@ const Sidebar = ({ isCollapsed, onToggle, isMobileOpen = false, onMobileToggle }
           label: "Performance",
           icon: TrendingUp,
           badge: "PWA",
+          technicalOnly: true,
         },
         {
           href: "/security",
           label: "Security",
           icon: Bot,
           badge: null,
+          technicalOnly: true,
         },
         {
           href: "/tax",
@@ -230,6 +234,11 @@ const Sidebar = ({ isCollapsed, onToggle, isMobileOpen = false, onMobileToggle }
               )}
               <div className="space-y-1">
                 {section.items.map((item) => {
+                  // Hide technical-only items from regular users
+                  if ((item as any).technicalOnly && !isTechnicalTeam()) {
+                    return null;
+                  }
+                  
                   const isActive = location.pathname === item.href;
                   return (
                     <Button

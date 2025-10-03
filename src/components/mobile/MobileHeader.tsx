@@ -2,6 +2,7 @@ import React from 'react';
 import { Menu, Bell, Search, User } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/contexts/AuthContext';
 
@@ -79,12 +80,13 @@ const MobileHeader = ({ onMenuToggle, onSearchToggle, className }: MobileHeaderP
             className="mobile-touch p-3 h-14 w-14 rounded-2xl touch-feedback hover:bg-accent/50 active:scale-95 transition-all duration-200 shadow-soft hover:shadow-medium"
             aria-label="Profile"
           >
-            {user?.user_metadata?.avatar_url ? (
-              <img 
-                src={user.user_metadata.avatar_url} 
-                alt="Profile"
-                className="h-9 w-9 rounded-full object-cover ring-2 ring-border shadow-soft"
-              />
+            {user ? (
+              <Avatar className="h-9 w-9 ring-2 ring-primary/20 shadow-soft">
+                <AvatarImage src={user.user_metadata?.avatar_url} alt="Profile" />
+                <AvatarFallback className="bg-primary/10 text-primary font-semibold">
+                  <User className="h-5 w-5" />
+                </AvatarFallback>
+              </Avatar>
             ) : (
               <User className="h-5 w-5" />
             )}
