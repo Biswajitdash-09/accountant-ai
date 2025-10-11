@@ -1090,6 +1090,50 @@ export type Database = {
           },
         ]
       }
+      investment_alerts: {
+        Row: {
+          alert_date: string
+          alert_type: string
+          created_at: string | null
+          id: string
+          investment_id: string | null
+          is_dismissed: boolean | null
+          is_read: boolean | null
+          message: string
+          user_id: string
+        }
+        Insert: {
+          alert_date: string
+          alert_type: string
+          created_at?: string | null
+          id?: string
+          investment_id?: string | null
+          is_dismissed?: boolean | null
+          is_read?: boolean | null
+          message: string
+          user_id: string
+        }
+        Update: {
+          alert_date?: string
+          alert_type?: string
+          created_at?: string | null
+          id?: string
+          investment_id?: string | null
+          is_dismissed?: boolean | null
+          is_read?: boolean | null
+          message?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "investment_alerts_investment_id_fkey"
+            columns: ["investment_id"]
+            isOneToOne: false
+            referencedRelation: "user_investments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       notifications: {
         Row: {
           created_at: string
@@ -2246,6 +2290,45 @@ export type Database = {
           },
         ]
       }
+      tax_strategies: {
+        Row: {
+          created_at: string | null
+          description: string
+          estimated_savings: number | null
+          id: string
+          implementation_date: string | null
+          notes: string | null
+          status: string | null
+          strategy_type: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          description: string
+          estimated_savings?: number | null
+          id?: string
+          implementation_date?: string | null
+          notes?: string | null
+          status?: string | null
+          strategy_type: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          description?: string
+          estimated_savings?: number | null
+          id?: string
+          implementation_date?: string | null
+          notes?: string | null
+          status?: string | null
+          strategy_type?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       transactions: {
         Row: {
           account_id: string | null
@@ -2370,6 +2453,65 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      user_investments: {
+        Row: {
+          created_at: string | null
+          currency_id: string | null
+          current_value: number | null
+          id: string
+          investment_type: string
+          last_updated: string | null
+          name: string
+          notes: string | null
+          purchase_date: string
+          purchase_price: number
+          quantity: number
+          symbol: string | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          currency_id?: string | null
+          current_value?: number | null
+          id?: string
+          investment_type: string
+          last_updated?: string | null
+          name: string
+          notes?: string | null
+          purchase_date: string
+          purchase_price: number
+          quantity: number
+          symbol?: string | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          currency_id?: string | null
+          current_value?: number | null
+          id?: string
+          investment_type?: string
+          last_updated?: string | null
+          name?: string
+          notes?: string | null
+          purchase_date?: string
+          purchase_price?: number
+          quantity?: number
+          symbol?: string | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_investments_currency_id_fkey"
+            columns: ["currency_id"]
+            isOneToOne: false
+            referencedRelation: "currencies"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_locations: {
         Row: {

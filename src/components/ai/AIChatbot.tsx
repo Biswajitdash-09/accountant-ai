@@ -1,15 +1,17 @@
-import React, { useState, useRef, useEffect } from 'react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { Send, Bot, User, Loader2, Sparkles, Download, Trash2 } from 'lucide-react';
-import { useAI } from '@/hooks/useAI';
-import { useChatHistory } from '@/hooks/useChatHistory';
-import { motion, AnimatePresence } from 'framer-motion';
-import CreditBalance from '@/components/CreditBalance';
-import { useToast } from '@/components/ui/use-toast';
+import { useState, useEffect, useRef } from "react";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { useAI } from "@/hooks/useAI";
+import { useChatHistory } from "@/hooks/useChatHistory";
+import { Bot, Send, Loader2, Download, Trash2, Sparkles, Paperclip } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Avatar } from "@/components/ui/avatar";
+import CreditBalance from "@/components/CreditBalance";
+import { useToast } from "@/hooks/use-toast";
+import { EnhancedDocumentUpload } from "./EnhancedDocumentUpload";
+import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 
 interface Message {
   id: string;
@@ -19,44 +21,35 @@ interface Message {
 }
 
 const AIChatbot = () => {
-  const [messages, setMessages] = useState<Message[]>([
-    {
-      id: '1',
-      content: "Hi! I'm your comprehensive AI Financial Assistant powered by OpenAI GPT-5. I can help with:\n\n📊 **Budgeting & Forecasting** - Create budgets, predict cash flows, analyze spending patterns\n💼 **Business Advisory** - Strategic planning, market analysis, growth strategies\n🏛️ **Authority Liaison** - Tax compliance, regulatory guidance, institutional communication\n📋 **Business Plans** - Complete business plan creation, market research, financial projections\n💰 **Funding & Loans** - Grant applications, loan proposals, investor presentations\n📈 **Investment Advice** - Portfolio analysis, risk assessment, market insights\n💡 **Financial Management** - Optimization tips, cost reduction, revenue enhancement\n📚 **Accounting & Bookkeeping** - Financial statements, transaction analysis, compliance\n\nI provide both proactive insights and respond to your specific questions. How can I assist with your financial needs today?",
-      role: 'assistant',
-      timestamp: new Date()
-    }
-  ]);
-  const [inputMessage, setInputMessage] = useState('');
-  const { generateResponse, isLoading, availableCredits } = useAI();
-  const { 
-    sessions, 
-    currentSessionId, 
-    createNewSession, 
-    addMessageToSession,
-    getCurrentSession,
-    exportChatHistory,
-    clearAllHistory 
-  } = useChatHistory();
-  const { toast } = useToast();
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [inputMessage, setInputMessage] = useState("");
+  const [isUploadOpen, setIsUploadOpen] = useState(false);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const { generateResponse, isLoading, availableCredits } = useAI();
+  const { toast } = useToast();
+  const {
+    createNewSession,
+    addMessageToSession,
+    exportChatHistory,
+    clearAllHistory
+  } = useChatHistory();
 
-  // Initialize session if none exists
   useEffect(() => {
-    if (!currentSessionId && messages.length > 1) {
-      const sessionId = createNewSession('Accounting Chat');
-      messages.forEach(msg => addMessageToSession(sessionId, msg));
+    if (messages.length === 0) {
+      createNewSession("AI Financial Chat");
     }
-  }, [messages.length]);
+  }, []);
 
   const scrollToBottom = () => {
-    if (scrollAreaRef.current) {
-      const scrollContainer = scrollAreaRef.current.querySelector('[data-radix-scroll-area-viewport]');
-      if (scrollContainer) {
-        scrollContainer.scrollTop = scrollContainer.scrollHeight;
+    setTimeout(() => {
+      if (scrollAreaRef.current) {
+        const scrollContainer = scrollAreaRef.current.querySelector('[data-radix-scroll-area-viewport]');
+        if (scrollContainer) {
+          scrollContainer.scrollTop = scrollContainer.scrollHeight;
+        }
       }
-    }
+    }, 100);
   };
 
   useEffect(() => {
@@ -65,7 +58,7 @@ const AIChatbot = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!inputMessage.trim() || isLoading) return;
+    if (!inputMessage.trim() || isLoading || availableCredits === 0) return;
 
     const userMessage: Message = {
       id: Date.now().toString(),
@@ -76,11 +69,7 @@ const AIChatbot = () => {
 
     setMessages(prev => [...prev, userMessage]);
     setInputMessage('');
-
-    // Add to session history
-    if (currentSessionId) {
-      addMessageToSession(currentSessionId, userMessage);
-    }
+    inputRef.current?.focus();
 
     try {
       const response = await generateResponse(inputMessage.trim());
@@ -93,46 +82,20 @@ const AIChatbot = () => {
       };
 
       setMessages(prev => [...prev, assistantMessage]);
-      
-      // Add to session history
-      if (currentSessionId) {
-        addMessageToSession(currentSessionId, assistantMessage);
-      }
     } catch (error) {
       console.error('Error getting AI response:', error);
-      const errorMessage: Message = {
-        id: (Date.now() + 1).toString(),
-        content: "I apologize, but I'm having trouble processing your request right now. Please try again in a moment.",
-        role: 'assistant',
-        timestamp: new Date()
-      };
-      setMessages(prev => [...prev, errorMessage]);
-      
-      // Add to session history
-      if (currentSessionId) {
-        addMessageToSession(currentSessionId, errorMessage);
-      }
     }
-
-    // Focus back to input
-    setTimeout(() => {
-      inputRef.current?.focus();
-    }, 100);
   };
 
   const quickPrompts = [
-    "Create a comprehensive budget for my business",
-    "Generate 12-month cash flow forecast",
-    "Draft a business plan for my startup",
-    "Help me apply for a small business loan",
-    "Analyze my investment portfolio",
-    "Create tax optimization strategies",
-    "Generate expense reduction recommendations",
-    "Prepare financial projections for investors",
-    "Draft a grant application proposal",
-    "Analyze market opportunities in my industry",
-    "Create a debt management plan",
-    "Generate financial KPI dashboard"
+    "Help me create a monthly budget",
+    "What stocks should I invest in right now?",
+    "Analyze my financial documents for issues",
+    "Create a retirement savings plan for me",
+    "What are the best tax-saving strategies?",
+    "How can I build passive income streams?",
+    "Suggest cryptocurrency investments",
+    "Help me plan for early retirement"
   ];
 
   const handleQuickPrompt = (prompt: string) => {
@@ -140,213 +103,199 @@ const AIChatbot = () => {
     inputRef.current?.focus();
   };
 
-  const handleExportHistory = async () => {
-    try {
-      const exportData = exportChatHistory();
-      const blob = new Blob([exportData], { type: 'application/json' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `chat-history-${new Date().toISOString().split('T')[0]}.json`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
-      
-      toast({
-        title: "Chat history exported",
-        description: "Your chat history has been downloaded successfully.",
-      });
-    } catch (error) {
-      toast({
-        title: "Export failed",
-        description: "Failed to export chat history. Please try again.",
-        variant: "destructive",
-      });
-    }
+  const handleDocumentUpload = (documentIds: string[]) => {
+    const uploadMessage = `I've uploaded ${documentIds.length} document(s). Please analyze them for any financial insights, irregularities, or optimization opportunities.`;
+    setInputMessage(uploadMessage);
+    setIsUploadOpen(false);
+    toast({
+      title: "Documents uploaded",
+      description: "Click send to analyze with AI",
+    });
+  };
+
+  const handleExportHistory = () => {
+    const exportData = exportChatHistory();
+    const blob = new Blob([exportData], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `chat-history-${new Date().toISOString().split('T')[0]}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    
+    toast({
+      title: "Chat exported",
+      description: "Your chat history has been downloaded",
+    });
   };
 
   const handleClearHistory = () => {
     clearAllHistory();
-    setMessages([{
-      id: '1',
-      content: "Hi! I'm your comprehensive AI Financial Assistant. I can help with budgeting, forecasting, business planning, investment advice, tax strategies, and much more. How can I assist you today?",
-      role: 'assistant',
-      timestamp: new Date()
-    }]);
-    
+    setMessages([]);
     toast({
-      title: "Chat history cleared",
-      description: "All chat history has been cleared.",
+      title: "Chat cleared",
+      description: "All messages have been removed",
     });
   };
 
   return (
-    <div className="w-full max-w-4xl mx-auto space-y-6">
-      {/* Header */}
-      <Card>
-        <CardHeader className="pb-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 gradient-primary rounded-full flex items-center justify-center">
-                <Sparkles className="h-5 w-5 text-white" />
-              </div>
-              <div>
-                <CardTitle className="font-heading">AI Assistant</CardTitle>
-                <p className="text-sm text-muted-foreground">Powered by OpenAI GPT-5</p>
+    <div className="h-full flex flex-col">
+      <Card className="flex-1 flex flex-col h-full">
+        <CardHeader className="border-b p-3 sm:p-6">
+          <div className="flex items-center justify-between gap-2 flex-wrap">
+            <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
+              <Avatar className="h-8 w-8 sm:h-10 sm:w-10 bg-primary/10 shrink-0">
+                <Bot className="h-4 w-4 sm:h-6 sm:w-6 text-primary" />
+              </Avatar>
+              <div className="min-w-0">
+                <CardTitle className="text-sm sm:text-lg truncate">AI Financial Assistant</CardTitle>
+                <CardDescription className="text-xs hidden sm:block">
+                  Powered by OpenAI GPT-5 • Investment, Tax & Retirement Expert
+                </CardDescription>
               </div>
             </div>
-            <div className="flex items-center gap-3">
-              <Badge variant="secondary" className="bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-300">
-                Free to Use
-              </Badge>
-              <CreditBalance showBuyButton={false} />
-            </div>
-          </div>
-        </CardHeader>
-      </Card>
-
-      {/* Chat Area */}
-      <Card className="h-[calc(100vh-12rem)] min-h-[500px] max-h-[700px] flex flex-col">
-        <CardHeader className="pb-4 border-b">
-          <div className="flex items-center justify-between">
-            <CardTitle className="text-lg">Chat</CardTitle>
-            <div className="flex items-center gap-2">
-              <Badge variant="outline">{messages.length - 1} messages</Badge>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={handleExportHistory}
-                className="h-8 px-2"
-              >
-                <Download className="h-4 w-4" />
-              </Button>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={handleClearHistory}
-                className="h-8 px-2 text-destructive hover:text-destructive"
-              >
-                <Trash2 className="h-4 w-4" />
-              </Button>
+            <div className="flex items-center gap-1 sm:gap-2 shrink-0">
+              <CreditBalance />
+              {messages.length > 0 && (
+                <>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={handleExportHistory}
+                    className="h-8 w-8 sm:h-9 sm:w-9 p-0"
+                  >
+                    <Download className="h-3 w-3 sm:h-4 sm:w-4" />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={handleClearHistory}
+                    className="h-8 w-8 sm:h-9 sm:w-9 p-0"
+                  >
+                    <Trash2 className="h-3 w-3 sm:h-4 sm:w-4" />
+                  </Button>
+                </>
+              )}
             </div>
           </div>
         </CardHeader>
 
-        <CardContent className="flex-1 p-0 flex flex-col">
-          {/* Messages */}
-          <ScrollArea ref={scrollAreaRef} className="flex-1 p-4">
-            <div className="space-y-4">
-              <AnimatePresence>
+        <CardContent className="flex-1 p-0 overflow-hidden">
+          <ScrollArea className="h-full px-3 sm:px-4 py-4 sm:py-6" ref={scrollAreaRef}>
+            {messages.length === 0 ? (
+              <div className="flex flex-col items-center justify-center h-full text-center space-y-4 sm:space-y-6 px-2">
+                <div className="space-y-2">
+                  <Sparkles className="h-10 w-10 sm:h-12 sm:w-12 mx-auto text-primary" />
+                  <h3 className="text-lg sm:text-xl font-semibold">Your AI Financial Advisor</h3>
+                  <p className="text-xs sm:text-sm text-muted-foreground max-w-md">
+                    Expert advice on investments, taxes, retirement planning, and wealth building
+                  </p>
+                </div>
+                
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 w-full max-w-2xl">
+                  {quickPrompts.map((prompt, index) => (
+                    <Button
+                      key={index}
+                      variant="outline"
+                      className="text-left h-auto py-3 px-3 sm:px-4 whitespace-normal text-xs sm:text-sm"
+                      onClick={() => handleQuickPrompt(prompt)}
+                    >
+                      {prompt}
+                    </Button>
+                  ))}
+                </div>
+              </div>
+            ) : (
+              <AnimatePresence mode="popLayout">
                 {messages.map((message) => (
                   <motion.div
                     key={message.id}
-                    initial={{ opacity: 0, y: 20 }}
+                    initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
-                    className={`flex gap-3 ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
+                    exit={{ opacity: 0, y: -10 }}
+                    className={`flex gap-2 sm:gap-3 mb-3 sm:mb-4 ${
+                      message.role === 'user' ? 'justify-end' : 'justify-start'
+                    }`}
                   >
                     {message.role === 'assistant' && (
-                      <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
-                        <Bot className="h-4 w-4 text-primary" />
-                      </div>
+                      <Avatar className="h-7 w-7 sm:h-8 sm:w-8 bg-primary/10 shrink-0">
+                        <Bot className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
+                      </Avatar>
                     )}
-                    
-                    <div 
-                      className={`max-w-[85%] p-3 rounded-lg break-words ${
-                        message.role === 'user' 
-                          ? 'bg-primary text-primary-foreground ml-auto'
+                    <div
+                      className={`rounded-lg px-3 sm:px-4 py-2 max-w-[85%] sm:max-w-[80%] ${
+                        message.role === 'user'
+                          ? 'bg-primary text-primary-foreground'
                           : 'bg-muted'
                       }`}
                     >
-                      <p className="text-sm whitespace-pre-wrap break-words leading-relaxed">{message.content}</p>
-                      <p className={`text-xs mt-1 ${
-                        message.role === 'user' 
-                          ? 'text-primary-foreground/70'
-                          : 'text-muted-foreground'
-                      }`}>
+                      <p className="text-xs sm:text-sm whitespace-pre-wrap break-words">{message.content}</p>
+                      <p className="text-xs mt-1 opacity-70">
                         {message.timestamp.toLocaleTimeString()}
                       </p>
                     </div>
-
-                    {message.role === 'user' && (
-                      <div className="w-8 h-8 rounded-full bg-secondary flex items-center justify-center flex-shrink-0">
-                        <User className="h-4 w-4" />
-                      </div>
-                    )}
                   </motion.div>
                 ))}
               </AnimatePresence>
-
-              {isLoading && (
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className="flex gap-3 justify-start"
-                >
-                  <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
-                    <Bot className="h-4 w-4 text-primary" />
-                  </div>
-                  <div className="bg-muted p-3 rounded-lg">
-                    <div className="flex items-center gap-2">
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                      <span className="text-sm">Thinking...</span>
-                    </div>
-                  </div>
-                </motion.div>
-              )}
-            </div>
-          </ScrollArea>
-
-          {/* Quick Prompts */}
-          {messages.length === 1 && (
-            <div className="p-4 border-t bg-muted/30">
-              <p className="text-sm text-muted-foreground mb-3">Quick prompts to get started:</p>
-              <div className="flex flex-wrap gap-2">
-                {quickPrompts.map((prompt, index) => (
-                  <Button
-                    key={index}
-                    variant="outline"
-                    size="sm"
-                    onClick={() => handleQuickPrompt(prompt)}
-                    className="text-xs"
-                  >
-                    {prompt}
-                  </Button>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Input Form */}
-          <div className="p-4 border-t">
-            <form onSubmit={handleSubmit} className="flex gap-2">
-              <Input
-                ref={inputRef}
-                value={inputMessage}
-                onChange={(e) => setInputMessage(e.target.value)}
-                placeholder={availableCredits > 0 ? "Type your message..." : "No credits available"}
-                disabled={isLoading || availableCredits <= 0}
-                className="flex-1"
-              />
-              <Button 
-                type="submit" 
-                disabled={isLoading || !inputMessage.trim() || availableCredits <= 0}
-                size="icon"
-              >
-                {isLoading ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                ) : (
-                  <Send className="h-4 w-4" />
-                )}
-              </Button>
-            </form>
-            {availableCredits <= 0 && (
-              <p className="text-xs text-muted-foreground mt-2">
-                You've used all your credits. They reset daily or you can purchase more.
-              </p>
             )}
-          </div>
+          </ScrollArea>
         </CardContent>
+
+        <div className="p-3 sm:p-4 border-t">
+          <form onSubmit={handleSubmit} className="flex gap-2">
+            <Sheet open={isUploadOpen} onOpenChange={setIsUploadOpen}>
+              <SheetTrigger asChild>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="icon"
+                  className="shrink-0 h-9 w-9 sm:h-10 sm:w-10"
+                >
+                  <Paperclip className="h-4 w-4" />
+                </Button>
+              </SheetTrigger>
+              <SheetContent side="bottom" className="h-[80vh] sm:h-[70vh]">
+                <SheetHeader>
+                  <SheetTitle>Upload Financial Documents</SheetTitle>
+                  <SheetDescription>
+                    Upload bank statements, tax documents, or any financial files for AI analysis
+                  </SheetDescription>
+                </SheetHeader>
+                <div className="mt-4">
+                  <EnhancedDocumentUpload onUploadComplete={handleDocumentUpload} />
+                </div>
+              </SheetContent>
+            </Sheet>
+            
+            <Input
+              ref={inputRef}
+              value={inputMessage}
+              onChange={(e) => setInputMessage(e.target.value)}
+              placeholder="Ask about investments, taxes, retirement..."
+              disabled={isLoading || availableCredits === 0}
+              className="flex-1 text-sm"
+            />
+            <Button 
+              type="submit" 
+              disabled={!inputMessage.trim() || isLoading || availableCredits === 0}
+              className="shrink-0 h-9 w-9 sm:h-10 sm:w-10 p-0 sm:px-4 sm:w-auto"
+            >
+              {isLoading ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <Send className="h-4 w-4" />
+              )}
+              <span className="hidden sm:inline ml-2">Send</span>
+            </Button>
+          </form>
+          {availableCredits === 0 && (
+            <p className="text-xs text-destructive mt-2 text-center">
+              No credits available. Please purchase more credits to continue.
+            </p>
+          )}
+        </div>
       </Card>
     </div>
   );
