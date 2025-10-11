@@ -52,10 +52,10 @@ serve(async (req) => {
     logStep("Processing AI request", { messageLength: message.length });
 
     // Get API key from environment
-    const apiKey = Deno.env.get("GOOGLE_AI_API_KEY");
+    const apiKey = Deno.env.get("OPENAI_API_KEY");
     if (!apiKey) {
-      logStep("ERROR: Google AI API key not configured");
-      throw new Error("Google AI API key not configured");
+      logStep("ERROR: OpenAI API key not configured");
+      throw new Error("OpenAI API key not configured");
     }
 
     // Create comprehensive financial advisory system prompt
@@ -157,41 +157,36 @@ I can identify and calculate:
 ## Proactive Advisory:
 I also provide unsolicited insights and recommendations based on the information shared, helping identify opportunities and risks you might not have considered.
 
-User message: ${message}
-
 Remember: I provide comprehensive financial analysis and recommendations, but always advise consulting with licensed professionals for major financial decisions.`;
 
-    // Call Google AI API
-    const response = await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent', {
+    // Call OpenAI API
+    const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'X-goog-api-key': apiKey,
+        'Authorization': `Bearer ${apiKey}`,
       },
       body: JSON.stringify({
-        contents: [
-          {
-            parts: [
-              {
-                text: accountingSystemPrompt
-              }
-            ]
-          }
-        ]
+        model: 'gpt-5-mini-2025-08-07',
+        messages: [
+          { role: 'system', content: accountingSystemPrompt },
+          { role: 'user', content: message }
+        ],
+        max_completion_tokens: 2000
       })
     });
 
     if (!response.ok) {
       const errorText = await response.text();
-      logStep("ERROR: Google AI API error", { status: response.status, error: errorText });
+      logStep("ERROR: OpenAI API error", { status: response.status, error: errorText });
       throw new Error(`AI API Error: ${response.status}`);
     }
 
     const data = await response.json();
     logStep("AI response received successfully");
     
-    if (data.candidates && data.candidates[0] && data.candidates[0].content) {
-      const aiResponse = data.candidates[0].content.parts[0].text;
+    if (data.choices && data.choices[0] && data.choices[0].message) {
+      const aiResponse = data.choices[0].message.content;
       
       return new Response(JSON.stringify({ 
         text: aiResponse,

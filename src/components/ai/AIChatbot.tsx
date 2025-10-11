@@ -22,7 +22,7 @@ const AIChatbot = () => {
   const [messages, setMessages] = useState<Message[]>([
     {
       id: '1',
-      content: "Hi! I'm your comprehensive AI Financial Assistant powered by Gemini. I can help with:\n\n📊 **Budgeting & Forecasting** - Create budgets, predict cash flows, analyze spending patterns\n💼 **Business Advisory** - Strategic planning, market analysis, growth strategies\n🏛️ **Authority Liaison** - Tax compliance, regulatory guidance, institutional communication\n📋 **Business Plans** - Complete business plan creation, market research, financial projections\n💰 **Funding & Loans** - Grant applications, loan proposals, investor presentations\n📈 **Investment Advice** - Portfolio analysis, risk assessment, market insights\n💡 **Financial Management** - Optimization tips, cost reduction, revenue enhancement\n📚 **Accounting & Bookkeeping** - Financial statements, transaction analysis, compliance\n\nI provide both proactive insights and respond to your specific questions. How can I assist with your financial needs today?",
+      content: "Hi! I'm your comprehensive AI Financial Assistant powered by OpenAI GPT-5. I can help with:\n\n📊 **Budgeting & Forecasting** - Create budgets, predict cash flows, analyze spending patterns\n💼 **Business Advisory** - Strategic planning, market analysis, growth strategies\n🏛️ **Authority Liaison** - Tax compliance, regulatory guidance, institutional communication\n📋 **Business Plans** - Complete business plan creation, market research, financial projections\n💰 **Funding & Loans** - Grant applications, loan proposals, investor presentations\n📈 **Investment Advice** - Portfolio analysis, risk assessment, market insights\n💡 **Financial Management** - Optimization tips, cost reduction, revenue enhancement\n📚 **Accounting & Bookkeeping** - Financial statements, transaction analysis, compliance\n\nI provide both proactive insights and respond to your specific questions. How can I assist with your financial needs today?",
       role: 'assistant',
       timestamp: new Date()
     }
@@ -193,7 +193,7 @@ const AIChatbot = () => {
               </div>
               <div>
                 <CardTitle className="font-heading">AI Assistant</CardTitle>
-                <p className="text-sm text-muted-foreground">Powered by Google Gemini</p>
+                <p className="text-sm text-muted-foreground">Powered by OpenAI GPT-5</p>
               </div>
             </div>
             <div className="flex items-center gap-3">
