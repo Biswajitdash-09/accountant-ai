@@ -92,6 +92,11 @@ export const TaxCalculator = ({ selectedCountry = 'USA' }: { selectedCountry?: '
       deductions: deductions,
       businessEntityId: currentPeriod.business_entity_id
     });
+
+    toast({
+      title: "Success",
+      description: "Tax calculated using real 2026 tax formulas",
+    });
   };
 
   const handleSaveCalculation = () => {

@@ -1511,6 +1511,48 @@ export type Database = {
           },
         ]
       }
+      saved_tax_calculations: {
+        Row: {
+          breakdown: Json
+          calculation_date: string
+          country: string
+          created_at: string | null
+          effective_rate: number
+          filing_status: string | null
+          id: string
+          income: number
+          notes: string | null
+          total_tax: number
+          user_id: string
+        }
+        Insert: {
+          breakdown?: Json
+          calculation_date?: string
+          country: string
+          created_at?: string | null
+          effective_rate: number
+          filing_status?: string | null
+          id?: string
+          income: number
+          notes?: string | null
+          total_tax: number
+          user_id: string
+        }
+        Update: {
+          breakdown?: Json
+          calculation_date?: string
+          country?: string
+          created_at?: string | null
+          effective_rate?: number
+          filing_status?: string | null
+          id?: string
+          income?: number
+          notes?: string | null
+          total_tax?: number
+          user_id?: string
+        }
+        Relationships: []
+      }
       security_audit_logs: {
         Row: {
           action_description: string

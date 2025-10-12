@@ -193,86 +193,81 @@ serve(async (req) => {
   }
 });
 
-// Enhanced OCR simulation with realistic receipt/invoice text
+// Real OCR using OpenAI Vision API
 async function performEnhancedOCR(documentBuffer: ArrayBuffer, fileType: string): Promise<string> {
-  const sampleOCRTexts = [
-    `TAJ HOTEL
-    123 MG Road, Bangalore
-    GSTIN: 29ABCDE1234F1Z5
-    
-    Bill No: TH001234
-    Date: ${new Date().toLocaleDateString('en-IN')}
-    Table: 5
-    
-    Chicken Biryani       1    ₹450.00
-    Paneer Butter Masala  1    ₹350.00
-    Naan                  2    ₹80.00
-    Lassi                 2    ₹120.00
-    
-    Sub Total:                 ₹1000.00
-    CGST @ 9%:                 ₹90.00
-    SGST @ 9%:                 ₹90.00
-    Service Charge:            ₹120.00
-    
-    Total:                     ₹1300.00
-    
-    Payment: UPI
-    Thank you for dining with us!`,
-
-    `RELIANCE FRESH
-    456 Brigade Road, Bangalore
-    GSTIN: 29WXYZ5678G2H6
-    
-    Receipt No: RF789456
-    Date: ${new Date().toLocaleDateString('en-IN')}
-    
-    Rice 1kg              1    ₹65.00
-    Dal Toor 500g         1    ₹95.00
-    Cooking Oil 1L        1    ₹180.00
-    Onions 2kg            1    ₹60.00
-    Potatoes 3kg          1    ₹90.00
-    Tomatoes 1kg          1    ₹40.00
-    
-    Sub Total:                 ₹530.00
-    Discount:                  ₹30.00
-    
-    Total:                     ₹500.00
-    
-    Paid by: Card
-    Thank you for shopping!`,
-
-    `APOLLO CLINIC
-    789 Whitefield, Bangalore
-    
-    Patient: John Doe
-    Doctor: Dr. Smith
-    Date: ${new Date().toLocaleDateString('en-IN')}
-    
-    Consultation Fee:          ₹800.00
-    Lab Tests:                 ₹450.00
-    Medicines:                 ₹250.00
-    
-    Total:                     ₹1500.00
-    
-    Payment: Cash
-    Next Appointment: Follow-up in 2 weeks`,
-
-    `PETROL PUMP
-    HP Station - Electronic City
-    
-    Vehicle: KA01AB1234
-    Date: ${new Date().toLocaleDateString('en-IN')}
-    Fuel Type: Petrol
-    
-    Quantity: 25.50 L
-    Rate: ₹102.50/L
-    
-    Amount:                    ₹2613.75
-    
-    Payment: UPI`
-  ];
+  const OPENAI_API_KEY = Deno.env.get('OPENAI_API_KEY');
   
-  return sampleOCRTexts[Math.floor(Math.random() * sampleOCRTexts.length)];
+  if (!OPENAI_API_KEY) {
+    console.error('OpenAI API key not configured');
+    throw new Error('OCR service not available');
+  }
+
+  try {
+    // Convert buffer to base64
+    const base64Image = btoa(
+      new Uint8Array(documentBuffer)
+        .reduce((data, byte) => data + String.fromCharCode(byte), '')
+    );
+    
+    const mimeType = fileType.includes('pdf') ? 'application/pdf' : `image/${fileType.replace('.', '')}`;
+    const dataUrl = `data:${mimeType};base64,${base64Image}`;
+
+    // Call OpenAI Vision API with structured extraction
+    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${OPENAI_API_KEY}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: 'gpt-5-2025-08-07',
+        messages: [{
+          role: 'user',
+          content: [
+            {
+              type: 'text',
+              text: `Extract ALL text, numbers, and financial figures from this document with 100% accuracy. 
+              Pay special attention to:
+              - All monetary amounts and their labels
+              - Dates (transaction date, due date, etc.)
+              - Vendor/merchant names
+              - Tax IDs, GST numbers, invoice numbers
+              - Line items with quantities and prices
+              - Subtotals, taxes, and final totals
+              - Payment methods
+              
+              Return the text exactly as it appears in the document, preserving formatting and structure.`
+            },
+            {
+              type: 'image_url',
+              image_url: { url: dataUrl }
+            }
+          ]
+        }],
+        max_completion_tokens: 4000
+      })
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error('OpenAI API error:', response.status, errorText);
+      throw new Error(`OCR API failed: ${response.status}`);
+    }
+
+    const data = await response.json();
+    const extractedText = data.choices?.[0]?.message?.content;
+    
+    if (!extractedText) {
+      throw new Error('No text extracted from document');
+    }
+
+    console.log('OCR extracted text length:', extractedText.length);
+    return extractedText;
+    
+  } catch (error) {
+    console.error('OCR processing error:', error);
+    throw error;
+  }
 }
 
 // Document classification based on OCR text
