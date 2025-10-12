@@ -8,7 +8,8 @@ import { TaxCalendar } from "@/components/tax/TaxCalendar";
 import { TaxSettings } from "@/components/tax/TaxSettings";
 import { TaxComparison } from "@/components/tax/TaxComparison";
 import { IndirectTaxCalculator } from "@/components/tax/IndirectTaxCalculator";
-import { FileText, Calculator, TrendingUp, Settings, Calendar } from "lucide-react";
+import { CorporateTaxCalculator } from "@/components/tax/CorporateTaxCalculator";
+import { FileText, Calculator, TrendingUp, Settings, Calendar, Building2 } from "lucide-react";
 import { TaxCountrySelector } from "@/components/tax/TaxCountrySelector";
 
 const Tax = () => {
@@ -31,7 +32,7 @@ const Tax = () => {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-        <TabsList className="grid w-full grid-cols-2 sm:grid-cols-3 lg:grid-cols-7 gap-1">
+        <TabsList className="grid w-full grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-1">
           <TabsTrigger value="dashboard" className="flex items-center gap-2">
             <TrendingUp className="h-4 w-4" />
             <span className="hidden sm:inline">Dashboard</span>
@@ -51,6 +52,10 @@ const Tax = () => {
           <TabsTrigger value="indirect" className="flex items-center gap-2">
             <FileText className="h-4 w-4" />
             <span className="hidden sm:inline">VAT/GST</span>
+          </TabsTrigger>
+          <TabsTrigger value="corporate" className="flex items-center gap-2">
+            <Building2 className="h-4 w-4" />
+            <span className="hidden sm:inline">Corporate</span>
           </TabsTrigger>
           <TabsTrigger value="calendar" className="flex items-center gap-2">
             <Calendar className="h-4 w-4" />
@@ -80,6 +85,10 @@ const Tax = () => {
 
         <TabsContent value="indirect" className="space-y-6">
           <IndirectTaxCalculator country={selectedCountry} />
+        </TabsContent>
+
+        <TabsContent value="corporate" className="space-y-6">
+          <CorporateTaxCalculator country={selectedCountry} />
         </TabsContent>
 
         <TabsContent value="calendar" className="space-y-6">
