@@ -188,12 +188,12 @@ Remember: You're not just answering questions - you're a proactive financial par
         'Authorization': `Bearer ${apiKey}`,
       },
       body: JSON.stringify({
-        model: 'gpt-5-mini-2025-08-07',
+        model: 'gpt-5-2025-08-07', // Use full GPT-5 for better document comprehension
         messages: [
           { role: 'system', content: systemPrompt },
           { role: 'user', content: message }
         ],
-        max_completion_tokens: 2000
+        max_completion_tokens: 4000 // Increased for longer document analysis
       })
     });
 

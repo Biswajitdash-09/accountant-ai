@@ -10,13 +10,14 @@ interface UploadedFile {
   id: string;
   file: File;
   preview?: string;
-  status: 'uploading' | 'success' | 'error';
+  status: 'uploading' | 'processing' | 'success' | 'error';
   progress: number;
   documentId?: string;
+  extractedText?: string;
 }
 
 interface EnhancedDocumentUploadProps {
-  onUploadComplete?: (documentIds: string[]) => void;
+  onUploadComplete?: (documents: Array<{ id: string; fileName: string; extractedText?: string }>) => void;
   maxFiles?: number;
 }
 
@@ -75,7 +76,7 @@ export const EnhancedDocumentUpload = ({
       return;
     }
 
-    const uploadedIds: string[] = [];
+    const uploadedDocuments: Array<{ id: string; fileName: string; extractedText?: string }> = [];
 
     for (const fileItem of filesToUpload) {
       try {
@@ -102,18 +103,48 @@ export const EnhancedDocumentUpload = ({
             file_size: fileItem.file.size,
             storage_path: fileName,
             public_url: publicUrl,
-            processing_status: 'completed'
+            processing_status: 'pending'
           })
           .select()
           .single();
 
         if (docError) throw docError;
 
-        uploadedIds.push(docData.id);
+        // Update status to processing
+        setFiles(prev => prev.map(f => 
+          f.id === fileItem.id 
+            ? { ...f, status: 'processing', progress: 50, documentId: docData.id }
+            : f
+        ));
+
+        // Call OCR processing edge function
+        const { data: ocrData, error: ocrError } = await supabase.functions.invoke('process-ocr', {
+          body: { document_id: docData.id }
+        });
+
+        if (ocrError) {
+          console.error('OCR processing error:', ocrError);
+          throw new Error('Failed to process document with OCR');
+        }
+
+        // Fetch the updated document with extracted text
+        const { data: updatedDoc, error: fetchError } = await supabase
+          .from('documents')
+          .select('extracted_text')
+          .eq('id', docData.id)
+          .single();
+
+        const extractedText = updatedDoc?.extracted_text || '';
+
+        uploadedDocuments.push({
+          id: docData.id,
+          fileName: fileItem.file.name,
+          extractedText
+        });
 
         setFiles(prev => prev.map(f => 
           f.id === fileItem.id 
-            ? { ...f, status: 'success', progress: 100, documentId: docData.id }
+            ? { ...f, status: 'success', progress: 100, documentId: docData.id, extractedText }
             : f
         ));
 
@@ -124,17 +155,22 @@ export const EnhancedDocumentUpload = ({
             ? { ...f, status: 'error', progress: 0 }
             : f
         ));
+        toast({
+          title: "Upload failed",
+          description: error instanceof Error ? error.message : "Failed to upload document",
+          variant: "destructive"
+        });
       }
     }
 
-    if (uploadedIds.length > 0 && onUploadComplete) {
-      onUploadComplete(uploadedIds);
+    if (uploadedDocuments.length > 0 && onUploadComplete) {
+      onUploadComplete(uploadedDocuments);
     }
 
-    if (uploadedIds.length === filesToUpload.length) {
+    if (uploadedDocuments.length === filesToUpload.length) {
       toast({
         title: "Success",
-        description: `${uploadedIds.length} document(s) uploaded successfully`
+        description: `${uploadedDocuments.length} document(s) uploaded and processed successfully`
       });
     }
   };
@@ -287,6 +323,9 @@ export const EnhancedDocumentUpload = ({
                 <div className="flex items-center gap-2">
                   {file.status === 'uploading' && (
                     <Loader2 className="h-4 w-4 animate-spin text-primary" />
+                  )}
+                  {file.status === 'processing' && (
+                    <Loader2 className="h-4 w-4 animate-spin text-blue-500" />
                   )}
                   {file.status === 'success' && (
                     <Check className="h-4 w-4 text-green-500" />

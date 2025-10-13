@@ -5,28 +5,43 @@ import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useAI } from "@/hooks/useAI";
 import { useChatHistory } from "@/hooks/useChatHistory";
-import { Bot, Send, Loader2, Download, Trash2, Sparkles, Paperclip } from "lucide-react";
+import { Bot, Send, Loader2, Download, Trash2, Sparkles, Paperclip, X, FileText } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Avatar } from "@/components/ui/avatar";
 import CreditBalance from "@/components/CreditBalance";
 import { useToast } from "@/hooks/use-toast";
 import { EnhancedDocumentUpload } from "./EnhancedDocumentUpload";
+import { DocumentPreview } from "./DocumentPreview";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
+import { useDocuments } from "@/hooks/useDocuments";
+
+interface DocumentAttachment {
+  id: string;
+  fileName: string;
+  fileType: string;
+  fileSize: number;
+  extractedText?: string;
+  processingStatus: 'pending' | 'processing' | 'completed' | 'failed';
+  thumbnailUrl?: string;
+}
 
 interface Message {
   id: string;
   content: string;
-  role: 'user' | 'assistant';
+  role: 'user' | 'assistant' | 'document';
   timestamp: Date;
+  attachments?: DocumentAttachment[];
 }
 
 const AIChatbot = () => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputMessage, setInputMessage] = useState("");
   const [isUploadOpen, setIsUploadOpen] = useState(false);
+  const [pendingDocuments, setPendingDocuments] = useState<DocumentAttachment[]>([]);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const { generateResponse, isLoading, availableCredits } = useAI();
+  const { documents } = useDocuments();
   const { toast } = useToast();
   const {
     createNewSession,
@@ -58,21 +73,40 @@ const AIChatbot = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!inputMessage.trim() || isLoading || availableCredits === 0) return;
+    if ((!inputMessage.trim() && pendingDocuments.length === 0) || isLoading || availableCredits === 0) return;
+
+    // Build enhanced message with document content
+    let enhancedMessage = inputMessage.trim();
+    const attachments = [...pendingDocuments];
+    
+    if (attachments.length > 0) {
+      const documentsContent = attachments
+        .filter(doc => doc.extractedText)
+        .map(doc => `\n\n--- Document: ${doc.fileName} ---\n${doc.extractedText}\n--- End of Document ---`)
+        .join('\n');
+      
+      if (documentsContent) {
+        enhancedMessage = enhancedMessage 
+          ? `${enhancedMessage}\n\nHere are the documents I've uploaded:${documentsContent}`
+          : `Please analyze these documents:${documentsContent}`;
+      }
+    }
 
     const userMessage: Message = {
       id: Date.now().toString(),
-      content: inputMessage.trim(),
+      content: inputMessage.trim() || `Uploaded ${attachments.length} document(s) for analysis`,
       role: 'user',
-      timestamp: new Date()
+      timestamp: new Date(),
+      attachments: attachments.length > 0 ? attachments : undefined
     };
 
     setMessages(prev => [...prev, userMessage]);
     setInputMessage('');
+    setPendingDocuments([]);
     inputRef.current?.focus();
 
     try {
-      const response = await generateResponse(inputMessage.trim());
+      const response = await generateResponse(enhancedMessage);
       
       const assistantMessage: Message = {
         id: (Date.now() + 1).toString(),
@@ -84,6 +118,11 @@ const AIChatbot = () => {
       setMessages(prev => [...prev, assistantMessage]);
     } catch (error) {
       console.error('Error getting AI response:', error);
+      toast({
+        title: "Error",
+        description: "Failed to get AI response. Please try again.",
+        variant: "destructive"
+      });
     }
   };
 
@@ -103,14 +142,32 @@ const AIChatbot = () => {
     inputRef.current?.focus();
   };
 
-  const handleDocumentUpload = (documentIds: string[]) => {
-    const uploadMessage = `I've uploaded ${documentIds.length} document(s). Please analyze them for any financial insights, irregularities, or optimization opportunities.`;
-    setInputMessage(uploadMessage);
-    setIsUploadOpen(false);
-    toast({
-      title: "Documents uploaded",
-      description: "Click send to analyze with AI",
+  const handleDocumentUpload = (uploadedDocs: Array<{ id: string; fileName: string; extractedText?: string }>) => {
+    // Find the full document records
+    const docAttachments: DocumentAttachment[] = uploadedDocs.map(doc => {
+      const fullDoc = documents.find(d => d.id === doc.id);
+      return {
+        id: doc.id,
+        fileName: doc.fileName,
+        fileType: fullDoc?.file_type || 'application/octet-stream',
+        fileSize: fullDoc?.file_size || 0,
+        extractedText: doc.extractedText,
+        processingStatus: 'completed' as const,
+        thumbnailUrl: fullDoc?.public_url
+      };
     });
+
+    setPendingDocuments(prev => [...prev, ...docAttachments]);
+    setIsUploadOpen(false);
+    
+    toast({
+      title: "Documents ready",
+      description: `${docAttachments.length} document(s) processed. Add a message and send to analyze with AI.`,
+    });
+  };
+
+  const removePendingDocument = (id: string) => {
+    setPendingDocuments(prev => prev.filter(doc => doc.id !== id));
   };
 
   const handleExportHistory = () => {
@@ -224,17 +281,39 @@ const AIChatbot = () => {
                         <Bot className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
                       </Avatar>
                     )}
-                    <div
-                      className={`rounded-lg px-3 sm:px-4 py-2 max-w-[85%] sm:max-w-[80%] ${
-                        message.role === 'user'
-                          ? 'bg-primary text-primary-foreground'
-                          : 'bg-muted'
-                      }`}
-                    >
-                      <p className="text-xs sm:text-sm whitespace-pre-wrap break-words">{message.content}</p>
-                      <p className="text-xs mt-1 opacity-70">
-                        {message.timestamp.toLocaleTimeString()}
-                      </p>
+                     <div className="max-w-[85%] sm:max-w-[80%] space-y-2">
+                      {/* Document attachments */}
+                      {message.attachments && message.attachments.length > 0 && (
+                        <div className="space-y-2">
+                          {message.attachments.map((doc) => (
+                            <DocumentPreview
+                              key={doc.id}
+                              fileName={doc.fileName}
+                              fileType={doc.fileType}
+                              fileSize={doc.fileSize}
+                              extractedText={doc.extractedText}
+                              processingStatus={doc.processingStatus}
+                              thumbnailUrl={doc.thumbnailUrl}
+                            />
+                          ))}
+                        </div>
+                      )}
+                      
+                      {/* Message content */}
+                      {message.content && (
+                        <div
+                          className={`rounded-lg px-3 sm:px-4 py-2 ${
+                            message.role === 'user'
+                              ? 'bg-primary text-primary-foreground'
+                              : 'bg-muted'
+                          }`}
+                        >
+                          <p className="text-xs sm:text-sm whitespace-pre-wrap break-words">{message.content}</p>
+                          <p className="text-xs mt-1 opacity-70">
+                            {message.timestamp.toLocaleTimeString()}
+                          </p>
+                        </div>
+                      )}
                     </div>
                   </motion.div>
                 ))}
@@ -244,6 +323,26 @@ const AIChatbot = () => {
         </CardContent>
 
         <div className="p-3 sm:p-4 border-t">
+          {/* Pending documents preview */}
+          {pendingDocuments.length > 0 && (
+            <div className="mb-3 flex flex-wrap gap-2">
+              {pendingDocuments.map((doc) => (
+                <div key={doc.id} className="flex items-center gap-2 bg-muted rounded-lg px-3 py-2 text-sm">
+                  <FileText className="h-4 w-4 shrink-0" />
+                  <span className="truncate max-w-[120px]">{doc.fileName}</span>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-5 w-5 p-0 hover:bg-destructive/10"
+                    onClick={() => removePendingDocument(doc.id)}
+                  >
+                    <X className="h-3 w-3" />
+                  </Button>
+                </div>
+              ))}
+            </div>
+          )}
+
           <form onSubmit={handleSubmit} className="flex gap-2">
             <Sheet open={isUploadOpen} onOpenChange={setIsUploadOpen}>
               <SheetTrigger asChild>
@@ -260,7 +359,7 @@ const AIChatbot = () => {
                 <SheetHeader>
                   <SheetTitle>Upload Financial Documents</SheetTitle>
                   <SheetDescription>
-                    Upload bank statements, tax documents, or any financial files for AI analysis
+                    Upload bank statements, tax documents, receipts, or any financial files for AI analysis
                   </SheetDescription>
                 </SheetHeader>
                 <div className="mt-4">
@@ -273,13 +372,13 @@ const AIChatbot = () => {
               ref={inputRef}
               value={inputMessage}
               onChange={(e) => setInputMessage(e.target.value)}
-              placeholder="Ask about investments, taxes, retirement..."
+              placeholder={pendingDocuments.length > 0 ? "Add a message about the documents..." : "Ask about investments, taxes, retirement..."}
               disabled={isLoading || availableCredits === 0}
               className="flex-1 text-sm"
             />
             <Button 
               type="submit" 
-              disabled={!inputMessage.trim() || isLoading || availableCredits === 0}
+              disabled={(!inputMessage.trim() && pendingDocuments.length === 0) || isLoading || availableCredits === 0}
               className="shrink-0 h-9 w-9 sm:h-10 sm:w-10 p-0 sm:px-4 sm:w-auto"
             >
               {isLoading ? (
