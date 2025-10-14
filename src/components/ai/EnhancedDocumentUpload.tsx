@@ -177,37 +177,112 @@ export const EnhancedDocumentUpload = ({
 
   const openCamera = async () => {
     try {
+      // Check if mediaDevices is supported
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        toast({
+          title: "Camera not supported",
+          description: "Your browser doesn't support camera access",
+          variant: "destructive"
+        });
+        return;
+      }
+
       const stream = await navigator.mediaDevices.getUserMedia({ 
-        video: { facingMode: 'environment' } 
+        video: { 
+          facingMode: 'environment',
+          width: { ideal: 1920 },
+          height: { ideal: 1080 }
+        } 
       });
+      
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
         streamRef.current = stream;
-        setIsCameraOpen(true);
+        
+        // Wait for video to be ready before showing camera
+        videoRef.current.onloadedmetadata = () => {
+          videoRef.current?.play();
+          setIsCameraOpen(true);
+          toast({
+            title: "Camera ready",
+            description: "Position your document in the frame"
+          });
+        };
       }
-    } catch (error) {
+    } catch (error: any) {
+      console.error('Camera error:', error);
+      let errorMessage = "Please allow camera access to capture photos";
+      
+      if (error.name === 'NotAllowedError') {
+        errorMessage = "Camera permission denied. Please enable camera in browser settings.";
+      } else if (error.name === 'NotFoundError') {
+        errorMessage = "No camera found on this device.";
+      } else if (error.name === 'NotReadableError') {
+        errorMessage = "Camera is already in use by another application.";
+      }
+      
       toast({
-        title: "Camera access denied",
-        description: "Please allow camera access to capture photos",
+        title: "Camera access failed",
+        description: errorMessage,
         variant: "destructive"
       });
     }
   };
 
   const capturePhoto = () => {
-    if (videoRef.current) {
+    if (!videoRef.current || videoRef.current.readyState !== videoRef.current.HAVE_ENOUGH_DATA) {
+      toast({
+        title: "Camera not ready",
+        description: "Please wait for camera to initialize",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    try {
       const canvas = document.createElement('canvas');
-      canvas.width = videoRef.current.videoWidth;
-      canvas.height = videoRef.current.videoHeight;
-      canvas.getContext('2d')?.drawImage(videoRef.current, 0, 0);
+      const video = videoRef.current;
       
+      // Set canvas size to match video
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      
+      // Draw video frame to canvas
+      const ctx = canvas.getContext('2d');
+      if (!ctx) {
+        throw new Error('Failed to get canvas context');
+      }
+      
+      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+      
+      // Convert to blob with high quality
       canvas.toBlob((blob) => {
         if (blob) {
-          const file = new File([blob], `camera-${Date.now()}.jpg`, { type: 'image/jpeg' });
+          const timestamp = Date.now();
+          const file = new File([blob], `camera-capture-${timestamp}.jpg`, { 
+            type: 'image/jpeg',
+            lastModified: timestamp
+          });
+          
+          toast({
+            title: "Photo captured",
+            description: "Processing your photo..."
+          });
+          
           onDrop([file]);
           closeCamera();
+        } else {
+          throw new Error('Failed to create image blob');
         }
       }, 'image/jpeg', 0.95);
+      
+    } catch (error) {
+      console.error('Capture error:', error);
+      toast({
+        title: "Capture failed",
+        description: "Failed to capture photo. Please try again.",
+        variant: "destructive"
+      });
     }
   };
 
@@ -227,14 +302,40 @@ export const EnhancedDocumentUpload = ({
     <div className="space-y-4">
       {/* Upload Options */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+        {/* Desktop camera */}
         <Button
           variant="outline"
-          className="h-24 flex flex-col gap-2"
+          className="h-24 flex-col gap-2 hidden sm:flex"
           onClick={openCamera}
         >
           <Camera className="h-8 w-8" />
           <span className="text-sm">Take Photo</span>
         </Button>
+
+        {/* Mobile camera - native input */}
+        <label className="cursor-pointer sm:hidden">
+          <Button
+            variant="outline"
+            className="h-24 w-full flex flex-col gap-2"
+            asChild
+          >
+            <div>
+              <Camera className="h-8 w-8" />
+              <span className="text-sm">Take Photo</span>
+            </div>
+          </Button>
+          <input
+            type="file"
+            accept="image/*"
+            capture="environment"
+            className="hidden"
+            onChange={(e) => {
+              if (e.target.files && e.target.files[0]) {
+                onDrop([e.target.files[0]]);
+              }
+            }}
+          />
+        </label>
 
         <label className="cursor-pointer">
           <Button
@@ -277,23 +378,32 @@ export const EnhancedDocumentUpload = ({
       {/* Camera View */}
       {isCameraOpen && (
         <Card className="p-4 space-y-3">
-          <div className="relative rounded-lg overflow-hidden bg-black">
+          <div className="relative rounded-lg overflow-hidden bg-black aspect-video">
             <video
               ref={videoRef}
               autoPlay
               playsInline
-              className="w-full"
+              muted
+              className="w-full h-full object-cover"
             />
+            <div className="absolute top-4 left-4 right-4 pointer-events-none">
+              <div className="bg-black/50 text-white px-3 py-1 rounded-full text-sm inline-block">
+                Position document in frame
+              </div>
+            </div>
           </div>
           <div className="flex gap-2">
-            <Button onClick={capturePhoto} className="flex-1">
-              <Camera className="mr-2 h-4 w-4" />
-              Capture
+            <Button onClick={capturePhoto} className="flex-1" size="lg">
+              <Camera className="mr-2 h-5 w-5" />
+              Capture Photo
             </Button>
-            <Button onClick={closeCamera} variant="outline">
-              Cancel
+            <Button onClick={closeCamera} variant="outline" size="lg">
+              <X className="h-5 w-5" />
             </Button>
           </div>
+          <p className="text-xs text-center text-muted-foreground">
+            Make sure the document is well-lit and in focus
+          </p>
         </Card>
       )}
 
