@@ -1,7 +1,7 @@
 import React from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Brain, Mic, Scan, Lightbulb, MessageCircle, CreditCard, Gavel } from "lucide-react";
+import { Brain, Mic, Scan, Lightbulb, MessageCircle, CreditCard, Gavel, Activity } from "lucide-react";
 import { motion } from "framer-motion";
 import VoiceExpenseEntry from "@/components/VoiceExpenseEntry";
 import SmartDocumentUpload from "@/components/SmartDocumentUpload";
@@ -13,6 +13,7 @@ import BudgetForecastingTool from "@/components/ai/BudgetForecastingTool";
 import ForensicAnalyzer from "@/components/ai/ForensicAnalyzer";
 import PaymentGateway from "@/components/PaymentGateway";
 import MobileAIAssistant from "@/components/MobileAIAssistant";
+import { AIUsageDashboard } from "@/components/ai/AIUsageDashboard";
 import { useIsMobile } from "@/hooks/use-mobile";
 
 const AIAssistantPage = () => {
@@ -43,7 +44,7 @@ const AIAssistantPage = () => {
 
       {/* AI Features Tabs */}
       <Tabs defaultValue="chatbot" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-4 lg:grid-cols-9 max-w-7xl mx-auto h-auto p-1 gap-1">
+        <TabsList className="grid w-full grid-cols-4 lg:grid-cols-10 max-w-7xl mx-auto h-auto p-1 gap-1">
           <TabsTrigger 
             value="chatbot" 
             className="gap-1 text-xs py-2 px-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
@@ -101,6 +102,13 @@ const AIAssistantPage = () => {
             <span className="hidden sm:inline">AI Insights</span>
           </TabsTrigger>
           <TabsTrigger 
+            value="usage" 
+            className="gap-1 text-xs py-2 px-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
+          >
+            <Activity className="h-4 w-4" />
+            <span className="hidden sm:inline">Usage Stats</span>
+          </TabsTrigger>
+          <TabsTrigger 
             value="payment" 
             className="gap-1 text-xs py-2 px-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
           >
@@ -139,6 +147,10 @@ const AIAssistantPage = () => {
 
         <TabsContent value="insights" className="space-y-6">
           <AIFinancialInsights />
+        </TabsContent>
+
+        <TabsContent value="usage" className="space-y-6">
+          <AIUsageDashboard />
         </TabsContent>
 
         <TabsContent value="payment" className="space-y-6">

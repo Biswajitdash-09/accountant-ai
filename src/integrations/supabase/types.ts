@@ -96,6 +96,36 @@ export type Database = {
           },
         ]
       }
+      ai_usage_logs: {
+        Row: {
+          cost_estimate: number | null
+          created_at: string | null
+          feature: string
+          id: string
+          model: string
+          tokens_used: number
+          user_id: string
+        }
+        Insert: {
+          cost_estimate?: number | null
+          created_at?: string | null
+          feature: string
+          id?: string
+          model: string
+          tokens_used: number
+          user_id: string
+        }
+        Update: {
+          cost_estimate?: number | null
+          created_at?: string | null
+          feature?: string
+          id?: string
+          model?: string
+          tokens_used?: number
+          user_id?: string
+        }
+        Relationships: []
+      }
       analytics_cache: {
         Row: {
           cache_key: string

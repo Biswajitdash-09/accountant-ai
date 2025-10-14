@@ -5,15 +5,18 @@ import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useAI } from "@/hooks/useAI";
 import { useChatHistory } from "@/hooks/useChatHistory";
-import { Bot, Send, Loader2, Download, Trash2, Sparkles, Paperclip, X, FileText } from "lucide-react";
+import { Bot, Send, Loader2, Download, Trash2, Sparkles, Paperclip, X, FileText, History, Lightbulb } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Avatar } from "@/components/ui/avatar";
 import CreditBalance from "@/components/CreditBalance";
 import { useToast } from "@/hooks/use-toast";
 import { EnhancedDocumentUpload } from "./EnhancedDocumentUpload";
 import { DocumentPreview } from "./DocumentPreview";
+import { DocumentHistory } from "./DocumentHistory";
+import { DragDropOverlay } from "./DragDropOverlay";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { useDocuments } from "@/hooks/useDocuments";
+import { supabase } from "@/integrations/supabase/client";
 
 interface DocumentAttachment {
   id: string;
@@ -37,9 +40,13 @@ const AIChatbot = () => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputMessage, setInputMessage] = useState("");
   const [isUploadOpen, setIsUploadOpen] = useState(false);
+  const [isHistoryOpen, setIsHistoryOpen] = useState(false);
   const [pendingDocuments, setPendingDocuments] = useState<DocumentAttachment[]>([]);
+  const [isDragActive, setIsDragActive] = useState(false);
+  const [showSmartPrompts, setShowSmartPrompts] = useState(false);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const chatContainerRef = useRef<HTMLDivElement>(null);
   const { generateResponse, isLoading, availableCredits } = useAI();
   const { documents } = useDocuments();
   const { toast } = useToast();
@@ -137,6 +144,16 @@ const AIChatbot = () => {
     "Help me plan for early retirement"
   ];
 
+  const documentPrompts = [
+    "Find unauthorized charges or hidden fees",
+    "Summarize income, expenses and calculate savings rate",
+    "Identify patterns of recurring subscriptions",
+    "Extract tax-relevant items and potential deductions",
+    "Analyze investment portfolio performance",
+    "Review mortgage or loan details",
+    "Verify paystub accuracy and benefits"
+  ];
+
   const handleQuickPrompt = (prompt: string) => {
     setInputMessage(prompt);
     inputRef.current?.focus();
@@ -159,11 +176,28 @@ const AIChatbot = () => {
 
     setPendingDocuments(prev => [...prev, ...docAttachments]);
     setIsUploadOpen(false);
+    setShowSmartPrompts(true);
     
     toast({
       title: "Documents ready",
       description: `${docAttachments.length} document(s) processed. Add a message and send to analyze with AI.`,
     });
+  };
+
+  const handleSelectFromHistory = (doc: any) => {
+    const docAttachment: DocumentAttachment = {
+      id: doc.id,
+      fileName: doc.fileName,
+      fileType: doc.fileType,
+      fileSize: doc.fileSize,
+      extractedText: doc.extractedText,
+      processingStatus: 'completed',
+      thumbnailUrl: doc.publicUrl
+    };
+
+    setPendingDocuments(prev => [...prev, docAttachment]);
+    setIsHistoryOpen(false);
+    setShowSmartPrompts(true);
   };
 
   const removePendingDocument = (id: string) => {
@@ -197,9 +231,177 @@ const AIChatbot = () => {
     });
   };
 
+  // Drag and drop handlers
+  const handleDragEnter = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (e.dataTransfer.items && e.dataTransfer.items.length > 0) {
+      setIsDragActive(true);
+    }
+  };
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (e.currentTarget === e.target) {
+      setIsDragActive(false);
+    }
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+  };
+
+  const handleDrop = async (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragActive(false);
+
+    const files = Array.from(e.dataTransfer.files);
+    if (files.length > 0) {
+      await processFiles(files);
+    }
+  };
+
+  // Paste from clipboard
+  useEffect(() => {
+    const handlePaste = async (e: ClipboardEvent) => {
+      const items = e.clipboardData?.items;
+      if (!items) return;
+
+      const imageFiles: File[] = [];
+      for (let i = 0; i < items.length; i++) {
+        if (items[i].type.indexOf('image') !== -1) {
+          const file = items[i].getAsFile();
+          if (file) imageFiles.push(file);
+        }
+      }
+
+      if (imageFiles.length > 0) {
+        e.preventDefault();
+        await processFiles(imageFiles);
+        toast({
+          title: "Images pasted",
+          description: `${imageFiles.length} image(s) pasted from clipboard`
+        });
+      }
+    };
+
+    document.addEventListener('paste', handlePaste);
+    return () => document.removeEventListener('paste', handlePaste);
+  }, []);
+
+  const processFiles = async (files: File[]) => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      toast({
+        title: "Authentication required",
+        description: "Please sign in to upload files",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    const uploadedDocs: any[] = [];
+
+    for (const file of files) {
+      try {
+        // Upload to storage
+        const fileName = `${user.id}/${Date.now()}-${file.name}`;
+        const { data: storageData, error: storageError } = await supabase.storage
+          .from('documents')
+          .upload(fileName, file);
+
+        if (storageError) throw storageError;
+
+        const { data: { publicUrl } } = supabase.storage
+          .from('documents')
+          .getPublicUrl(fileName);
+
+        // Create document record
+        const { data: docData, error: docError } = await supabase
+          .from('documents')
+          .insert({
+            user_id: user.id,
+            file_name: file.name,
+            file_type: file.type,
+            file_size: file.size,
+            storage_path: fileName,
+            public_url: publicUrl,
+            processing_status: 'pending'
+          })
+          .select()
+          .single();
+
+        if (docError) throw docError;
+
+        // Call OCR processing
+        const { data: ocrData, error: ocrError } = await supabase.functions.invoke('process-ocr', {
+          body: { document_id: docData.id }
+        });
+
+        if (ocrError) throw ocrError;
+
+        // Fetch updated document
+        const { data: updatedDoc } = await supabase
+          .from('documents')
+          .select('extracted_text')
+          .eq('id', docData.id)
+          .single();
+
+        uploadedDocs.push({
+          id: docData.id,
+          fileName: file.name,
+          extractedText: updatedDoc?.extracted_text || ''
+        });
+      } catch (error) {
+        console.error('File processing error:', error);
+      }
+    }
+
+    if (uploadedDocs.length > 0) {
+      handleDocumentUpload(uploadedDocs);
+    }
+  };
+
+  const handleExportWithDocuments = () => {
+    const exportData = {
+      messages: messages.map(msg => ({
+        ...msg,
+        timestamp: msg.timestamp.toISOString()
+      })),
+      documents: pendingDocuments,
+      exportedAt: new Date().toISOString()
+    };
+
+    const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `ai-analysis-${new Date().toISOString().split('T')[0]}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    
+    toast({
+      title: "Analysis exported",
+      description: "Chat and documents have been exported"
+    });
+  };
+
   return (
-    <div className="h-full flex flex-col">
-      <Card className="flex-1 flex flex-col h-full">
+    <div className="h-full flex gap-4">
+      {/* Document History Sidebar - Desktop */}
+      <div className="hidden lg:block w-80 shrink-0">
+        <DocumentHistory onSelectDocument={handleSelectFromHistory} />
+      </div>
+
+      {/* Main Chat Area */}
+      <Card className="flex-1 flex flex-col h-full relative">
+        <DragDropOverlay isDragging={isDragActive} />
+        
         <CardHeader className="border-b p-3 sm:p-6">
           <div className="flex items-center justify-between gap-2 flex-wrap">
             <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
@@ -215,12 +417,29 @@ const AIChatbot = () => {
             </div>
             <div className="flex items-center gap-1 sm:gap-2 shrink-0">
               <CreditBalance />
+              
+              {/* Document History - Mobile */}
+              <Sheet open={isHistoryOpen} onOpenChange={setIsHistoryOpen}>
+                <SheetTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-8 w-8 sm:h-9 sm:w-9 p-0 lg:hidden"
+                  >
+                    <History className="h-3 w-3 sm:h-4 sm:w-4" />
+                  </Button>
+                </SheetTrigger>
+                <SheetContent side="left" className="w-80">
+                  <DocumentHistory onSelectDocument={handleSelectFromHistory} />
+                </SheetContent>
+              </Sheet>
+
               {messages.length > 0 && (
                 <>
                   <Button
                     variant="ghost"
                     size="sm"
-                    onClick={handleExportHistory}
+                    onClick={handleExportWithDocuments}
                     className="h-8 w-8 sm:h-9 sm:w-9 p-0"
                   >
                     <Download className="h-3 w-3 sm:h-4 sm:w-4" />
@@ -239,7 +458,14 @@ const AIChatbot = () => {
           </div>
         </CardHeader>
 
-        <CardContent className="flex-1 p-0 overflow-hidden">
+        <CardContent 
+          className="flex-1 p-0 overflow-hidden relative"
+          ref={chatContainerRef}
+          onDragEnter={handleDragEnter}
+          onDragOver={handleDragOver}
+          onDragLeave={handleDragLeave}
+          onDrop={handleDrop}
+        >
           <ScrollArea className="h-full px-3 sm:px-4 py-4 sm:py-6" ref={scrollAreaRef}>
             {messages.length === 0 ? (
               <div className="flex flex-col items-center justify-center h-full text-center space-y-4 sm:space-y-6 px-2">
@@ -323,6 +549,33 @@ const AIChatbot = () => {
         </CardContent>
 
         <div className="p-3 sm:p-4 border-t">
+          {/* Smart contextual prompts for documents */}
+          {showSmartPrompts && pendingDocuments.length > 0 && (
+            <div className="mb-3 space-y-2">
+              <div className="flex items-center gap-2 text-sm font-medium">
+                <Lightbulb className="h-4 w-4 text-yellow-500" />
+                <span>Suggested analyses for your documents:</span>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {documentPrompts.slice(0, 3).map((prompt, idx) => (
+                  <Button
+                    key={idx}
+                    variant="outline"
+                    size="sm"
+                    className="text-xs"
+                    onClick={() => {
+                      setInputMessage(prompt);
+                      setShowSmartPrompts(false);
+                      inputRef.current?.focus();
+                    }}
+                  >
+                    {prompt}
+                  </Button>
+                ))}
+              </div>
+            </div>
+          )}
+
           {/* Pending documents preview */}
           {pendingDocuments.length > 0 && (
             <div className="mb-3 flex flex-wrap gap-2">
@@ -394,6 +647,9 @@ const AIChatbot = () => {
               No credits available. Please purchase more credits to continue.
             </p>
           )}
+          <p className="text-xs text-muted-foreground text-center mt-2">
+            💡 Tip: Drag & drop files or paste images (Ctrl+V) anywhere in the chat
+          </p>
         </div>
       </Card>
     </div>
