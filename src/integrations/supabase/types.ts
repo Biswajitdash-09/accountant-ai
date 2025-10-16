@@ -1012,6 +1012,192 @@ export type Database = {
           },
         ]
       }
+      hmrc_connections: {
+        Row: {
+          connected_at: string | null
+          connection_status: Database["public"]["Enums"]["hmrc_connection_status"]
+          created_at: string | null
+          expires_at: string | null
+          hmrc_account_id: string | null
+          id: string
+          last_activity_at: string | null
+          metadata: Json | null
+          scopes: string[]
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          connected_at?: string | null
+          connection_status?: Database["public"]["Enums"]["hmrc_connection_status"]
+          created_at?: string | null
+          expires_at?: string | null
+          hmrc_account_id?: string | null
+          id?: string
+          last_activity_at?: string | null
+          metadata?: Json | null
+          scopes?: string[]
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          connected_at?: string | null
+          connection_status?: Database["public"]["Enums"]["hmrc_connection_status"]
+          created_at?: string | null
+          expires_at?: string | null
+          hmrc_account_id?: string | null
+          id?: string
+          last_activity_at?: string | null
+          metadata?: Json | null
+          scopes?: string[]
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      hmrc_data_sync: {
+        Row: {
+          connection_id: string
+          created_at: string | null
+          data_type: Database["public"]["Enums"]["hmrc_data_type"]
+          error_details: Json | null
+          error_message: string | null
+          id: string
+          last_sync_at: string | null
+          next_sync_at: string | null
+          records_synced: number | null
+          sync_status: Database["public"]["Enums"]["hmrc_sync_status"]
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          connection_id: string
+          created_at?: string | null
+          data_type: Database["public"]["Enums"]["hmrc_data_type"]
+          error_details?: Json | null
+          error_message?: string | null
+          id?: string
+          last_sync_at?: string | null
+          next_sync_at?: string | null
+          records_synced?: number | null
+          sync_status?: Database["public"]["Enums"]["hmrc_sync_status"]
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          connection_id?: string
+          created_at?: string | null
+          data_type?: Database["public"]["Enums"]["hmrc_data_type"]
+          error_details?: Json | null
+          error_message?: string | null
+          id?: string
+          last_sync_at?: string | null
+          next_sync_at?: string | null
+          records_synced?: number | null
+          sync_status?: Database["public"]["Enums"]["hmrc_sync_status"]
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "hmrc_data_sync_connection_id_fkey"
+            columns: ["connection_id"]
+            isOneToOne: false
+            referencedRelation: "hmrc_connections"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      hmrc_tax_data: {
+        Row: {
+          connection_id: string
+          created_at: string | null
+          data: Json
+          data_type: Database["public"]["Enums"]["hmrc_data_type"]
+          fetched_at: string | null
+          id: string
+          tax_year: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          connection_id: string
+          created_at?: string | null
+          data?: Json
+          data_type: Database["public"]["Enums"]["hmrc_data_type"]
+          fetched_at?: string | null
+          id?: string
+          tax_year: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          connection_id?: string
+          created_at?: string | null
+          data?: Json
+          data_type?: Database["public"]["Enums"]["hmrc_data_type"]
+          fetched_at?: string | null
+          id?: string
+          tax_year?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "hmrc_tax_data_connection_id_fkey"
+            columns: ["connection_id"]
+            isOneToOne: false
+            referencedRelation: "hmrc_connections"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      hmrc_tokens: {
+        Row: {
+          access_token: string
+          connection_id: string
+          created_at: string | null
+          expires_at: string
+          id: string
+          refresh_token: string
+          scopes: string[]
+          token_type: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          access_token: string
+          connection_id: string
+          created_at?: string | null
+          expires_at: string
+          id?: string
+          refresh_token: string
+          scopes?: string[]
+          token_type?: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          access_token?: string
+          connection_id?: string
+          created_at?: string | null
+          expires_at?: string
+          id?: string
+          refresh_token?: string
+          scopes?: string[]
+          token_type?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "hmrc_tokens_connection_id_fkey"
+            columns: ["connection_id"]
+            isOneToOne: false
+            referencedRelation: "hmrc_connections"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       integration_connections: {
         Row: {
           configuration: Json | null
@@ -2831,7 +3017,14 @@ export type Database = {
       }
     }
     Enums: {
-      [_ in never]: never
+      hmrc_connection_status: "active" | "expired" | "disconnected" | "pending"
+      hmrc_data_type:
+        | "self_assessment"
+        | "vat_return"
+        | "income"
+        | "obligations"
+        | "payment_history"
+      hmrc_sync_status: "pending" | "in_progress" | "completed" | "failed"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -2958,6 +3151,16 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      hmrc_connection_status: ["active", "expired", "disconnected", "pending"],
+      hmrc_data_type: [
+        "self_assessment",
+        "vat_return",
+        "income",
+        "obligations",
+        "payment_history",
+      ],
+      hmrc_sync_status: ["pending", "in_progress", "completed", "failed"],
+    },
   },
 } as const
