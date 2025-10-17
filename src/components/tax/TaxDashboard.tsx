@@ -8,12 +8,19 @@ import { useTaxPeriods } from "@/hooks/useTaxPeriods";
 import { useTaxCalculations } from "@/hooks/useTaxCalculations";
 import { useTaxDeductions } from "@/hooks/useTaxDeductions";
 import { useCurrencyFormatter } from "@/hooks/useCurrencyFormatter";
+import { useHMRCConnection } from "@/hooks/useHMRCConnection";
+import { HMRCTaxSummary } from "@/components/hmrc/HMRCTaxSummary";
+import { Button } from "@/components/ui/button";
+import { ExternalLink } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 export const TaxDashboard = () => {
   const { taxPeriods, isLoading: periodsLoading } = useTaxPeriods();
   const { taxCalculations, isLoading: calculationsLoading } = useTaxCalculations();
   const { taxDeductions, isLoading: deductionsLoading } = useTaxDeductions();
   const { formatCurrency } = useCurrencyFormatter();
+  const { isConnected } = useHMRCConnection();
+  const navigate = useNavigate();
 
   const currentPeriod = taxPeriods.find(p => p.status === 'active') || taxPeriods[0];
   const currentCalculation = taxCalculations.find(c => c.tax_period_id === currentPeriod?.id);
@@ -45,6 +52,33 @@ export const TaxDashboard = () => {
 
   return (
     <div className="space-y-6">
+      {/* HMRC Integration */}
+      {isConnected && (
+        <HMRCTaxSummary />
+      )}
+
+      {!isConnected && (
+        <Card className="border-primary/20 bg-gradient-to-br from-primary/5 to-transparent">
+          <CardContent className="py-6">
+            <div className="flex flex-col md:flex-row items-center justify-between gap-4">
+              <div className="flex items-center gap-3">
+                <ExternalLink className="h-8 w-8 text-primary" />
+                <div>
+                  <h3 className="font-semibold text-lg">Connect HMRC Account</h3>
+                  <p className="text-sm text-muted-foreground">
+                    Automatically import your UK tax data for seamless management
+                  </p>
+                </div>
+              </div>
+              <Button onClick={() => navigate('/hmrc')} className="gap-2 whitespace-nowrap">
+                <ExternalLink className="h-4 w-4" />
+                Connect Now
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {/* Tax Liability Card */}
         <Card className="border-finance-highlight border-2">

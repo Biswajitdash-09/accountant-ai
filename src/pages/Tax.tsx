@@ -11,16 +11,28 @@ import { IndirectTaxCalculator } from "@/components/tax/IndirectTaxCalculator";
 import { CorporateTaxCalculator } from "@/components/tax/CorporateTaxCalculator";
 import { FileText, Calculator, TrendingUp, Settings, Calendar, Building2 } from "lucide-react";
 import { TaxCountrySelector } from "@/components/tax/TaxCountrySelector";
+import { useHMRCConnection } from "@/hooks/useHMRCConnection";
+import { Badge } from "@/components/ui/badge";
+import { ExternalLink } from "lucide-react";
 
 const Tax = () => {
   const [activeTab, setActiveTab] = useState("dashboard");
   const [selectedCountry, setSelectedCountry] = useState<'USA' | 'UK' | 'India' | 'Nigeria'>('USA');
+  const { isConnected } = useHMRCConnection();
 
   return (
     <div className="space-y-6">
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
-        <div>
-          <h1 className="text-3xl font-bold">Tax Management</h1>
+        <div className="flex-1">
+          <div className="flex items-center gap-3 mb-2">
+            <h1 className="text-3xl font-bold">Tax Management</h1>
+            {selectedCountry === 'UK' && isConnected && (
+              <Badge variant="default" className="gap-1">
+                <ExternalLink className="h-3 w-3" />
+                HMRC Connected
+              </Badge>
+            )}
+          </div>
           <p className="text-muted-foreground">
             Comprehensive tax planning, calculation, and compliance management
           </p>

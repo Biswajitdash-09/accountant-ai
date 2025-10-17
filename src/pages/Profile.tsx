@@ -14,8 +14,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useAuth } from "@/contexts/AuthContext";
 import { useUserPreferences } from "@/hooks/useUserPreferences";
 import { useSecurityAuditLogs } from "@/hooks/useSecurityAuditLogs";
-import { User, Settings, Shield, LogOut, Clock, Calendar, Bell } from "lucide-react";
+import { User, Settings, Shield, LogOut, Clock, Calendar, Bell, ExternalLink } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
+import { HMRCSettings } from "@/components/hmrc/HMRCSettings";
+import { useHMRCConnection } from "@/hooks/useHMRCConnection";
 
 const Profile = () => {
   const { signOut } = useAuth();
@@ -23,6 +25,7 @@ const Profile = () => {
   const [activeTab, setActiveTab] = useState("profile");
   const { preferences, updatePreferences } = useUserPreferences();
   const { auditLogs, isLoading: auditLoading } = useSecurityAuditLogs();
+  const { isConnected } = useHMRCConnection();
 
   const handleSignOut = async () => {
     await signOut();
@@ -221,6 +224,29 @@ const Profile = () => {
               </div>
             </CardContent>
           </Card>
+
+          {/* HMRC Integration Settings */}
+          {isConnected && <HMRCSettings />}
+
+          {!isConnected && (
+            <Card className="border-primary/20">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <ExternalLink className="h-5 w-5" />
+                  HMRC Integration
+                </CardTitle>
+                <CardDescription>
+                  Connect your UK HMRC account for automatic tax data import
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <Button onClick={() => navigate('/hmrc')} className="gap-2">
+                  <ExternalLink className="h-4 w-4" />
+                  Connect HMRC Account
+                </Button>
+              </CardContent>
+            </Card>
+          )}
         </TabsContent>
 
         <TabsContent value="security" className="space-y-4">
