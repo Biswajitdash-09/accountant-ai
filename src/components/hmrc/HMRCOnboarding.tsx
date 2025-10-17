@@ -172,10 +172,7 @@ export const HMRCOnboarding = () => {
 
       {/* CTA */}
       <div className="flex justify-center">
-        <Button size="lg" className="gap-2">
-          Get Started with HMRC
-          <ArrowRight className="h-4 w-4" />
-        </Button>
+        <HMRCAuthButton />
       </div>
     </div>
   );
