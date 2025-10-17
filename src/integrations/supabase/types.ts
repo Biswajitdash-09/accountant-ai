@@ -255,6 +255,66 @@ export type Database = {
           },
         ]
       }
+      bank_connections: {
+        Row: {
+          account_name: string | null
+          account_type: string | null
+          balance: number | null
+          consent_expires_at: string | null
+          consent_id: string | null
+          created_at: string
+          currency: string | null
+          encrypted_access_token: string | null
+          encrypted_refresh_token: string | null
+          id: string
+          last_sync_at: string | null
+          metadata: Json | null
+          provider: string
+          provider_account_id: string | null
+          status: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          account_name?: string | null
+          account_type?: string | null
+          balance?: number | null
+          consent_expires_at?: string | null
+          consent_id?: string | null
+          created_at?: string
+          currency?: string | null
+          encrypted_access_token?: string | null
+          encrypted_refresh_token?: string | null
+          id?: string
+          last_sync_at?: string | null
+          metadata?: Json | null
+          provider: string
+          provider_account_id?: string | null
+          status?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          account_name?: string | null
+          account_type?: string | null
+          balance?: number | null
+          consent_expires_at?: string | null
+          consent_id?: string | null
+          created_at?: string
+          currency?: string | null
+          encrypted_access_token?: string | null
+          encrypted_refresh_token?: string | null
+          id?: string
+          last_sync_at?: string | null
+          metadata?: Json | null
+          provider?: string
+          provider_account_id?: string | null
+          status?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       barcode_scans: {
         Row: {
           confidence: number | null
@@ -2249,6 +2309,56 @@ export type Database = {
           },
         ]
       }
+      tax_filing_submissions: {
+        Row: {
+          confirmation_number: string | null
+          country: string
+          created_at: string
+          filing_method: string
+          filing_status: string | null
+          id: string
+          submission_data: Json | null
+          submitted_at: string | null
+          tax_period_id: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          confirmation_number?: string | null
+          country: string
+          created_at?: string
+          filing_method: string
+          filing_status?: string | null
+          id?: string
+          submission_data?: Json | null
+          submitted_at?: string | null
+          tax_period_id?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          confirmation_number?: string | null
+          country?: string
+          created_at?: string
+          filing_method?: string
+          filing_status?: string | null
+          id?: string
+          submission_data?: Json | null
+          submitted_at?: string | null
+          tax_period_id?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tax_filing_submissions_tax_period_id_fkey"
+            columns: ["tax_period_id"]
+            isOneToOne: false
+            referencedRelation: "tax_periods"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       tax_forms: {
         Row: {
           business_entity_id: string | null
@@ -2587,10 +2697,111 @@ export type Database = {
         }
         Relationships: []
       }
+      transaction_classifications: {
+        Row: {
+          ai_category: string | null
+          ai_comment: string | null
+          ai_type: string | null
+          confidence_score: number | null
+          created_at: string
+          id: string
+          is_tax_deductible: boolean | null
+          manual_override: boolean | null
+          tax_category: string | null
+          transaction_id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          ai_category?: string | null
+          ai_comment?: string | null
+          ai_type?: string | null
+          confidence_score?: number | null
+          created_at?: string
+          id?: string
+          is_tax_deductible?: boolean | null
+          manual_override?: boolean | null
+          tax_category?: string | null
+          transaction_id: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          ai_category?: string | null
+          ai_comment?: string | null
+          ai_type?: string | null
+          confidence_score?: number | null
+          created_at?: string
+          id?: string
+          is_tax_deductible?: boolean | null
+          manual_override?: boolean | null
+          tax_category?: string | null
+          transaction_id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "transaction_classifications_transaction_id_fkey"
+            columns: ["transaction_id"]
+            isOneToOne: true
+            referencedRelation: "transactions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      transaction_sync_logs: {
+        Row: {
+          bank_connection_id: string | null
+          completed_at: string | null
+          error_message: string | null
+          id: string
+          started_at: string
+          status: string
+          sync_type: string
+          transactions_classified: number | null
+          transactions_imported: number | null
+          user_id: string
+        }
+        Insert: {
+          bank_connection_id?: string | null
+          completed_at?: string | null
+          error_message?: string | null
+          id?: string
+          started_at?: string
+          status?: string
+          sync_type: string
+          transactions_classified?: number | null
+          transactions_imported?: number | null
+          user_id: string
+        }
+        Update: {
+          bank_connection_id?: string | null
+          completed_at?: string | null
+          error_message?: string | null
+          id?: string
+          started_at?: string
+          status?: string
+          sync_type?: string
+          transactions_classified?: number | null
+          transactions_imported?: number | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "transaction_sync_logs_bank_connection_id_fkey"
+            columns: ["bank_connection_id"]
+            isOneToOne: false
+            referencedRelation: "bank_connections"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       transactions: {
         Row: {
           account_id: string | null
           amount: number
+          bank_connection_id: string | null
           category: string | null
           cost_center: string | null
           cost_center_id: string | null
@@ -2600,9 +2811,13 @@ export type Database = {
           description: string | null
           id: string
           is_recurring: boolean | null
+          merchant_name: string | null
           notes: string | null
+          provider_transaction_id: string | null
+          raw_data: Json | null
           revenue_stream_id: string | null
           subcategory: string | null
+          sync_status: string | null
           type: string | null
           updated_at: string | null
           user_id: string
@@ -2610,6 +2825,7 @@ export type Database = {
         Insert: {
           account_id?: string | null
           amount: number
+          bank_connection_id?: string | null
           category?: string | null
           cost_center?: string | null
           cost_center_id?: string | null
@@ -2619,9 +2835,13 @@ export type Database = {
           description?: string | null
           id?: string
           is_recurring?: boolean | null
+          merchant_name?: string | null
           notes?: string | null
+          provider_transaction_id?: string | null
+          raw_data?: Json | null
           revenue_stream_id?: string | null
           subcategory?: string | null
+          sync_status?: string | null
           type?: string | null
           updated_at?: string | null
           user_id: string
@@ -2629,6 +2849,7 @@ export type Database = {
         Update: {
           account_id?: string | null
           amount?: number
+          bank_connection_id?: string | null
           category?: string | null
           cost_center?: string | null
           cost_center_id?: string | null
@@ -2638,9 +2859,13 @@ export type Database = {
           description?: string | null
           id?: string
           is_recurring?: boolean | null
+          merchant_name?: string | null
           notes?: string | null
+          provider_transaction_id?: string | null
+          raw_data?: Json | null
           revenue_stream_id?: string | null
           subcategory?: string | null
+          sync_status?: string | null
           type?: string | null
           updated_at?: string | null
           user_id?: string
@@ -2651,6 +2876,13 @@ export type Database = {
             columns: ["account_id"]
             isOneToOne: false
             referencedRelation: "accounts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "transactions_bank_connection_id_fkey"
+            columns: ["bank_connection_id"]
+            isOneToOne: false
+            referencedRelation: "bank_connections"
             referencedColumns: ["id"]
           },
           {
