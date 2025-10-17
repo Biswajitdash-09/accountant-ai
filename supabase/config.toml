@@ -9,3 +9,18 @@ verify_jwt = true   # Require authentication
 
 [functions.process-ocr]
 verify_jwt = true   # Require authentication for OCR processing
+
+[functions.hmrc-auth-init]
+verify_jwt = true   # Require authentication
+
+[functions.hmrc-callback]
+verify_jwt = true   # Require authentication
+
+[functions.hmrc-sync-data]
+verify_jwt = true   # Require authentication
+
+[functions.hmrc-refresh-token]
+verify_jwt = true   # Require authentication
+
+[functions.hmrc-disconnect]
+verify_jwt = true   # Require authentication

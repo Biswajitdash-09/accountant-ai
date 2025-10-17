@@ -35,6 +35,8 @@ const Cookies = lazy(() => import("./pages/Cookies"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 const BarcodeManager = lazy(() => import("./pages/BarcodeManager"));
 const ScanHistory = lazy(() => import("./pages/ScanHistory"));
+const HMRCIntegration = lazy(() => import("./pages/HMRCIntegration"));
+const HMRCCallback = lazy(() => import("./components/hmrc/HMRCCallback"));
 
 // Loading fallback component
 const PageLoader = () => (
@@ -176,6 +178,16 @@ function App() {
               <Layout>
                 <ScanHistory />
               </Layout>
+            </ProtectedRoute>
+          } />
+          <Route path="/hmrc" element={
+            <ProtectedRoute>
+              <HMRCIntegration />
+            </ProtectedRoute>
+          } />
+          <Route path="/hmrc/callback" element={
+            <ProtectedRoute>
+              <HMRCCallback />
             </ProtectedRoute>
           } />
           

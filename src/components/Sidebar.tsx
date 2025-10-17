@@ -127,6 +127,12 @@ const Sidebar = ({ isCollapsed, onToggle, isMobileOpen = false, onMobileToggle }
           badge: null,
         },
         {
+          href: "/hmrc",
+          label: "HMRC",
+          icon: FileText,
+          badge: "UK",
+        },
+        {
           href: "/upload",
           label: "Documents",
           icon: Upload,
