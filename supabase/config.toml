@@ -4,6 +4,9 @@ project_id = "erqisavlnwynkyfvnltb"
 [functions.stripe-webhook]
 verify_jwt = false  # Stripe calls without JWT
 
+[functions.yodlee-init]
+verify_jwt = true   # Require authentication
+
 [functions.send-chat-export]
 verify_jwt = true   # Require authentication
 

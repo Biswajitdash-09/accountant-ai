@@ -126,10 +126,25 @@ const IntegrationManagement = () => {
       if (integration.id === 'yodlee') {
         const { data, error } = await supabase.functions.invoke('yodlee-init');
         if (error) throw error;
-        if (data?.url) {
-          window.open(data.url, '_blank');
+        
+        if (data?.success && data?.fastLinkUrl && data?.accessToken) {
+          // Open Yodlee FastLink in a new window
+          const fastLinkWindow = window.open(
+            `${data.fastLinkUrl}?accessToken=${data.accessToken}`,
+            'YodleeFastLink',
+            'width=800,height=600,scrollbars=yes,resizable=yes'
+          );
+          
+          if (!fastLinkWindow) {
+            throw new Error('Please enable popups to connect with Yodlee');
+          }
+
+          toast({
+            title: "Opening Yodlee FastLink",
+            description: "Complete the bank connection process in the popup window",
+          });
         } else {
-          toast({ title: 'Yodlee', description: data?.message || 'Yodlee not configured yet.' });
+          throw new Error(data?.error || 'Failed to initialize Yodlee connection');
         }
       } else {
         // Simulate other integrations
