@@ -20,10 +20,12 @@ import {
   Key,
   Webhook,
   Zap,
-  Globe
+  Globe,
+  FileText
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
+import { useHMRCConnection } from "@/hooks/useHMRCConnection";
 
 interface Integration {
   id: string;
@@ -41,8 +43,20 @@ const IntegrationManagement = () => {
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState<string>('all');
   const [connectingId, setConnectingId] = useState<string | null>(null);
+  const { initiateConnection: initiateHMRC, isConnected: isHMRCConnected, connection: hmrcConnection } = useHMRCConnection();
 
   const integrations: Integration[] = [
+    {
+      id: 'hmrc',
+      name: 'HMRC Integration',
+      description: 'Connect to HMRC for automatic tax data import and compliance',
+      icon: FileText,
+      category: 'accounting',
+      status: isHMRCConnected ? 'connected' : 'disconnected',
+      features: ['Self Assessment', 'VAT Data', 'Tax Obligations', 'Auto Sync'],
+      setupRequired: true,
+      lastSync: hmrcConnection?.last_activity_at ? new Date(hmrcConnection.last_activity_at).toLocaleString() : undefined
+    },
     {
       id: 'yodlee',
       name: 'Yodlee Banking',
@@ -123,7 +137,9 @@ const IntegrationManagement = () => {
   const handleConnect = async (integration: Integration) => {
     setConnectingId(integration.id);
     try {
-      if (integration.id === 'yodlee') {
+      if (integration.id === 'hmrc') {
+        initiateHMRC.mutate();
+      } else if (integration.id === 'yodlee') {
         const { data, error } = await supabase.functions.invoke('yodlee-init');
         if (error) throw error;
         
