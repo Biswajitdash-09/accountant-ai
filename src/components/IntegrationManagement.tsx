@@ -68,6 +68,26 @@ const IntegrationManagement = () => {
       setupRequired: true
     },
     {
+      id: 'truelayer',
+      name: 'TrueLayer',
+      description: 'UK Open Banking - Connect your UK bank accounts instantly',
+      icon: Building,
+      category: 'banking',
+      status: 'disconnected',
+      features: ['UK Banks', 'Open Banking', 'Instant Access', 'Transaction History'],
+      setupRequired: true
+    },
+    {
+      id: 'mono',
+      name: 'Mono',
+      description: 'Connect Nigerian bank accounts and fintech services',
+      icon: Building,
+      category: 'banking',
+      status: 'disconnected',
+      features: ['African Banks', 'Fintech APIs', 'Real-time Data', 'Secure'],
+      setupRequired: true
+    },
+    {
       id: 'stripe',
       name: 'Stripe Payments',
       description: 'Process payments and manage customer billing',
@@ -144,7 +164,6 @@ const IntegrationManagement = () => {
         if (error) throw error;
         
         if (data?.success && data?.fastLinkUrl && data?.accessToken) {
-          // Open Yodlee FastLink in a new window
           const fastLinkWindow = window.open(
             `${data.fastLinkUrl}?accessToken=${data.accessToken}`,
             'YodleeFastLink',
@@ -162,8 +181,41 @@ const IntegrationManagement = () => {
         } else {
           throw new Error(data?.error || 'Failed to initialize Yodlee connection');
         }
+      } else if (integration.id === 'truelayer') {
+        const { data, error } = await supabase.functions.invoke('truelayer-init');
+        if (error) throw error;
+        
+        if (data?.authUrl) {
+          window.location.href = data.authUrl;
+        }
+      } else if (integration.id === 'mono') {
+        const { data, error } = await supabase.functions.invoke('mono-init');
+        if (error) throw error;
+        
+        if (data?.publicKey) {
+          const script = document.createElement('script');
+          script.src = 'https://connect.withmono.com/connect.js';
+          script.onload = () => {
+            const monoConnect = new (window as any).Connect({
+              key: data.publicKey,
+              onSuccess: async (response: any) => {
+                await supabase.functions.invoke('mono-callback', {
+                  body: { code: response.code }
+                });
+                toast({
+                  title: "Success!",
+                  description: "Mono account connected successfully",
+                });
+              },
+              onClose: () => {
+                console.log('Mono Connect closed');
+              }
+            });
+            monoConnect.open();
+          };
+          document.body.appendChild(script);
+        }
       } else {
-        // Simulate other integrations
         await new Promise(resolve => setTimeout(resolve, 1500));
         toast({ title: `${integration.name} connected!`, description: 'Integration setup completed successfully.' });
       }

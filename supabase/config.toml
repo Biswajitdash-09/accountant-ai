@@ -7,6 +7,21 @@ verify_jwt = false  # Stripe calls without JWT
 [functions.yodlee-init]
 verify_jwt = true   # Require authentication
 
+[functions.truelayer-init]
+verify_jwt = true   # Require authentication
+
+[functions.truelayer-callback]
+verify_jwt = true   # Require authentication
+
+[functions.mono-init]
+verify_jwt = true   # Require authentication
+
+[functions.mono-callback]
+verify_jwt = true   # Require authentication
+
+[functions.send-financial-report]
+verify_jwt = true   # Require authentication
+
 [functions.send-chat-export]
 verify_jwt = true   # Require authentication
 

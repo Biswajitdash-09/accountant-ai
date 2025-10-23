@@ -158,7 +158,7 @@ export type Database = {
           action: string
           created_at: string | null
           id: string
-          ip_address: unknown | null
+          ip_address: unknown
           new_values: Json | null
           old_values: Json | null
           record_id: string | null
@@ -170,7 +170,7 @@ export type Database = {
           action: string
           created_at?: string | null
           id?: string
-          ip_address?: unknown | null
+          ip_address?: unknown
           new_values?: Json | null
           old_values?: Json | null
           record_id?: string | null
@@ -182,7 +182,7 @@ export type Database = {
           action?: string
           created_at?: string | null
           id?: string
-          ip_address?: unknown | null
+          ip_address?: unknown
           new_values?: Json | null
           old_values?: Json | null
           record_id?: string | null
@@ -1410,6 +1410,48 @@ export type Database = {
           },
         ]
       }
+      mono_connections: {
+        Row: {
+          account_id: string
+          account_name: string | null
+          created_at: string | null
+          id: string
+          institution_name: string | null
+          institution_type: string | null
+          last_sync_at: string | null
+          mono_code: string
+          status: string | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          account_id: string
+          account_name?: string | null
+          created_at?: string | null
+          id?: string
+          institution_name?: string | null
+          institution_type?: string | null
+          last_sync_at?: string | null
+          mono_code: string
+          status?: string | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          account_id?: string
+          account_name?: string | null
+          created_at?: string | null
+          id?: string
+          institution_name?: string | null
+          institution_type?: string | null
+          last_sync_at?: string | null
+          mono_code?: string
+          status?: string | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       notifications: {
         Row: {
           created_at: string
@@ -1829,13 +1871,61 @@ export type Database = {
         }
         Relationships: []
       }
+      scheduled_reports: {
+        Row: {
+          created_at: string | null
+          data_types: string[]
+          email: string
+          filters: Json | null
+          format: string | null
+          frequency: string
+          id: string
+          is_active: boolean | null
+          last_sent_at: string | null
+          next_send_at: string | null
+          report_name: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          data_types: string[]
+          email: string
+          filters?: Json | null
+          format?: string | null
+          frequency: string
+          id?: string
+          is_active?: boolean | null
+          last_sent_at?: string | null
+          next_send_at?: string | null
+          report_name: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          data_types?: string[]
+          email?: string
+          filters?: Json | null
+          format?: string | null
+          frequency?: string
+          id?: string
+          is_active?: boolean | null
+          last_sent_at?: string | null
+          next_send_at?: string | null
+          report_name?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       security_audit_logs: {
         Row: {
           action_description: string
           action_type: string
           created_at: string | null
           id: string
-          ip_address: unknown | null
+          ip_address: unknown
           metadata: Json | null
           user_agent: string | null
           user_id: string
@@ -1845,7 +1935,7 @@ export type Database = {
           action_type: string
           created_at?: string | null
           id?: string
-          ip_address?: unknown | null
+          ip_address?: unknown
           metadata?: Json | null
           user_agent?: string | null
           user_id: string
@@ -1855,7 +1945,7 @@ export type Database = {
           action_type?: string
           created_at?: string | null
           id?: string
-          ip_address?: unknown | null
+          ip_address?: unknown
           metadata?: Json | null
           user_agent?: string | null
           user_id?: string
@@ -2908,6 +2998,54 @@ export type Database = {
           },
         ]
       }
+      truelayer_connections: {
+        Row: {
+          access_token: string
+          account_id: string | null
+          account_name: string | null
+          created_at: string | null
+          expires_at: string
+          id: string
+          institution_name: string | null
+          last_sync_at: string | null
+          provider_id: string
+          refresh_token: string
+          status: string | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          access_token: string
+          account_id?: string | null
+          account_name?: string | null
+          created_at?: string | null
+          expires_at: string
+          id?: string
+          institution_name?: string | null
+          last_sync_at?: string | null
+          provider_id: string
+          refresh_token: string
+          status?: string | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          access_token?: string
+          account_id?: string | null
+          account_name?: string | null
+          created_at?: string | null
+          expires_at?: string
+          id?: string
+          institution_name?: string | null
+          last_sync_at?: string | null
+          provider_id?: string
+          refresh_token?: string
+          status?: string | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_credits: {
         Row: {
           created_at: string
@@ -3132,7 +3270,7 @@ export type Database = {
           created_at: string | null
           expires_at: string
           id: string
-          ip_address: unknown | null
+          ip_address: unknown
           last_active: string | null
           session_token: string
           user_agent: string | null
@@ -3142,7 +3280,7 @@ export type Database = {
           created_at?: string | null
           expires_at: string
           id?: string
-          ip_address?: unknown | null
+          ip_address?: unknown
           last_active?: string | null
           session_token: string
           user_agent?: string | null
@@ -3152,7 +3290,7 @@ export type Database = {
           created_at?: string | null
           expires_at?: string
           id?: string
-          ip_address?: unknown | null
+          ip_address?: unknown
           last_active?: string | null
           session_token?: string
           user_agent?: string | null
@@ -3193,6 +3331,48 @@ export type Database = {
           storage_path?: string
           transcript?: string | null
           user_id?: string
+        }
+        Relationships: []
+      }
+      yodlee_connections: {
+        Row: {
+          access_token: string
+          account_name: string | null
+          created_at: string | null
+          id: string
+          institution_name: string | null
+          last_sync_at: string | null
+          provider_account_id: string | null
+          status: string | null
+          updated_at: string | null
+          user_id: string
+          yodlee_user_id: string
+        }
+        Insert: {
+          access_token: string
+          account_name?: string | null
+          created_at?: string | null
+          id?: string
+          institution_name?: string | null
+          last_sync_at?: string | null
+          provider_account_id?: string | null
+          status?: string | null
+          updated_at?: string | null
+          user_id: string
+          yodlee_user_id: string
+        }
+        Update: {
+          access_token?: string
+          account_name?: string | null
+          created_at?: string | null
+          id?: string
+          institution_name?: string | null
+          last_sync_at?: string | null
+          provider_account_id?: string | null
+          status?: string | null
+          updated_at?: string | null
+          user_id?: string
+          yodlee_user_id?: string
         }
         Relationships: []
       }
@@ -3239,10 +3419,7 @@ export type Database = {
         }
         Returns: undefined
       }
-      reset_daily_credits: {
-        Args: { user_id: string }
-        Returns: boolean
-      }
+      reset_daily_credits: { Args: { user_id: string }; Returns: boolean }
       user_use_credits: {
         Args: { p_credits_to_use?: number }
         Returns: boolean

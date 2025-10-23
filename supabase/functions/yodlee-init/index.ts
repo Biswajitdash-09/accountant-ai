@@ -6,11 +6,16 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-interface YodleeTokenResponse {
-  token: {
-    accessToken: string;
-    issuedAt: string;
-    expiresIn: number;
+interface YodleeUserResponse {
+  user: {
+    id: string;
+    loginName: string;
+  };
+}
+
+interface YodleeAccessTokenResponse {
+  accessToken: {
+    value: string;
   };
 }
 
@@ -18,12 +23,11 @@ serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response(null, { headers: corsHeaders });
 
   try {
-    // Get Yodlee credentials
     const clientId = Deno.env.get('YODLEE_CLIENT_ID');
     const secret = Deno.env.get('YODLEE_SECRET');
-    const baseUrl = Deno.env.get('YODLEE_BASE_URL');
+    const baseUrl = Deno.env.get('YODLEE_BASE_URL') || 'https://sandbox.api.yodlee.com/ysl';
 
-    if (!clientId || !secret || !baseUrl) {
+    if (!clientId || !secret) {
       console.error('Yodlee credentials not configured');
       return new Response(
         JSON.stringify({ error: 'Yodlee not configured. Please contact administrator.' }), 
@@ -31,7 +35,6 @@ serve(async (req) => {
       );
     }
 
-    // Get user from auth token
     const authHeader = req.headers.get('Authorization');
     if (!authHeader) {
       return new Response(
@@ -57,60 +60,137 @@ serve(async (req) => {
 
     console.log(`Initiating Yodlee connection for user: ${user.id}`);
 
-    // Get access token from Yodlee
-    const tokenResponse = await fetch(`${baseUrl}/auth/token`, {
+    // Step 1: Get admin access token
+    const adminTokenResponse = await fetch(`${baseUrl}/auth/token`, {
       method: 'POST',
       headers: {
         'Api-Version': '1.1',
-        'Content-Type': 'application/x-www-form-urlencoded',
+        'Content-Type': 'application/json',
         'loginName': clientId,
       },
-      body: new URLSearchParams({
+      body: JSON.stringify({
         clientId,
         secret,
       }),
     });
 
-    if (!tokenResponse.ok) {
-      const errorText = await tokenResponse.text();
-      console.error('Yodlee token error:', errorText);
+    if (!adminTokenResponse.ok) {
+      const errorText = await adminTokenResponse.text();
+      console.error('Yodlee admin token error:', errorText);
       return new Response(
-        JSON.stringify({ error: 'Failed to get Yodlee access token' }),
+        JSON.stringify({ error: 'Failed to get Yodlee admin access token' }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
       );
     }
 
-    const tokenData: YodleeTokenResponse = await tokenResponse.json();
-    console.log('Yodlee token obtained successfully');
+    const adminTokenData = await adminTokenResponse.json();
+    const adminToken = adminTokenData.token?.accessToken;
+    
+    if (!adminToken) {
+      console.error('No admin token in response');
+      return new Response(
+        JSON.stringify({ error: 'Invalid admin token response' }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
+      );
+    }
 
-    // Generate FastLink token for the user
-    const fastLinkResponse = await fetch(`${baseUrl}/user/accessTokens?accessToken=Bearer`, {
-      method: 'GET',
+    console.log('Yodlee admin token obtained');
+
+    // Step 2: Register or get Yodlee user
+    const yodleeLoginName = `user_${user.id}`;
+    
+    let yodleeUserId: string;
+    let userToken: string;
+
+    // Try to register new user
+    const registerResponse = await fetch(`${baseUrl}/user/register`, {
+      method: 'POST',
       headers: {
         'Api-Version': '1.1',
-        'Authorization': `Bearer ${tokenData.token.accessToken}`,
+        'Authorization': `Bearer ${adminToken}`,
         'Content-Type': 'application/json',
       },
+      body: JSON.stringify({
+        user: {
+          loginName: yodleeLoginName,
+          email: user.email,
+        },
+      }),
     });
 
-    if (!fastLinkResponse.ok) {
-      const errorText = await fastLinkResponse.text();
-      console.error('FastLink token error:', errorText);
-      return new Response(
-        JSON.stringify({ error: 'Failed to generate FastLink token' }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
-      );
+    if (registerResponse.ok) {
+      const registerData: YodleeUserResponse = await registerResponse.json();
+      yodleeUserId = registerData.user.id;
+      console.log('New Yodlee user registered:', yodleeUserId);
+    } else {
+      // User might already exist, get their token
+      const tokenResponse = await fetch(`${baseUrl}/user/accessTokens?loginName=${yodleeLoginName}`, {
+        method: 'GET',
+        headers: {
+          'Api-Version': '1.1',
+          'Authorization': `Bearer ${adminToken}`,
+        },
+      });
+
+      if (!tokenResponse.ok) {
+        const errorText = await tokenResponse.text();
+        console.error('Failed to get existing user token:', errorText);
+        return new Response(
+          JSON.stringify({ error: 'Failed to initialize Yodlee user' }),
+          { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
+        );
+      }
+
+      const tokenData: YodleeAccessTokenResponse = await tokenResponse.json();
+      userToken = tokenData.accessToken.value;
+      console.log('Retrieved existing Yodlee user token');
     }
 
-    const fastLinkData = await fastLinkResponse.json();
-    console.log('FastLink token generated successfully');
+    // Step 3: Generate user access token if we just registered
+    if (!userToken) {
+      const userTokenResponse = await fetch(`${baseUrl}/user/accessTokens?loginName=${yodleeLoginName}`, {
+        method: 'GET',
+        headers: {
+          'Api-Version': '1.1',
+          'Authorization': `Bearer ${adminToken}`,
+        },
+      });
 
-    // Return the FastLink URL and token
+      if (!userTokenResponse.ok) {
+        const errorText = await userTokenResponse.text();
+        console.error('User token error:', errorText);
+        return new Response(
+          JSON.stringify({ error: 'Failed to generate user token' }),
+          { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
+        );
+      }
+
+      const userTokenData: YodleeAccessTokenResponse = await userTokenResponse.json();
+      userToken = userTokenData.accessToken.value;
+    }
+
+    // Store connection in database
+    const { error: dbError } = await supabaseClient
+      .from('yodlee_connections')
+      .upsert({
+        user_id: user.id,
+        yodlee_user_id: yodleeLoginName,
+        access_token: userToken,
+        status: 'active',
+      }, {
+        onConflict: 'user_id,yodlee_user_id'
+      });
+
+    if (dbError) {
+      console.error('Database error:', dbError);
+    }
+
+    // Return FastLink configuration
     return new Response(
       JSON.stringify({
         success: true,
         fastLinkUrl: `${baseUrl}/authenticate/restserver/fastlink`,
-        accessToken: fastLinkData.user.accessTokens[0].value,
+        accessToken: userToken,
         baseUrl,
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 200 }
