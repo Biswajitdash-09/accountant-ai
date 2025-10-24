@@ -11,7 +11,7 @@ verify_jwt = true   # Require authentication
 verify_jwt = true   # Require authentication
 
 [functions.truelayer-callback]
-verify_jwt = true   # Require authentication
+verify_jwt = false  # OAuth callback without JWT
 
 [functions.mono-init]
 verify_jwt = true   # Require authentication

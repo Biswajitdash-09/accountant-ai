@@ -10,20 +10,32 @@ serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response(null, { headers: corsHeaders });
 
   try {
+    console.log('Mono init: Starting initialization');
+    
     const publicKey = Deno.env.get('MONO_PUBLIC_KEY');
 
     if (!publicKey) {
-      console.error('Mono credentials not configured');
+      console.error('Mono init: Public key not configured');
       return new Response(
-        JSON.stringify({ error: 'Mono not configured' }), 
+        JSON.stringify({ 
+          success: false,
+          code: 'CONFIG_ERROR',
+          message: 'Mono not configured',
+          details: 'Missing public key'
+        }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
       );
     }
 
     const authHeader = req.headers.get('Authorization');
     if (!authHeader) {
+      console.error('Mono init: Missing authorization header');
       return new Response(
-        JSON.stringify({ error: 'Missing authorization header' }),
+        JSON.stringify({ 
+          success: false,
+          code: 'AUTH_ERROR',
+          message: 'Missing authorization header'
+        }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 401 }
       );
     }
@@ -36,28 +48,43 @@ serve(async (req) => {
 
     const { data: { user }, error: userError } = await supabaseClient.auth.getUser();
     if (userError || !user) {
+      console.error('Mono init: User authentication failed', userError);
       return new Response(
-        JSON.stringify({ error: 'Unauthorized' }),
+        JSON.stringify({ 
+          success: false,
+          code: 'AUTH_ERROR',
+          message: 'Unauthorized'
+        }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 401 }
       );
     }
 
-    console.log(`Initiating Mono connection for user: ${user.id}`);
+    console.log(`Mono init: Initializing connection for user ${user.id}`);
 
-    // Return configuration for Mono Connect widget
+    // Generate unique reference for this connection attempt
+    const reference = `mono_${user.id}_${Date.now()}`;
+
+    console.log('Mono init: Connection initialized successfully');
+
     return new Response(
       JSON.stringify({
         success: true,
         publicKey,
-        reference: `user_${user.id}_${Date.now()}`,
+        reference,
+        message: 'Mono connection initialized'
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 200 }
     );
 
   } catch (error) {
-    console.error('Mono init error:', error);
+    console.error('Mono init: Unexpected error', error);
     return new Response(
-      JSON.stringify({ error: error.message || 'Internal server error' }),
+      JSON.stringify({ 
+        success: false,
+        code: 'SERVER_ERROR',
+        message: 'Internal server error',
+        details: error.message
+      }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
     );
   }
