@@ -27,10 +27,21 @@ serve(async (req) => {
     const secret = Deno.env.get('YODLEE_SECRET');
     const baseUrl = Deno.env.get('YODLEE_BASE_URL') || 'https://sandbox.api.yodlee.com/ysl';
 
+    console.log('Yodlee init - checking credentials...');
+    console.log('Client ID present:', !!clientId);
+    console.log('Secret present:', !!secret);
+    console.log('Base URL:', baseUrl);
+
     if (!clientId || !secret) {
       console.error('Yodlee credentials not configured');
       return new Response(
-        JSON.stringify({ error: 'Yodlee not configured. Please contact administrator.' }), 
+        JSON.stringify({ 
+          error: 'Yodlee credentials not configured',
+          details: {
+            clientId: !!clientId,
+            secret: !!secret
+          }
+        }), 
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
       );
     }
@@ -53,7 +64,10 @@ serve(async (req) => {
     if (userError || !user) {
       console.error('Auth error:', userError);
       return new Response(
-        JSON.stringify({ error: 'Unauthorized' }),
+        JSON.stringify({ 
+          error: 'Authentication failed',
+          details: userError?.message || 'No user found'
+        }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 401 }
       );
     }

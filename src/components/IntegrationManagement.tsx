@@ -157,11 +157,30 @@ const IntegrationManagement = () => {
   const handleConnect = async (integration: Integration) => {
     setConnectingId(integration.id);
     try {
+      // Check if user is authenticated
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        toast({
+          title: "Authentication Required",
+          description: "Please log in to connect integrations",
+          variant: "destructive"
+        });
+        return;
+      }
+
       if (integration.id === 'hmrc') {
         initiateHMRC.mutate();
       } else if (integration.id === 'yodlee') {
-        const { data, error } = await supabase.functions.invoke('yodlee-init');
-        if (error) throw error;
+        const { data, error } = await supabase.functions.invoke('yodlee-init', {
+          headers: {
+            Authorization: `Bearer ${session.access_token}`
+          }
+        });
+        
+        if (error) {
+          console.error('Yodlee error:', error);
+          throw new Error(error.message || 'Failed to connect to Yodlee');
+        }
         
         if (data?.success && data?.fastLinkUrl && data?.accessToken) {
           const fastLinkWindow = window.open(
@@ -182,30 +201,59 @@ const IntegrationManagement = () => {
           throw new Error(data?.error || 'Failed to initialize Yodlee connection');
         }
       } else if (integration.id === 'truelayer') {
-        const { data, error } = await supabase.functions.invoke('truelayer-init');
-        if (error) throw error;
+        const { data, error } = await supabase.functions.invoke('truelayer-init', {
+          headers: {
+            Authorization: `Bearer ${session.access_token}`
+          }
+        });
+        
+        if (error) {
+          console.error('TrueLayer error:', error);
+          throw new Error(error.message || 'Failed to connect to TrueLayer');
+        }
         
         if (data?.authUrl) {
           window.location.href = data.authUrl;
         }
       } else if (integration.id === 'mono') {
-        const { data, error } = await supabase.functions.invoke('mono-init');
-        if (error) throw error;
+        const { data, error } = await supabase.functions.invoke('mono-init', {
+          headers: {
+            Authorization: `Bearer ${session.access_token}`
+          }
+        });
+        
+        if (error) {
+          console.error('Mono error:', error);
+          throw new Error(error.message || 'Failed to connect to Mono');
+        }
         
         if (data?.publicKey) {
           const script = document.createElement('script');
           script.src = 'https://connect.withmono.com/connect.js';
           script.onload = () => {
-            const monoConnect = new (window as any).Connect({
+              const monoConnect = new (window as any).Connect({
               key: data.publicKey,
               onSuccess: async (response: any) => {
-                await supabase.functions.invoke('mono-callback', {
-                  body: { code: response.code }
+                const { error: callbackError } = await supabase.functions.invoke('mono-callback', {
+                  body: { code: response.code },
+                  headers: {
+                    Authorization: `Bearer ${session.access_token}`
+                  }
                 });
-                toast({
-                  title: "Success!",
-                  description: "Mono account connected successfully",
-                });
+                
+                if (callbackError) {
+                  console.error('Mono callback error:', callbackError);
+                  toast({
+                    title: "Connection Failed",
+                    description: "Failed to complete Mono connection",
+                    variant: "destructive"
+                  });
+                } else {
+                  toast({
+                    title: "Success!",
+                    description: "Mono account connected successfully",
+                  });
+                }
               },
               onClose: () => {
                 console.log('Mono Connect closed');
@@ -220,7 +268,12 @@ const IntegrationManagement = () => {
         toast({ title: `${integration.name} connected!`, description: 'Integration setup completed successfully.' });
       }
     } catch (e: any) {
-      toast({ title: 'Connection failed', description: e.message || 'Please try again later.', variant: 'destructive' });
+      console.error('Integration connection error:', e);
+      toast({ 
+        title: 'Connection failed', 
+        description: e.message || 'Please check your API credentials and try again.', 
+        variant: 'destructive' 
+      });
     } finally {
       setConnectingId(null);
     }
