@@ -11,6 +11,7 @@ import "./App.css";
 // Eager load only critical public pages
 import Landing from "./pages/Landing";
 import Auth from "./pages/Auth";
+import Onboarding from "./pages/Onboarding";
 
 // Lazy load all other pages for better code splitting
 const Dashboard = lazy(() => import("./pages/Dashboard"));
@@ -37,6 +38,7 @@ const BarcodeManager = lazy(() => import("./pages/BarcodeManager"));
 const ScanHistory = lazy(() => import("./pages/ScanHistory"));
 const HMRCIntegration = lazy(() => import("./pages/HMRCIntegration"));
 const HMRCCallback = lazy(() => import("./components/hmrc/HMRCCallback"));
+const Integrations = lazy(() => import("./pages/Integrations"));
 
 // Loading fallback component
 const PageLoader = () => (
@@ -59,6 +61,13 @@ function App() {
           <Route path="/privacy" element={<Privacy />} />
           <Route path="/terms" element={<Terms />} />
           <Route path="/cookies" element={<Cookies />} />
+          
+          {/* Onboarding route - protected but no layout */}
+          <Route path="/onboarding" element={
+            <ProtectedRoute>
+              <Onboarding />
+            </ProtectedRoute>
+          } />
           
           {/* Protected routes wrapped in Layout */}
           <Route path="/dashboard" element={
@@ -188,6 +197,13 @@ function App() {
           <Route path="/hmrc/callback" element={
             <ProtectedRoute>
               <HMRCCallback />
+            </ProtectedRoute>
+          } />
+          <Route path="/integrations" element={
+            <ProtectedRoute>
+              <Layout>
+                <Integrations />
+              </Layout>
             </ProtectedRoute>
           } />
           

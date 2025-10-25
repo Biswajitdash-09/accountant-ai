@@ -77,8 +77,32 @@ const Auth = () => {
     }
   };
 
-  const handleAuthSuccess = () => {
-    console.log('Auth success, navigating to dashboard');
+  const handleAuthSuccess = async (isNewUser = false) => {
+    console.log('Auth success, isNewUser:', isNewUser);
+    
+    // For new signups, redirect to onboarding
+    if (isNewUser) {
+      console.log('New user detected, redirecting to onboarding');
+      navigate("/onboarding");
+      return;
+    }
+    
+    // For existing users, check if they've completed onboarding
+    if (user) {
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('onboarding_completed')
+        .eq('id', user.id)
+        .single();
+      
+      if (!profile?.onboarding_completed) {
+        console.log('User has not completed onboarding, redirecting');
+        navigate("/onboarding");
+        return;
+      }
+    }
+    
+    console.log('Existing user with completed onboarding, navigating to dashboard');
     navigate("/dashboard");
   };
 

@@ -1655,29 +1655,47 @@ export type Database = {
       }
       profiles: {
         Row: {
+          accounting_software: string | null
           avatar_url: string | null
           created_at: string | null
           email: string | null
+          fiscal_year_end: string | null
           full_name: string | null
           id: string
+          onboarding_completed: boolean | null
+          onboarding_step: number | null
+          preferred_language: string | null
+          region: string | null
           role: string | null
           updated_at: string | null
         }
         Insert: {
+          accounting_software?: string | null
           avatar_url?: string | null
           created_at?: string | null
           email?: string | null
+          fiscal_year_end?: string | null
           full_name?: string | null
           id: string
+          onboarding_completed?: boolean | null
+          onboarding_step?: number | null
+          preferred_language?: string | null
+          region?: string | null
           role?: string | null
           updated_at?: string | null
         }
         Update: {
+          accounting_software?: string | null
           avatar_url?: string | null
           created_at?: string | null
           email?: string | null
+          fiscal_year_end?: string | null
           full_name?: string | null
           id?: string
+          onboarding_completed?: boolean | null
+          onboarding_step?: number | null
+          preferred_language?: string | null
+          region?: string | null
           role?: string | null
           updated_at?: string | null
         }

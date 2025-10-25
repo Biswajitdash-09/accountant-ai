@@ -13,7 +13,7 @@ interface AuthFormProps {
   type: "login" | "signup";
   isLoading: boolean;
   setIsLoading: (loading: boolean) => void;
-  onSuccess: () => void;
+  onSuccess: (isNewUser?: boolean) => void;
   onSwitchMode?: () => void;
 }
 
@@ -129,7 +129,7 @@ const AuthForm = ({ type, isLoading, setIsLoading, onSuccess, onSwitchMode }: Au
         description: "Logged in successfully",
       });
       
-      onSuccess();
+      onSuccess(false);
     } catch (error: any) {
       let errorMessage = error.message;
       

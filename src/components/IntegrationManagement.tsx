@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { useLocation } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -41,6 +42,7 @@ interface Integration {
 
 const IntegrationManagement = () => {
   const { toast } = useToast();
+  const location = useLocation();
   const [activeTab, setActiveTab] = useState<string>('all');
   const [connectingId, setConnectingId] = useState<string | null>(null);
   const { initiateConnection: initiateHMRC, isConnected: isHMRCConnected, connection: hmrcConnection } = useHMRCConnection();
@@ -153,6 +155,20 @@ const IntegrationManagement = () => {
   const filteredIntegrations = activeTab === 'all' 
     ? integrations 
     : integrations.filter(i => i.category === activeTab);
+
+  // Auto-connect integration from query parameter
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const connectParam = params.get('connect');
+    
+    if (connectParam && !connectingId) {
+      const integration = integrations.find(i => i.id === connectParam);
+      if (integration) {
+        console.log(`Auto-connecting to ${connectParam} from query parameter`);
+        handleConnect(integration);
+      }
+    }
+  }, [location.search]);
 
   const handleConnect = async (integration: Integration) => {
     setConnectingId(integration.id);
