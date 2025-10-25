@@ -1653,6 +1653,48 @@ export type Database = {
         }
         Relationships: []
       }
+      plaid_connections: {
+        Row: {
+          access_token: string
+          accounts: Json | null
+          created_at: string | null
+          id: string
+          institution_id: string | null
+          institution_name: string | null
+          item_id: string
+          last_sync_at: string | null
+          status: string | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          access_token: string
+          accounts?: Json | null
+          created_at?: string | null
+          id?: string
+          institution_id?: string | null
+          institution_name?: string | null
+          item_id: string
+          last_sync_at?: string | null
+          status?: string | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          access_token?: string
+          accounts?: Json | null
+          created_at?: string | null
+          id?: string
+          institution_id?: string | null
+          institution_name?: string | null
+          item_id?: string
+          last_sync_at?: string | null
+          status?: string | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           accounting_software: string | null
@@ -1996,6 +2038,51 @@ export type Database = {
           ip_address?: unknown
           metadata?: Json | null
           user_agent?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      setu_connections: {
+        Row: {
+          account_details: Json | null
+          account_id: string
+          account_type: string | null
+          consent_id: string | null
+          consent_status: string | null
+          created_at: string | null
+          fip_id: string | null
+          fip_name: string | null
+          id: string
+          last_sync_at: string | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          account_details?: Json | null
+          account_id: string
+          account_type?: string | null
+          consent_id?: string | null
+          consent_status?: string | null
+          created_at?: string | null
+          fip_id?: string | null
+          fip_name?: string | null
+          id?: string
+          last_sync_at?: string | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          account_details?: Json | null
+          account_id?: string
+          account_type?: string | null
+          consent_id?: string | null
+          consent_status?: string | null
+          created_at?: string | null
+          fip_id?: string | null
+          fip_name?: string | null
+          id?: string
+          last_sync_at?: string | null
+          updated_at?: string | null
           user_id?: string
         }
         Relationships: []

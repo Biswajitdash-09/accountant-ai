@@ -60,6 +60,26 @@ const IntegrationManagement = () => {
       lastSync: hmrcConnection?.last_activity_at ? new Date(hmrcConnection.last_activity_at).toLocaleString() : undefined
     },
     {
+      id: 'plaid',
+      name: 'Plaid (US Banking)',
+      description: 'Connect US bank accounts for transactions and balances via Plaid Link',
+      icon: Building,
+      category: 'banking',
+      status: 'disconnected',
+      features: ['US Banks', 'Transaction Sync', 'Balance Updates', 'Real-time Data'],
+      setupRequired: true
+    },
+    {
+      id: 'setu',
+      name: 'Setu (India Banking)',
+      description: 'Connect Indian bank accounts via Setu Account Aggregator',
+      icon: Building,
+      category: 'banking',
+      status: 'disconnected',
+      features: ['India Banks', 'Account Aggregator', 'Secure', 'RBI Approved'],
+      setupRequired: true
+    },
+    {
       id: 'yodlee',
       name: 'Yodlee Banking',
       description: 'Connect bank accounts via Yodlee FastLink for transactions & balances',
@@ -189,7 +209,85 @@ const IntegrationManagement = () => {
 
       console.log(`Connecting to ${integration.id}...`);
 
-      if (integration.id === 'hmrc') {
+      if (integration.id === 'plaid') {
+        // Plaid Link flow
+        const { data, error } = await supabase.functions.invoke('plaid-init', {
+          headers: {
+            Authorization: `Bearer ${session.access_token}`,
+          },
+        });
+
+        if (error || !data?.success) {
+          console.error('Plaid init error:', error || data);
+          throw new Error(data?.message || error?.message || 'Failed to initialize Plaid connection');
+        }
+
+        if (data?.linkToken) {
+          // Load Plaid Link SDK
+          const script = document.createElement('script');
+          script.src = 'https://cdn.plaid.com/link/v2/stable/link-initialize.js';
+          script.async = true;
+          document.body.appendChild(script);
+
+          script.onload = () => {
+            const handler = (window as any).Plaid.create({
+              token: data.linkToken,
+              onSuccess: async (public_token: string, metadata: any) => {
+                try {
+                  console.log('Plaid Link success, exchanging token...');
+                  
+                  const { data: exchangeData, error: exchangeError } = await supabase.functions.invoke('plaid-callback', {
+                    body: { public_token, metadata },
+                    headers: {
+                      Authorization: `Bearer ${session.access_token}`,
+                    },
+                  });
+
+                  if (exchangeError || !exchangeData?.success) {
+                    throw new Error(exchangeData?.message || 'Failed to save Plaid connection');
+                  }
+
+                  toast({
+                    title: "Success",
+                    description: exchangeData?.message || "Bank account connected via Plaid",
+                  });
+                } catch (error: any) {
+                  toast({
+                    title: "Connection Error",
+                    description: error.message,
+                    variant: "destructive",
+                  });
+                } finally {
+                  setConnectingId(null);
+                }
+              },
+              onExit: (err: any, metadata: any) => {
+                console.log('Plaid Link exited', err, metadata);
+                setConnectingId(null);
+              },
+            });
+
+            handler.open();
+          };
+        }
+      } else if (integration.id === 'setu') {
+        // Setu Account Aggregator flow
+        const { data, error } = await supabase.functions.invoke('setu-init', {
+          headers: {
+            Authorization: `Bearer ${session.access_token}`,
+          },
+        });
+
+        if (error || !data?.success) {
+          console.error('Setu init error:', error || data);
+          throw new Error(data?.message || error?.message || 'Failed to initialize Setu connection');
+        }
+
+        if (data?.consentUrl) {
+          // Open Setu consent URL in new window
+          window.location.href = data.consentUrl;
+        }
+      } else if (integration.id === 'hmrc') {
         // HMRC OAuth flow
         const { data, error } = await supabase.functions.invoke('hmrc-auth-init', {
           headers: {
