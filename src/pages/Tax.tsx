@@ -9,7 +9,8 @@ import { TaxSettings } from "@/components/tax/TaxSettings";
 import { TaxComparison } from "@/components/tax/TaxComparison";
 import { IndirectTaxCalculator } from "@/components/tax/IndirectTaxCalculator";
 import { CorporateTaxCalculator } from "@/components/tax/CorporateTaxCalculator";
-import { FileText, Calculator, TrendingUp, Settings, Calendar, Building2 } from "lucide-react";
+import TaxFilingWidget from "@/components/tax/TaxFilingWidget";
+import { FileText, Calculator, TrendingUp, Settings, Calendar, Building2, Send } from "lucide-react";
 import { TaxCountrySelector } from "@/components/tax/TaxCountrySelector";
 import { useHMRCConnection } from "@/hooks/useHMRCConnection";
 import { Badge } from "@/components/ui/badge";
@@ -44,10 +45,14 @@ const Tax = () => {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-        <TabsList className="grid w-full grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-1">
+        <TabsList className="grid w-full grid-cols-2 sm:grid-cols-3 lg:grid-cols-9 gap-1">
           <TabsTrigger value="dashboard" className="flex items-center gap-2">
             <TrendingUp className="h-4 w-4" />
             <span className="hidden sm:inline">Dashboard</span>
+          </TabsTrigger>
+          <TabsTrigger value="filing" className="flex items-center gap-2">
+            <Send className="h-4 w-4" />
+            <span className="hidden sm:inline">Filing</span>
           </TabsTrigger>
           <TabsTrigger value="deductions" className="flex items-center gap-2">
             <FileText className="h-4 w-4" />
@@ -81,6 +86,10 @@ const Tax = () => {
 
         <TabsContent value="dashboard" className="space-y-6">
           <TaxDashboard />
+        </TabsContent>
+
+        <TabsContent value="filing" className="space-y-6">
+          <TaxFilingWidget />
         </TabsContent>
 
         <TabsContent value="deductions" className="space-y-6">

@@ -12,6 +12,8 @@ import RecentTransactions from "@/components/dashboard/RecentTransactions";
 import FinancialGoalsManager from "@/components/dashboard/FinancialGoalsManager";
 import AIInsightsSummary from "@/components/dashboard/AIInsightsSummary";
 import NetWorthDashboard from "@/components/dashboard/NetWorthDashboard";
+import SmartAlertsWidget from "@/components/dashboard/SmartAlertsWidget";
+import AdvancedExportDialog from "@/components/reports/AdvancedExportDialog";
 import { TaskManager } from "@/components/TaskManager";
 import { DeadlineTracker } from "@/components/DeadlineTracker";
 import { NotificationCenter } from "@/components/NotificationCenter";
@@ -150,6 +152,7 @@ const Dashboard = () => {
           
           <div className="flex items-center gap-2">
             <CurrencySwitcher />
+            <AdvancedExportDialog />
             <Button
               variant="outline"
               size="sm"
@@ -237,11 +240,14 @@ const Dashboard = () => {
               />
             </div>
 
-            {/* AI Insights */}
+            {/* AI Insights and Alerts */}
             <div className="grid gap-6 grid-cols-1 xl:grid-cols-2">
               <AIInsightsSummary />
-              <NetWorthDashboard />
+              <SmartAlertsWidget />
             </div>
+
+            {/* Net Worth */}
+            <NetWorthDashboard />
 
             {/* Charts and Financial Goals */}
             <div className="grid gap-6 grid-cols-1 xl:grid-cols-2">
