@@ -10,6 +10,8 @@ import IncomeExpenseChart from "@/components/dashboard/IncomeExpenseChart";
 import ExpenseChart from "@/components/dashboard/ExpenseChart";
 import RecentTransactions from "@/components/dashboard/RecentTransactions";
 import FinancialGoalsManager from "@/components/dashboard/FinancialGoalsManager";
+import AIInsightsSummary from "@/components/dashboard/AIInsightsSummary";
+import NetWorthDashboard from "@/components/dashboard/NetWorthDashboard";
 import { TaskManager } from "@/components/TaskManager";
 import { DeadlineTracker } from "@/components/DeadlineTracker";
 import { NotificationCenter } from "@/components/NotificationCenter";
@@ -233,6 +235,12 @@ const Dashboard = () => {
                   period: "from last month"
                 }}
               />
+            </div>
+
+            {/* AI Insights */}
+            <div className="grid gap-6 grid-cols-1 xl:grid-cols-2">
+              <AIInsightsSummary />
+              <NetWorthDashboard />
             </div>
 
             {/* Charts and Financial Goals */}

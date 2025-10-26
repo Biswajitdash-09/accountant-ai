@@ -1,10 +1,11 @@
 import React from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Settings, Link as LinkIcon, Gauge } from "lucide-react";
+import { Settings, Link as LinkIcon, Gauge, Brain } from "lucide-react";
 import { motion } from "framer-motion";
 import IntegrationManagement from "@/components/IntegrationManagement";
 import PWAEnhancements from "@/components/PWAEnhancements";
+import AnomalyDetector from "@/components/ai/AnomalyDetector";
 
 const AdvancedFeaturesPage = () => {
   return (
@@ -26,10 +27,14 @@ const AdvancedFeaturesPage = () => {
 
       {/* Advanced Features Tabs */}
       <Tabs defaultValue="integrations" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-2 max-w-md mx-auto">
+        <TabsList className="grid w-full grid-cols-3 max-w-2xl mx-auto">
           <TabsTrigger value="integrations" className="gap-2">
             <LinkIcon className="h-4 w-4" />
             Integrations
+          </TabsTrigger>
+          <TabsTrigger value="ai-security" className="gap-2">
+            <Brain className="h-4 w-4" />
+            AI Security
           </TabsTrigger>
           <TabsTrigger value="performance" className="gap-2">
             <Gauge className="h-4 w-4" />
@@ -39,6 +44,10 @@ const AdvancedFeaturesPage = () => {
 
         <TabsContent value="integrations" className="space-y-6">
           <IntegrationManagement />
+        </TabsContent>
+
+        <TabsContent value="ai-security" className="space-y-6">
+          <AnomalyDetector />
         </TabsContent>
 
         <TabsContent value="performance" className="space-y-6">
