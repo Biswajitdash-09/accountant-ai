@@ -683,22 +683,37 @@ export type Database = {
       }
       crypto_prices: {
         Row: {
-          fetched_at: string
-          id: number
-          price: number
+          created_at: string | null
+          id: string
+          last_updated: string
+          market_cap: number | null
+          name: string | null
+          price_change_24h: number | null
+          price_usd: number
           symbol: string
+          volume_24h: number | null
         }
         Insert: {
-          fetched_at: string
-          id?: number
-          price: number
+          created_at?: string | null
+          id?: string
+          last_updated: string
+          market_cap?: number | null
+          name?: string | null
+          price_change_24h?: number | null
+          price_usd: number
           symbol: string
+          volume_24h?: number | null
         }
         Update: {
-          fetched_at?: string
-          id?: number
-          price?: number
+          created_at?: string | null
+          id?: string
+          last_updated?: string
+          market_cap?: number | null
+          name?: string | null
+          price_change_24h?: number | null
+          price_usd?: number
           symbol?: string
+          volume_24h?: number | null
         }
         Relationships: []
       }
@@ -984,27 +999,51 @@ export type Database = {
       }
       exchange_rates: {
         Row: {
-          base: string
-          fetched_at: string
+          base_currency_id: string
+          created_at: string | null
           id: string
-          quote: string
           rate: number
+          rate_date: string
+          source: string | null
+          target_currency_id: string
+          updated_at: string | null
         }
         Insert: {
-          base: string
-          fetched_at?: string
+          base_currency_id: string
+          created_at?: string | null
           id?: string
-          quote: string
           rate: number
+          rate_date?: string
+          source?: string | null
+          target_currency_id: string
+          updated_at?: string | null
         }
         Update: {
-          base?: string
-          fetched_at?: string
+          base_currency_id?: string
+          created_at?: string | null
           id?: string
-          quote?: string
           rate?: number
+          rate_date?: string
+          source?: string | null
+          target_currency_id?: string
+          updated_at?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "exchange_rates_base_currency_id_fkey"
+            columns: ["base_currency_id"]
+            isOneToOne: false
+            referencedRelation: "currencies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "exchange_rates_target_currency_id_fkey"
+            columns: ["target_currency_id"]
+            isOneToOne: false
+            referencedRelation: "currencies"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       financial_goals: {
         Row: {
@@ -1406,6 +1445,56 @@ export type Database = {
             columns: ["investment_id"]
             isOneToOne: false
             referencedRelation: "user_investments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      investment_portfolio: {
+        Row: {
+          asset_type: string
+          created_at: string | null
+          currency_id: string | null
+          id: string
+          notes: string | null
+          purchase_date: string
+          purchase_price: number
+          quantity: number
+          symbol: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          asset_type: string
+          created_at?: string | null
+          currency_id?: string | null
+          id?: string
+          notes?: string | null
+          purchase_date: string
+          purchase_price: number
+          quantity: number
+          symbol: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          asset_type?: string
+          created_at?: string | null
+          currency_id?: string | null
+          id?: string
+          notes?: string | null
+          purchase_date?: string
+          purchase_price?: number
+          quantity?: number
+          symbol?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "investment_portfolio_currency_id_fkey"
+            columns: ["currency_id"]
+            isOneToOne: false
+            referencedRelation: "currencies"
             referencedColumns: ["id"]
           },
         ]

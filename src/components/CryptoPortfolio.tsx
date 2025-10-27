@@ -26,8 +26,12 @@ interface CryptoAsset {
 
 interface CryptoPrice {
   symbol: string;
-  price: number;
-  fetched_at: string;
+  name: string | null;
+  price_usd: number;
+  price_change_24h: number | null;
+  market_cap: number | null;
+  volume_24h: number | null;
+  last_updated: string;
 }
 
 const POPULAR_CRYPTOS = [
@@ -91,19 +95,19 @@ const { formatCurrency, preferredCurrency } = useCurrencyFormatter();
       }
 
       // Fetch current prices for symbols
-      const symbols = (portfolioData || []).map((asset: any) => asset.symbol);
+      const symbols = (portfolioData || []).map((asset: any) => asset.symbol.toUpperCase());
       if (symbols.length > 0) {
         const { data: pricesData } = await supabase
           .from('crypto_prices')
-          .select('symbol, price, fetched_at')
+          .select('symbol, price_usd, name, price_change_24h, last_updated')
           .in('symbol', symbols)
-          .order('fetched_at', { ascending: false });
+          .order('last_updated', { ascending: false });
 
         // Get latest price for each symbol
         const latestPrices: Record<string, number> = {};
         (pricesData || []).forEach((price: CryptoPrice) => {
           if (!latestPrices[price.symbol]) {
-            latestPrices[price.symbol] = price.price;
+            latestPrices[price.symbol] = price.price_usd;
           }
         });
 
