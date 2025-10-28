@@ -1,34 +1,28 @@
-
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { useAuth } from "@/contexts/AuthContext";
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
 
 export interface CostCenter {
   id: string;
   user_id: string;
   name: string;
   description?: string;
-  budget_allocation: number;
+  budget_allocation?: number;
   is_active: boolean;
   created_at: string;
   updated_at: string;
 }
 
-export const useCostCenters = () => {
-  const { user } = useAuth();
+export const useCostCenters = (entityId?: string) => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  const {
-    data: costCenters = [],
-    isLoading,
-    error
-  } = useQuery({
+  const { data: costCenters = [], isLoading } = useQuery({
     queryKey: ['cost_centers'],
     queryFn: async () => {
+      const { data: { user } } = await supabase.auth.getUser();
       if (!user) return [];
-      
+
       const { data, error } = await supabase
         .from('cost_centers')
         .select('*')
@@ -36,18 +30,18 @@ export const useCostCenters = () => {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      return data as CostCenter[];
+      return (data || []) as CostCenter[];
     },
-    enabled: !!user,
   });
 
-  const createCostCenter = useMutation({
-    mutationFn: async (newCostCenter: Omit<CostCenter, 'id' | 'user_id' | 'created_at' | 'updated_at'>) => {
-      if (!user) throw new Error('User not authenticated');
+  const addCostCenter = useMutation({
+    mutationFn: async (centerData: Omit<CostCenter, 'id' | 'user_id' | 'created_at' | 'updated_at'>) => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Not authenticated');
 
       const { data, error } = await supabase
         .from('cost_centers')
-        .insert([{ ...newCostCenter, user_id: user.id }])
+        .insert([{ ...centerData, user_id: user.id }])
         .select()
         .single();
 
@@ -58,16 +52,15 @@ export const useCostCenters = () => {
       queryClient.invalidateQueries({ queryKey: ['cost_centers'] });
       toast({
         title: "Success",
-        description: "Cost center created successfully",
+        description: "Cost center created successfully.",
       });
     },
-    onError: (error) => {
+    onError: () => {
       toast({
         title: "Error",
-        description: "Failed to create cost center",
+        description: "Failed to create cost center.",
         variant: "destructive",
       });
-      console.error('Create cost center error:', error);
     },
   });
 
@@ -87,13 +80,13 @@ export const useCostCenters = () => {
       queryClient.invalidateQueries({ queryKey: ['cost_centers'] });
       toast({
         title: "Success",
-        description: "Cost center updated successfully",
+        description: "Cost center updated successfully.",
       });
     },
     onError: () => {
       toast({
         title: "Error",
-        description: "Failed to update cost center",
+        description: "Failed to update cost center.",
         variant: "destructive",
       });
     },
@@ -112,13 +105,13 @@ export const useCostCenters = () => {
       queryClient.invalidateQueries({ queryKey: ['cost_centers'] });
       toast({
         title: "Success",
-        description: "Cost center deleted successfully",
+        description: "Cost center deleted successfully.",
       });
     },
     onError: () => {
       toast({
         title: "Error",
-        description: "Failed to delete cost center",
+        description: "Failed to delete cost center.",
         variant: "destructive",
       });
     },
@@ -127,8 +120,7 @@ export const useCostCenters = () => {
   return {
     costCenters,
     isLoading,
-    error,
-    createCostCenter,
+    addCostCenter,
     updateCostCenter,
     deleteCostCenter,
   };
