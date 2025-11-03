@@ -409,9 +409,9 @@ const AIChatbot = () => {
                 <Bot className="h-4 w-4 sm:h-6 sm:w-6 text-primary" />
               </Avatar>
               <div className="min-w-0">
-                <CardTitle className="text-sm sm:text-lg truncate">AI Financial Assistant</CardTitle>
+                <CardTitle className="text-sm sm:text-lg truncate">Arnold - AI Financial Assistant</CardTitle>
                 <CardDescription className="text-xs hidden sm:block">
-                  Powered by OpenAI GPT-5 • Investment, Tax & Retirement Expert
+                  Your trusted financial advisor • Powered by GPT-5
                 </CardDescription>
               </div>
             </div>
@@ -471,9 +471,9 @@ const AIChatbot = () => {
               <div className="flex flex-col items-center justify-center h-full text-center space-y-4 sm:space-y-6 px-2">
                 <div className="space-y-2">
                   <Sparkles className="h-10 w-10 sm:h-12 sm:w-12 mx-auto text-primary" />
-                  <h3 className="text-lg sm:text-xl font-semibold">Your AI Financial Advisor</h3>
+                  <h3 className="text-lg sm:text-xl font-semibold">Hi! I'm Arnold 👋</h3>
                   <p className="text-xs sm:text-sm text-muted-foreground max-w-md">
-                    Expert advice on investments, taxes, retirement planning, and wealth building
+                    Your trusted financial advisor. Ask me about investments, crypto wallets, taxes, retirement planning, and wealth building
                   </p>
                 </div>
                 

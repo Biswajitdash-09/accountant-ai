@@ -681,6 +681,106 @@ export type Database = {
         }
         Relationships: []
       }
+      crypto_holdings: {
+        Row: {
+          balance: number
+          created_at: string | null
+          id: string
+          last_price_usd: number
+          token_address: string | null
+          token_name: string
+          token_symbol: string
+          updated_at: string | null
+          value_usd: number
+          wallet_id: string
+        }
+        Insert: {
+          balance?: number
+          created_at?: string | null
+          id?: string
+          last_price_usd?: number
+          token_address?: string | null
+          token_name: string
+          token_symbol: string
+          updated_at?: string | null
+          value_usd?: number
+          wallet_id: string
+        }
+        Update: {
+          balance?: number
+          created_at?: string | null
+          id?: string
+          last_price_usd?: number
+          token_address?: string | null
+          token_name?: string
+          token_symbol?: string
+          updated_at?: string | null
+          value_usd?: number
+          wallet_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "crypto_holdings_wallet_id_fkey"
+            columns: ["wallet_id"]
+            isOneToOne: false
+            referencedRelation: "crypto_wallets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      crypto_nfts: {
+        Row: {
+          acquired_at: string | null
+          collection: string | null
+          created_at: string | null
+          floor_price_usd: number | null
+          id: string
+          image_url: string | null
+          metadata: Json | null
+          name: string | null
+          token_address: string
+          token_id: string
+          updated_at: string | null
+          wallet_id: string
+        }
+        Insert: {
+          acquired_at?: string | null
+          collection?: string | null
+          created_at?: string | null
+          floor_price_usd?: number | null
+          id?: string
+          image_url?: string | null
+          metadata?: Json | null
+          name?: string | null
+          token_address: string
+          token_id: string
+          updated_at?: string | null
+          wallet_id: string
+        }
+        Update: {
+          acquired_at?: string | null
+          collection?: string | null
+          created_at?: string | null
+          floor_price_usd?: number | null
+          id?: string
+          image_url?: string | null
+          metadata?: Json | null
+          name?: string | null
+          token_address?: string
+          token_id?: string
+          updated_at?: string | null
+          wallet_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "crypto_nfts_wallet_id_fkey"
+            columns: ["wallet_id"]
+            isOneToOne: false
+            referencedRelation: "crypto_wallets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       crypto_prices: {
         Row: {
           created_at: string | null
@@ -714,6 +814,98 @@ export type Database = {
           price_usd?: number
           symbol?: string
           volume_24h?: number | null
+        }
+        Relationships: []
+      }
+      crypto_transactions: {
+        Row: {
+          created_at: string | null
+          from_address: string
+          gas_fee: number | null
+          id: string
+          status: string | null
+          timestamp: string
+          to_address: string
+          token_symbol: string | null
+          transaction_hash: string
+          transaction_type: string
+          value: number
+          wallet_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          from_address: string
+          gas_fee?: number | null
+          id?: string
+          status?: string | null
+          timestamp: string
+          to_address: string
+          token_symbol?: string | null
+          transaction_hash: string
+          transaction_type: string
+          value?: number
+          wallet_id: string
+        }
+        Update: {
+          created_at?: string | null
+          from_address?: string
+          gas_fee?: number | null
+          id?: string
+          status?: string | null
+          timestamp?: string
+          to_address?: string
+          token_symbol?: string | null
+          transaction_hash?: string
+          transaction_type?: string
+          value?: number
+          wallet_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "crypto_transactions_wallet_id_fkey"
+            columns: ["wallet_id"]
+            isOneToOne: false
+            referencedRelation: "crypto_wallets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      crypto_wallets: {
+        Row: {
+          blockchain: string
+          connected_at: string | null
+          created_at: string | null
+          id: string
+          is_primary: boolean | null
+          last_synced_at: string | null
+          updated_at: string | null
+          user_id: string
+          wallet_address: string
+          wallet_type: string
+        }
+        Insert: {
+          blockchain?: string
+          connected_at?: string | null
+          created_at?: string | null
+          id?: string
+          is_primary?: boolean | null
+          last_synced_at?: string | null
+          updated_at?: string | null
+          user_id: string
+          wallet_address: string
+          wallet_type?: string
+        }
+        Update: {
+          blockchain?: string
+          connected_at?: string | null
+          created_at?: string | null
+          id?: string
+          is_primary?: boolean | null
+          last_synced_at?: string | null
+          updated_at?: string | null
+          user_id?: string
+          wallet_address?: string
+          wallet_type?: string
         }
         Relationships: []
       }
