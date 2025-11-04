@@ -6,8 +6,9 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { useAI } from '@/hooks/useAI';
+import { useCryptoHoldings } from '@/hooks/useCryptoHoldings';
 import { useToast } from '@/components/ui/use-toast';
-import { TrendingUp, PieChart, AlertTriangle, Target, Loader2, DollarSign, Shield, BarChart3 } from 'lucide-react';
+import { TrendingUp, PieChart, AlertTriangle, Target, Loader2, DollarSign, Shield, BarChart3, Bitcoin } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 const InvestmentAdvisor = () => {
@@ -23,6 +24,7 @@ const InvestmentAdvisor = () => {
   const [recommendations, setRecommendations] = useState<string[]>([]);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const { generateResponse, availableCredits } = useAI();
+  const { totalValue: cryptoTotal, holdings: cryptoHoldings } = useCryptoHoldings();
   const { toast } = useToast();
 
   const handleInputChange = (field: string, value: string) => {
@@ -41,6 +43,11 @@ const InvestmentAdvisor = () => {
 
     setIsAnalyzing(true);
     try {
+      // Build crypto portfolio context
+      const cryptoContext = cryptoTotal > 0 
+        ? `\n\nCrypto Portfolio:\nTotal Crypto Value: $${cryptoTotal.toLocaleString()}\nTop Holdings: ${cryptoHoldings.slice(0, 5).map(h => `${h.token_symbol} ($${h.value_usd.toLocaleString()})`).join(', ')}`
+        : '';
+
       const prompt = `As a professional financial advisor, analyze this investment profile and provide comprehensive advice:
 
 Portfolio Value: $${portfolioData.totalValue}
@@ -48,7 +55,7 @@ Risk Tolerance: ${portfolioData.riskTolerance}
 Investment Goal: ${portfolioData.investmentGoal}
 Time Horizon: ${portfolioData.timeHorizon}
 Current Age: ${portfolioData.currentAge}
-Monthly Investment: $${portfolioData.monthlyInvestment}
+Monthly Investment: $${portfolioData.monthlyInvestment}${cryptoContext}
 
 Please provide:
 1. Portfolio Analysis & Current Assessment

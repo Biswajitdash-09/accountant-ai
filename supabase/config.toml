@@ -42,3 +42,15 @@ verify_jwt = true   # Require authentication
 
 [functions.hmrc-disconnect]
 verify_jwt = true   # Require authentication
+
+[functions.moralis-connect-wallet]
+verify_jwt = true   # Require authentication for wallet connection
+
+[functions.moralis-sync-portfolio]
+verify_jwt = true   # Require authentication for portfolio sync
+
+[functions.moralis-sync-transactions]
+verify_jwt = true   # Require authentication for transaction sync
+
+[functions.moralis-sync-nfts]
+verify_jwt = true   # Require authentication for NFT sync

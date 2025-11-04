@@ -2,13 +2,15 @@ import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
-import { TrendingUp, TrendingDown, DollarSign } from "lucide-react";
+import { useCryptoHoldings } from "@/hooks/useCryptoHoldings";
+import { TrendingUp, TrendingDown, DollarSign, Bitcoin } from "lucide-react";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import { Skeleton } from "@/components/ui/skeleton";
 
 interface NetWorthData {
   assets: number;
   liabilities: number;
+  cryptoAssets: number;
   netWorth: number;
   history: Array<{
     date: string;
@@ -20,6 +22,7 @@ const NetWorthDashboard = () => {
   const { user } = useAuth();
   const [data, setData] = useState<NetWorthData | null>(null);
   const [loading, setLoading] = useState(true);
+  const { totalValue: cryptoTotal } = useCryptoHoldings();
 
   useEffect(() => {
     if (!user) return;
@@ -51,7 +54,7 @@ const NetWorthDashboard = () => {
           ?.filter(item => item.item_type === 'liability')
           .reduce((sum, item) => sum + Number(item.amount || 0), 0) || 0;
 
-        const totalAssetsWithAccounts = totalAssets + assets;
+        const totalAssetsWithAccounts = totalAssets + assets + cryptoTotal;
         const netWorth = totalAssetsWithAccounts - liabilities;
 
         // Generate mock historical data (in real app, would fetch from historical snapshots)
@@ -71,6 +74,7 @@ const NetWorthDashboard = () => {
         setData({
           assets: Math.round(totalAssetsWithAccounts * 100) / 100,
           liabilities: Math.round(liabilities * 100) / 100,
+          cryptoAssets: Math.round(cryptoTotal * 100) / 100,
           netWorth: Math.round(netWorth * 100) / 100,
           history,
         });
@@ -110,11 +114,20 @@ const NetWorthDashboard = () => {
       </CardHeader>
       <CardContent className="space-y-6">
         {/* Net Worth Summary */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <div className="space-y-1">
             <p className="text-sm text-muted-foreground">Total Assets</p>
             <p className="text-2xl font-bold text-primary">
               ${data.assets.toLocaleString()}
+            </p>
+          </div>
+          <div className="space-y-1">
+            <p className="text-sm text-muted-foreground flex items-center gap-1">
+              <Bitcoin className="h-3 w-3" />
+              Crypto Assets
+            </p>
+            <p className="text-2xl font-bold text-primary">
+              ${data.cryptoAssets.toLocaleString()}
             </p>
           </div>
           <div className="space-y-1">

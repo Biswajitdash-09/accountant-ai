@@ -9,6 +9,7 @@ import { TaxSettings } from "@/components/tax/TaxSettings";
 import { TaxComparison } from "@/components/tax/TaxComparison";
 import { IndirectTaxCalculator } from "@/components/tax/IndirectTaxCalculator";
 import { CorporateTaxCalculator } from "@/components/tax/CorporateTaxCalculator";
+import { NigeriaTaxCalculator } from "@/components/tax/NigeriaTaxCalculator";
 import TaxFilingWidget from "@/components/tax/TaxFilingWidget";
 import { FileText, Calculator, TrendingUp, Settings, Calendar, Building2, Send } from "lucide-react";
 import { TaxCountrySelector } from "@/components/tax/TaxCountrySelector";
@@ -97,7 +98,11 @@ const Tax = () => {
         </TabsContent>
 
         <TabsContent value="calculator" className="space-y-6">
-          <TaxCalculator selectedCountry={selectedCountry} />
+          {selectedCountry === 'Nigeria' ? (
+            <NigeriaTaxCalculator />
+          ) : (
+            <TaxCalculator selectedCountry={selectedCountry} />
+          )}
         </TabsContent>
 
         <TabsContent value="comparison" className="space-y-6">
