@@ -3313,6 +3313,7 @@ export type Database = {
           cost_center_id: string | null
           created_at: string | null
           currency_id: string
+          data_source_metadata: Json | null
           date: string
           description: string | null
           id: string
@@ -3337,6 +3338,7 @@ export type Database = {
           cost_center_id?: string | null
           created_at?: string | null
           currency_id: string
+          data_source_metadata?: Json | null
           date?: string
           description?: string | null
           id?: string
@@ -3361,6 +3363,7 @@ export type Database = {
           cost_center_id?: string | null
           created_at?: string | null
           currency_id?: string
+          data_source_metadata?: Json | null
           date?: string
           description?: string | null
           id?: string
@@ -3794,7 +3797,38 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      mv_user_cash_flow: {
+        Row: {
+          month: string | null
+          net_cash_flow: number | null
+          total_expenses: number | null
+          total_income: number | null
+          user_id: string | null
+        }
+        Relationships: []
+      }
+      mv_user_category_spending: {
+        Row: {
+          avg_transaction: number | null
+          category: string | null
+          month: string | null
+          total_spent: number | null
+          transaction_count: number | null
+          user_id: string | null
+        }
+        Relationships: []
+      }
+      mv_user_total_assets: {
+        Row: {
+          crypto_balance: number | null
+          investment_balance: number | null
+          last_updated: string | null
+          total_assets: number | null
+          traditional_balance: number | null
+          user_id: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       admin_add_credits: {
@@ -3835,6 +3869,7 @@ export type Database = {
         }
         Returns: undefined
       }
+      refresh_financial_views: { Args: never; Returns: undefined }
       reset_daily_credits: { Args: { user_id: string }; Returns: boolean }
       user_use_credits: {
         Args: { p_credits_to_use?: number }

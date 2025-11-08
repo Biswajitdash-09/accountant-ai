@@ -36,6 +36,66 @@ export interface NigeriaTaxResult {
   }>;
 }
 
+// 2026 Updated Tax Calculation
+export function calculateNigeriaTax2026({
+  grossIncome,
+  annualRent = 0,
+  pension = 0,
+  nhis = 0,
+  nhf = 0,
+  lifeInsurance = 0,
+  housingLoanInterest = 0,
+  otherDeductions = 0,
+}: {
+  grossIncome: number;
+  annualRent?: number;
+  pension?: number;
+  nhis?: number;
+  nhf?: number;
+  lifeInsurance?: number;
+  housingLoanInterest?: number;
+  otherDeductions?: number;
+}) {
+  const rentRelief = Math.min(annualRent * 0.20, 500000);
+  const totalDeductions = rentRelief + pension + nhis + nhf + lifeInsurance + housingLoanInterest + otherDeductions;
+  const taxableIncome = Math.max(grossIncome - totalDeductions, 0);
+
+  if (taxableIncome <= 800000) {
+    return { taxPayable: 0, effectiveRate: 0, taxableIncome, totalDeductions, monthlyTax: 0 };
+  }
+
+  const bands = [
+    { limit: 3000000, rate: 0.15 },
+    { limit: 12000000, rate: 0.18 },
+    { limit: 25000000, rate: 0.21 },
+    { limit: 50000000, rate: 0.23 },
+    { limit: Infinity, rate: 0.25 },
+  ];
+
+  let remaining = taxableIncome;
+  let taxPayable = 0;
+  let prevLimit = 800000;
+
+  for (let band of bands) {
+    if (remaining <= prevLimit) break;
+    const bandAmount = Math.min(remaining - prevLimit, band.limit - prevLimit);
+    taxPayable += bandAmount * band.rate;
+    prevLimit = band.limit;
+    if (remaining <= band.limit) break;
+  }
+
+  const effectiveRate = (taxPayable / grossIncome) * 100;
+  const monthlyTax = Math.round(taxPayable / 12);
+
+  return {
+    taxPayable: Math.round(taxPayable),
+    effectiveRate: parseFloat(effectiveRate.toFixed(2)),
+    taxableIncome,
+    totalDeductions,
+    monthlyTax
+  };
+}
+
 export function calculateNigeriaTax(
   grossIncome: number,
   deductions: NigeriaDeductions = {}
