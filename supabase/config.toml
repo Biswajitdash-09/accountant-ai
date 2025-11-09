@@ -54,3 +54,12 @@ verify_jwt = true   # Require authentication for transaction sync
 
 [functions.moralis-sync-nfts]
 verify_jwt = true   # Require authentication for NFT sync
+
+[functions.arnold-universal-analysis]
+verify_jwt = true   # Require authentication for Arnold analysis
+
+[functions.arnold-generate-report]
+verify_jwt = true   # Require authentication for report generation
+
+[functions.arnold-tax-optimizer-universal]
+verify_jwt = true   # Require authentication for tax optimization
