@@ -68,7 +68,7 @@ export const ConversationalInterface = () => {
       // Add assistant message
       const assistantMessage: Message = {
         role: 'assistant',
-        content: response.message || "I apologize, I couldn't process that request. Could you rephrase?",
+        content: response.text || "I apologize, I couldn't process that request. Could you rephrase?",
         timestamp: new Date(),
       };
       setMessages(prev => [...prev, assistantMessage]);
