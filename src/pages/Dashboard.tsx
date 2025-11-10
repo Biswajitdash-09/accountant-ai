@@ -21,12 +21,14 @@ import { CryptoPortfolio } from "@/components/CryptoPortfolio";
 import CurrencyConverter from "@/components/CurrencyConverter";
 import CurrencySwitcher from "@/components/CurrencySwitcher";
 import DemoTutorial from "@/components/DemoTutorial";
+import { PullToRefresh } from "@/components/mobile/TouchGestures";
 import { useCurrencyFormatter } from "@/hooks/useCurrencyFormatter";
 import { useCurrency } from "@/contexts/CurrencyContext";
 import { useNotificationService } from "@/hooks/useNotificationService";
 import { useDemoMode } from "@/hooks/useDemoMode";
 import { getDemoData } from "@/utils/demoData";
 import DemoAccountBadge from "@/components/DemoAccountBadge";
+import { toast } from "sonner";
 
 const Dashboard = () => {
   const { formatCurrency } = useCurrencyFormatter();
@@ -36,6 +38,13 @@ const Dashboard = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const [activeTab, setActiveTab] = useState(searchParams.get('tab') || 'overview');
   const [showTutorial, setShowTutorial] = useState(false);
+
+  // Handle pull-to-refresh
+  const handleRefresh = async () => {
+    // Simulate data refresh
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    toast.success("Dashboard refreshed");
+  };
 
   // Handle tab changes from URL params
   useEffect(() => {
@@ -140,30 +149,31 @@ const Dashboard = () => {
   ];
 
   return (
-    <div className="container mx-auto p-4 max-w-7xl">
-      <div className="space-y-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl sm:text-3xl font-bold">Dashboard</h1>
-            <p className="text-muted-foreground">
-              Welcome back! Here's an overview of your financial activity.
-            </p>
+    <PullToRefresh onRefresh={handleRefresh} className="h-full">
+      <div className="container mx-auto p-2 sm:p-4 max-w-7xl">
+        <div className="space-y-3 sm:space-y-6">
+          <div className="flex items-center justify-between flex-wrap gap-3">
+            <div>
+              <h1 className="text-2xl sm:text-3xl font-bold">Dashboard</h1>
+              <p className="text-sm text-muted-foreground">
+                Welcome back! Here's an overview of your financial activity.
+              </p>
+            </div>
+            
+            <div className="flex items-center gap-2 flex-wrap">
+              <CurrencySwitcher />
+              <AdvancedExportDialog />
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setShowTutorial(true)}
+                className="flex items-center gap-2 min-h-[44px] min-w-[44px] touch-manipulation"
+              >
+                <PlayCircle className="h-4 w-4" />
+                <span className="hidden sm:inline">Tutorial</span>
+              </Button>
+            </div>
           </div>
-          
-          <div className="flex items-center gap-2">
-            <CurrencySwitcher />
-            <AdvancedExportDialog />
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setShowTutorial(true)}
-              className="flex items-center gap-2"
-            >
-              <PlayCircle className="h-4 w-4" />
-              Tutorial
-            </Button>
-          </div>
-        </div>
 
         <DemoAccountBadge />
 
@@ -172,29 +182,31 @@ const Dashboard = () => {
           onClose={() => setShowTutorial(false)} 
         />
 
-        <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
-          <TabsList className="grid w-full grid-cols-2 sm:grid-cols-5 h-auto">
-            <TabsTrigger value="overview" className="text-xs sm:text-sm p-2 sm:p-3">
-              Overview
-            </TabsTrigger>
-            <TabsTrigger value="markets" className="text-xs sm:text-sm p-2 sm:p-3">
-              <Bitcoin className="h-4 w-4 mr-1" />
-              Markets
-            </TabsTrigger>
-            <TabsTrigger value="tasks" className="text-xs sm:text-sm p-2 sm:p-3">
-              Tasks
-            </TabsTrigger>
-            <TabsTrigger value="deadlines" className="text-xs sm:text-sm p-2 sm:p-3">
-              Deadlines
-            </TabsTrigger>
-            <TabsTrigger value="notifications" className="text-xs sm:text-sm p-2 sm:p-3">
-              Notifications
-            </TabsTrigger>
-          </TabsList>
+          <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
+            <TabsList className="grid w-full grid-cols-2 sm:grid-cols-5 h-auto gap-1">
+              <TabsTrigger value="overview" className="text-xs sm:text-sm min-h-[44px] touch-manipulation px-2 sm:px-3 py-3">
+                Overview
+              </TabsTrigger>
+              <TabsTrigger value="markets" className="text-xs sm:text-sm min-h-[44px] touch-manipulation px-2 sm:px-3 py-3">
+                <Bitcoin className="h-4 w-4 mr-1" />
+                <span className="hidden sm:inline">Markets</span>
+              </TabsTrigger>
+              <TabsTrigger value="tasks" className="text-xs sm:text-sm min-h-[44px] touch-manipulation px-2 sm:px-3 py-3">
+                Tasks
+              </TabsTrigger>
+              <TabsTrigger value="deadlines" className="text-xs sm:text-sm min-h-[44px] touch-manipulation px-2 sm:px-3 py-3">
+                <span className="hidden sm:inline">Deadlines</span>
+                <span className="sm:hidden">Due</span>
+              </TabsTrigger>
+              <TabsTrigger value="notifications" className="text-xs sm:text-sm min-h-[44px] touch-manipulation px-2 sm:px-3 py-3">
+                <Bell className="h-4 w-4 sm:mr-1" />
+                <span className="hidden sm:inline">Notifications</span>
+              </TabsTrigger>
+            </TabsList>
 
-          <TabsContent value="overview" className="space-y-6">
+          <TabsContent value="overview" className="space-y-3 sm:space-y-6 mt-3 sm:mt-6">
             {/* Financial Metrics */}
-            <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
+            <div className="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
               <MetricCard
                 title="Total Balance"
                 value={metrics.totalBalance}
@@ -241,7 +253,7 @@ const Dashboard = () => {
             </div>
 
             {/* AI Insights and Alerts */}
-            <div className="grid gap-6 grid-cols-1 xl:grid-cols-2">
+            <div className="grid gap-3 sm:gap-6 grid-cols-1 xl:grid-cols-2">
               <AIInsightsSummary />
               <SmartAlertsWidget />
             </div>
@@ -250,19 +262,19 @@ const Dashboard = () => {
             <NetWorthDashboard />
 
             {/* Charts and Financial Goals */}
-            <div className="grid gap-6 grid-cols-1 xl:grid-cols-2">
+            <div className="grid gap-3 sm:gap-6 grid-cols-1 xl:grid-cols-2">
               <IncomeExpenseChart data={incomeExpenseData} />
               <ExpenseChart data={expenseData} />
             </div>
 
-            <div className="grid gap-6 grid-cols-1 xl:grid-cols-2">
+            <div className="grid gap-3 sm:gap-6 grid-cols-1 xl:grid-cols-2">
               <RecentTransactions transactions={sampleTransactions} />
               <FinancialGoalsManager />
             </div>
           </TabsContent>
 
-          <TabsContent value="markets" className="space-y-6">
-            <div className="space-y-8">
+          <TabsContent value="markets" className="space-y-3 sm:space-y-6 mt-3 sm:mt-6">
+            <div className="space-y-4 sm:space-y-8">
               <div>
                 <h2 className="text-2xl font-bold mb-2 flex items-center gap-2">
                   <Bitcoin className="h-6 w-6 text-primary" />
@@ -296,20 +308,21 @@ const Dashboard = () => {
             </div>
           </TabsContent>
 
-          <TabsContent value="tasks" className="space-y-6">
+          <TabsContent value="tasks" className="space-y-3 sm:space-y-6 mt-3 sm:mt-6">
             <TaskManager />
           </TabsContent>
 
-          <TabsContent value="deadlines" className="space-y-6">
+          <TabsContent value="deadlines" className="space-y-3 sm:space-y-6 mt-3 sm:mt-6">
             <DeadlineTracker />
           </TabsContent>
 
-          <TabsContent value="notifications" className="space-y-6">
+          <TabsContent value="notifications" className="space-y-3 sm:space-y-6 mt-3 sm:mt-6">
             <NotificationCenter />
           </TabsContent>
-        </Tabs>
+          </Tabs>
+        </div>
       </div>
-    </div>
+    </PullToRefresh>
   );
 };
 

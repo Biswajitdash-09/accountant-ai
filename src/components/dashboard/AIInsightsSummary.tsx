@@ -4,11 +4,12 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
-import { Brain, TrendingUp, AlertTriangle, Lightbulb, RefreshCw, FileText, Bitcoin } from "lucide-react";
+import { Brain, TrendingUp, AlertTriangle, Lightbulb, RefreshCw, FileText, Bitcoin, X } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Skeleton } from "@/components/ui/skeleton";
 
 interface Insight {
+  id: string;
   type: 'success' | 'warning' | 'info' | 'tip';
   message: string;
   icon: React.ReactNode;
@@ -22,6 +23,16 @@ const AIInsightsSummary = () => {
   const [insights, setInsights] = useState<Insight[]>([]);
   const [loading, setLoading] = useState(true);
   const [analyzing, setAnalyzing] = useState(false);
+  const [dismissedInsights, setDismissedInsights] = useState<string[]>(() => {
+    const stored = localStorage.getItem('dismissedInsights');
+    return stored ? JSON.parse(stored) : [];
+  });
+
+  const dismissInsight = (id: string) => {
+    const updated = [...dismissedInsights, id];
+    setDismissedInsights(updated);
+    localStorage.setItem('dismissedInsights', JSON.stringify(updated));
+  };
 
   const fetchInsights = async () => {
     if (!user) return;
@@ -40,6 +51,7 @@ const AIInsightsSummary = () => {
         const totalCryptoValue = cryptoHoldings.reduce((sum, h) => sum + (h.value_usd || 0), 0);
         if (totalCryptoValue > 0) {
           generatedInsights.push({
+            id: 'crypto_portfolio',
             type: 'info',
             message: `Your crypto portfolio is worth $${totalCryptoValue.toFixed(2)}. Track performance across ${cryptoHoldings.length} assets.`,
             icon: <Bitcoin className="h-4 w-4" />,
@@ -66,6 +78,7 @@ const AIInsightsSummary = () => {
         
         if (recentDocs.length > 0) {
           generatedInsights.push({
+            id: 'recent_documents',
             type: 'tip',
             message: `${recentDocs.length} documents uploaded recently. Review for potential tax deductions.`,
             icon: <FileText className="h-4 w-4" />,
@@ -90,6 +103,7 @@ const AIInsightsSummary = () => {
         // Generate insights from spending analysis
         if (data.savingsRate > 20) {
           generatedInsights.push({
+            id: 'savings_rate_high',
             type: 'success',
             message: `Excellent! Your savings rate is ${data.savingsRate.toFixed(1)}% - well above the 20% target!`,
             icon: <TrendingUp className="h-4 w-4" />,
@@ -97,6 +111,7 @@ const AIInsightsSummary = () => {
           });
         } else if (data.savingsRate > 0) {
           generatedInsights.push({
+            id: 'savings_rate_medium',
             type: 'info',
             message: `Your savings rate is ${data.savingsRate.toFixed(1)}%. Try to increase it to 20% or more.`,
             icon: <TrendingUp className="h-4 w-4" />,
@@ -104,6 +119,7 @@ const AIInsightsSummary = () => {
           });
         } else {
           generatedInsights.push({
+            id: 'savings_rate_low',
             type: 'warning',
             message: `You're spending more than you earn. Review your expenses to find savings opportunities.`,
             icon: <AlertTriangle className="h-4 w-4" />,
@@ -115,6 +131,7 @@ const AIInsightsSummary = () => {
         if (data.topCategories?.length > 0) {
           const topCategory = data.topCategories[0];
           generatedInsights.push({
+            id: 'top_spending_category',
             type: 'info',
             message: `Your biggest expense is ${topCategory.category} at ${topCategory.percentage.toFixed(0)}% of total spending.`,
             icon: <Lightbulb className="h-4 w-4" />,
@@ -125,6 +142,7 @@ const AIInsightsSummary = () => {
         // Anomaly alerts
         if (data.anomalies?.length > 0) {
           generatedInsights.push({
+            id: 'anomaly_detection',
             type: 'warning',
             message: `${data.anomalies.length} unusual transactions detected this month. Review them for accuracy.`,
             icon: <AlertTriangle className="h-4 w-4" />,
@@ -148,6 +166,7 @@ const AIInsightsSummary = () => {
         
         if (forecast.projectedChange < 0) {
           generatedInsights.push({
+            id: 'forecast_negative',
             type: 'warning',
             message: `Projected to spend ${Math.abs(forecast.projectedChange).toFixed(0)} more than you earn in the next 30 days.`,
             icon: <AlertTriangle className="h-4 w-4" />,
@@ -155,6 +174,7 @@ const AIInsightsSummary = () => {
           });
         } else {
           generatedInsights.push({
+            id: 'forecast_positive',
             type: 'success',
             message: `On track to save ${forecast.projectedChange.toFixed(0)} in the next 30 days!`,
             icon: <TrendingUp className="h-4 w-4" />,
@@ -178,6 +198,7 @@ const AIInsightsSummary = () => {
         
         if (tax.suggestedDeductions > 0) {
           generatedInsights.push({
+            id: 'tax_deductions',
             type: 'tip',
             message: `Found ${tax.suggestedDeductions} potential tax deductions worth ~${tax.totalPotentialSavings.toFixed(0)} in savings!`,
             icon: <Lightbulb className="h-4 w-4" />,
@@ -190,13 +211,16 @@ const AIInsightsSummary = () => {
       // Default insights if none available
       if (generatedInsights.length === 0) {
         generatedInsights.push({
+          id: 'default_welcome',
           type: 'info',
           message: 'Connect your bank accounts, crypto wallets, and upload documents to get comprehensive AI insights from all your financial sources.',
           icon: <Brain className="h-4 w-4" />,
         });
       }
 
-      setInsights(generatedInsights.slice(0, 6)); // Show top 6
+      // Filter out dismissed insights
+      const filtered = generatedInsights.filter(i => !dismissedInsights.includes(i.id));
+      setInsights(filtered.slice(0, 6)); // Show top 6
     } catch (error) {
       console.error('Error fetching insights:', error);
     } finally {
@@ -247,7 +271,7 @@ const AIInsightsSummary = () => {
 
   useEffect(() => {
     fetchInsights();
-  }, [user]);
+  }, [user, dismissedInsights]);
 
   const getInsightVariant = (type: Insight['type']) => {
     switch (type) {
@@ -304,15 +328,15 @@ const AIInsightsSummary = () => {
             <Skeleton className="h-16 w-full" />
           </>
         ) : (
-          insights.map((insight, index) => (
+          insights.map((insight) => (
             <div
-              key={index}
-              className="flex items-start gap-3 p-3 rounded-lg border bg-card"
+              key={insight.id}
+              className="flex items-start gap-3 p-3 rounded-lg border bg-card relative group"
             >
               <Badge variant={getInsightVariant(insight.type)} className="mt-0.5">
                 {insight.icon}
               </Badge>
-              <div className="flex-1">
+              <div className="flex-1 pr-8">
                 <div className="flex items-center gap-1 flex-wrap">
                   <p className="text-sm">{insight.message}</p>
                   {getSourceBadge(insight.source)}
@@ -327,6 +351,14 @@ const AIInsightsSummary = () => {
                   </Button>
                 )}
               </div>
+              <Button
+                size="icon"
+                variant="ghost"
+                className="absolute top-2 right-2 h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity touch-manipulation"
+                onClick={() => dismissInsight(insight.id)}
+              >
+                <X className="h-4 w-4" />
+              </Button>
             </div>
           ))
         )}

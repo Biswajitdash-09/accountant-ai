@@ -1,14 +1,27 @@
+import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useSmartAlerts } from "@/hooks/useSmartAlerts";
-import { AlertTriangle, Bell, TrendingUp, Calendar, Target, Lightbulb, ExternalLink } from "lucide-react";
+import { AlertTriangle, Bell, TrendingUp, Calendar, Target, Lightbulb, ExternalLink, X } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useNavigate } from "react-router-dom";
 
 const SmartAlertsWidget = () => {
   const { alerts, loading } = useSmartAlerts();
   const navigate = useNavigate();
+  const [dismissedAlerts, setDismissedAlerts] = useState<string[]>(() => {
+    const stored = localStorage.getItem('dismissedAlerts');
+    return stored ? JSON.parse(stored) : [];
+  });
+
+  const dismissAlert = (id: string) => {
+    const updated = [...dismissedAlerts, id];
+    setDismissedAlerts(updated);
+    localStorage.setItem('dismissedAlerts', JSON.stringify(updated));
+  };
+
+  const visibleAlerts = alerts.filter(alert => !dismissedAlerts.includes(alert.id));
 
   const getAlertIcon = (type: string) => {
     switch (type) {
@@ -71,13 +84,13 @@ const SmartAlertsWidget = () => {
             <Bell className="h-5 w-5 text-primary" />
             Smart Alerts
           </CardTitle>
-          {alerts.length > 0 && (
-            <Badge variant="secondary">{alerts.length}</Badge>
+          {visibleAlerts.length > 0 && (
+            <Badge variant="secondary">{visibleAlerts.length}</Badge>
           )}
         </div>
       </CardHeader>
       <CardContent>
-        {alerts.length === 0 ? (
+        {visibleAlerts.length === 0 ? (
           <div className="text-center py-8 text-muted-foreground">
             <TrendingUp className="h-12 w-12 mx-auto mb-3 text-green-600" />
             <p className="font-medium">All clear!</p>
@@ -85,15 +98,15 @@ const SmartAlertsWidget = () => {
           </div>
         ) : (
           <div className="space-y-3">
-            {alerts.slice(0, 5).map((alert) => (
+            {visibleAlerts.slice(0, 5).map((alert) => (
               <div
                 key={alert.id}
-                className="flex items-start gap-3 p-3 rounded-lg border bg-card hover:bg-accent/50 transition-colors"
+                className="flex items-start gap-3 p-3 rounded-lg border bg-card hover:bg-accent/50 transition-colors relative group"
               >
                 <Badge variant={getSeverityVariant(alert.severity)} className="mt-0.5">
                   {getAlertIcon(alert.type)}
                 </Badge>
-                <div className="flex-1 min-w-0">
+                <div className="flex-1 min-w-0 pr-8">
                   <p className="font-medium text-sm">{alert.title}</p>
                   <p className="text-sm text-muted-foreground mt-0.5">{alert.message}</p>
                   {alert.actionUrl && (
@@ -107,15 +120,23 @@ const SmartAlertsWidget = () => {
                     </Button>
                   )}
                 </div>
+                <Button
+                  size="icon"
+                  variant="ghost"
+                  className="absolute top-2 right-2 h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity touch-manipulation"
+                  onClick={() => dismissAlert(alert.id)}
+                >
+                  <X className="h-4 w-4" />
+                </Button>
               </div>
             ))}
-            {alerts.length > 5 && (
+            {visibleAlerts.length > 5 && (
               <Button
                 variant="outline"
-                className="w-full"
+                className="w-full min-h-[44px] touch-manipulation"
                 onClick={() => navigate('/notifications')}
               >
-                View All {alerts.length} Alerts
+                View All {visibleAlerts.length} Alerts
               </Button>
             )}
           </div>
