@@ -3,7 +3,7 @@ import React from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
-import { AlertTriangle, TrendingUp, Calculator, FileText } from "lucide-react";
+import { AlertTriangle, TrendingUp, Calculator, FileText, Brain } from "lucide-react";
 import { useTaxPeriods } from "@/hooks/useTaxPeriods";
 import { useTaxCalculations } from "@/hooks/useTaxCalculations";
 import { useTaxDeductions } from "@/hooks/useTaxDeductions";
@@ -13,6 +13,8 @@ import { HMRCTaxSummary } from "@/components/hmrc/HMRCTaxSummary";
 import { Button } from "@/components/ui/button";
 import { ExternalLink } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { useArnoldActions } from "@/hooks/useArnoldActions";
+import { useToast } from "@/hooks/use-toast";
 
 export const TaxDashboard = () => {
   const { taxPeriods, isLoading: periodsLoading } = useTaxPeriods();
@@ -21,6 +23,17 @@ export const TaxDashboard = () => {
   const { formatCurrency } = useCurrencyFormatter();
   const { isConnected } = useHMRCConnection();
   const navigate = useNavigate();
+  const { optimizeTax, isLoading: arnoldLoading } = useArnoldActions();
+  const { toast } = useToast();
+
+  const handleArnoldOptimization = () => {
+    const currentYear = new Date().getFullYear();
+    optimizeTax("multi-region", currentYear);
+    toast({
+      title: "Arnold Analysis Started",
+      description: "Analyzing your tax situation across all regions...",
+    });
+  };
 
   const currentPeriod = taxPeriods.find(p => p.status === 'active') || taxPeriods[0];
   const currentCalculation = taxCalculations.find(c => c.tax_period_id === currentPeriod?.id);
@@ -78,6 +91,27 @@ export const TaxDashboard = () => {
           </CardContent>
         </Card>
       )}
+
+      {/* Arnold AI Tax Optimization */}
+      <Card className="border-primary/30 bg-gradient-to-br from-primary/10 to-transparent">
+        <CardContent className="py-6">
+          <div className="flex flex-col md:flex-row items-center justify-between gap-4">
+            <div className="flex items-center gap-3">
+              <Brain className="h-8 w-8 text-primary" />
+              <div>
+                <h3 className="font-semibold text-lg">Arnold Tax Optimizer</h3>
+                <p className="text-sm text-muted-foreground">
+                  AI-powered analysis for multi-region tax optimization and compliance
+                </p>
+              </div>
+            </div>
+            <Button onClick={handleArnoldOptimization} disabled={arnoldLoading} className="gap-2 whitespace-nowrap">
+              <Brain className="h-4 w-4" />
+              {arnoldLoading ? "Analyzing..." : "Optimize Now"}
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {/* Tax Liability Card */}

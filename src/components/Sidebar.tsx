@@ -24,6 +24,7 @@ import {
   Dot,
   CreditCard,
   QrCode,
+  Plug,
 } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
@@ -161,6 +162,12 @@ const Sidebar = ({ isCollapsed, onToggle, isMobileOpen = false, onMobileToggle }
           label: "Markets",
           icon: TrendingUp,
           badge: null,
+        },
+        {
+          href: "/integrations",
+          label: "Integrations",
+          icon: Plug,
+          badge: "New",
         },
         {
           href: "/performance",
