@@ -14,6 +14,8 @@ import {
   ChevronRight,
   ChevronLeft,
   CreditCard,
+  Brain,
+  Target,
 } from "lucide-react";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
@@ -50,8 +52,10 @@ export const EnhancedOnboarding = () => {
     preferredLanguage: "en",
   });
 
-  const totalSteps = 4;
+  const totalSteps = 6;
   const progress = (currentStep / totalSteps) * 100;
+  const [arnoldGreeting, setArnoldGreeting] = useState("");
+  const [goals, setGoals] = useState({ savings: "", investment: "", debt: "" });
 
   const regions: { value: Region; label: string; flag: string }[] = [
     { value: "UK", label: "United Kingdom", flag: "🇬🇧" },
@@ -172,6 +176,12 @@ export const EnhancedOnboarding = () => {
     }
   };
 
+  const handleArnoldQuestion = (question: string) => {
+    setArnoldGreeting(
+      `Great question! ${question} - I can help you track income, expenses, optimize taxes, and provide AI-powered insights. I analyze your financial data in real-time and give you personalized advice in plain English. Try asking me anything once you complete setup!`
+    );
+  };
+
   const canProceed = () => {
     switch (currentStep) {
       case 1:
@@ -182,6 +192,10 @@ export const EnhancedOnboarding = () => {
         return onboardingData.accountingSoftware !== null;
       case 4:
         return onboardingData.fiscalYearEnd !== "";
+      case 5:
+        return arnoldGreeting !== ""; // Arnold interaction required
+      case 6:
+        return true; // Goals are optional
       default:
         return false;
     }
@@ -380,37 +394,140 @@ export const EnhancedOnboarding = () => {
                   </SelectContent>
                 </Select>
               </div>
-
-              <Card className="p-4 bg-primary/5 border-primary/20">
-                <h3 className="font-semibold mb-2">Your Setup Summary</h3>
-                <div className="space-y-1 text-sm">
-                  <p>
-                    <span className="text-muted-foreground">Region:</span>{" "}
-                    <span className="font-medium">{onboardingData.region}</span>
-                  </p>
-                  <p>
-                    <span className="text-muted-foreground">Bank:</span>{" "}
-                    <span className="font-medium">
-                      {onboardingData.bankConnected
-                        ? "Will connect later"
-                        : "Not connected"}
-                    </span>
-                  </p>
-                  <p>
-                    <span className="text-muted-foreground">Software:</span>{" "}
-                    <span className="font-medium">
-                      {onboardingData.accountingSoftware || "None"}
-                    </span>
-                  </p>
-                  <p>
-                    <span className="text-muted-foreground">Fiscal Year:</span>{" "}
-                    <span className="font-medium">
-                      {new Date(onboardingData.fiscalYearEnd).toLocaleDateString()}
-                    </span>
-                  </p>
-                </div>
-              </Card>
             </div>
+          </div>
+        );
+
+      case 5:
+        return (
+          <div className="space-y-6">
+            <div className="text-center space-y-2">
+              <Brain className="h-16 w-16 mx-auto text-primary" />
+              <h2 className="text-2xl font-bold">Meet Arnold, Your AI Accountant</h2>
+              <p className="text-muted-foreground">
+                Arnold analyzes your finances and gives you insights in plain English
+              </p>
+            </div>
+
+            <Card className="p-6 bg-primary/5 border-primary/20">
+              <div className="flex items-start gap-4">
+                <Brain className="h-8 w-8 text-primary flex-shrink-0" />
+                <div className="space-y-2">
+                  <p className="font-medium">
+                    Hi! I'm Arnold, your AI financial assistant. Ask me anything about managing your finances!
+                  </p>
+                  {arnoldGreeting && (
+                    <p className="text-sm text-muted-foreground bg-background p-3 rounded-lg">
+                      {arnoldGreeting}
+                    </p>
+                  )}
+                </div>
+              </div>
+            </Card>
+
+            <div className="grid grid-cols-1 gap-3">
+              <Button
+                variant="outline"
+                className="justify-start h-auto py-3 text-left"
+                onClick={() => handleArnoldQuestion("How can you help me?")}
+              >
+                <span className="text-sm">How can you help me manage my finances?</span>
+              </Button>
+              <Button
+                variant="outline"
+                className="justify-start h-auto py-3 text-left"
+                onClick={() => handleArnoldQuestion("What insights do you provide?")}
+              >
+                <span className="text-sm">What kind of insights do you provide?</span>
+              </Button>
+              <Button
+                variant="outline"
+                className="justify-start h-auto py-3 text-left"
+                onClick={() => handleArnoldQuestion("Can you help with taxes?")}
+              >
+                <span className="text-sm">Can you help me with tax optimization?</span>
+              </Button>
+            </div>
+          </div>
+        );
+
+      case 6:
+        return (
+          <div className="space-y-6">
+            <div className="text-center space-y-2">
+              <Target className="h-16 w-16 mx-auto text-primary" />
+              <h2 className="text-2xl font-bold">Set Your Financial Goals</h2>
+              <p className="text-muted-foreground">
+                What would you like to achieve? (Optional)
+              </p>
+            </div>
+
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="savings-goal">Savings Goal</Label>
+                <Input
+                  id="savings-goal"
+                  type="text"
+                  placeholder="e.g., Save $10,000 for emergency fund"
+                  value={goals.savings}
+                  onChange={(e) => setGoals({ ...goals, savings: e.target.value })}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="investment-goal">Investment Goal</Label>
+                <Input
+                  id="investment-goal"
+                  type="text"
+                  placeholder="e.g., Build a $100k investment portfolio"
+                  value={goals.investment}
+                  onChange={(e) => setGoals({ ...goals, investment: e.target.value })}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="debt-goal">Debt Reduction Goal</Label>
+                <Input
+                  id="debt-goal"
+                  type="text"
+                  placeholder="e.g., Pay off $5,000 credit card debt"
+                  value={goals.debt}
+                  onChange={(e) => setGoals({ ...goals, debt: e.target.value })}
+                />
+              </div>
+            </div>
+
+            <Card className="p-4 bg-primary/5 border-primary/20">
+              <h3 className="font-semibold mb-2">Your Setup Summary</h3>
+              <div className="space-y-1 text-sm">
+                <p>
+                  <span className="text-muted-foreground">Region:</span>{" "}
+                  <span className="font-medium">{onboardingData.region}</span>
+                </p>
+                <p>
+                  <span className="text-muted-foreground">Bank:</span>{" "}
+                  <span className="font-medium">
+                    {onboardingData.bankConnected ? "Will connect later" : "Not connected"}
+                  </span>
+                </p>
+                <p>
+                  <span className="text-muted-foreground">Software:</span>{" "}
+                  <span className="font-medium">
+                    {onboardingData.accountingSoftware || "None"}
+                  </span>
+                </p>
+                <p>
+                  <span className="text-muted-foreground">Fiscal Year:</span>{" "}
+                  <span className="font-medium">
+                    {new Date(onboardingData.fiscalYearEnd).toLocaleDateString()}
+                  </span>
+                </p>
+                <p>
+                  <span className="text-muted-foreground">Arnold:</span>{" "}
+                  <span className="font-medium">Ready to assist</span>
+                </p>
+              </div>
+            </Card>
           </div>
         );
 
