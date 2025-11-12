@@ -35,7 +35,7 @@ export const TaxImpactAnalyzer = () => {
         <Info className="h-4 w-4" />
         <AlertTitle>Tax Estimates</AlertTitle>
         <AlertDescription>
-          These are estimates based on your {profile?.region || 'selected'} region. Consult a tax professional for accurate calculations.
+          These are estimates based on your selected region. Consult a tax professional for accurate calculations.
         </AlertDescription>
       </Alert>
 
