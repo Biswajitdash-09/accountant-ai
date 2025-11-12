@@ -11,6 +11,7 @@ import DemoAccountBadge from "./DemoAccountBadge";
 import { GlobalSearch } from "@/components/advanced/GlobalSearch";
 import { useGlobalSearch } from "@/hooks/useGlobalSearch";
 import PWAEnhancements from "@/components/PWAEnhancements";
+import { FloatingArnoldButton } from "@/components/ai/FloatingArnoldButton";
 
 interface LayoutProps {
   children: ReactNode;
@@ -104,6 +105,9 @@ const Layout = ({ children }: LayoutProps) => {
         
         {/* Global Search */}
         <GlobalSearch isOpen={isSearchOpen} onClose={closeSearch} />
+        
+        {/* Floating Arnold Button */}
+        <FloatingArnoldButton />
       </div>
     );
   }
@@ -155,6 +159,9 @@ const Layout = ({ children }: LayoutProps) => {
         
         {/* Global Search */}
         <GlobalSearch isOpen={isSearchOpen} onClose={closeSearch} />
+        
+        {/* Floating Arnold Button */}
+        <FloatingArnoldButton />
       </div>
     </div>
   );
