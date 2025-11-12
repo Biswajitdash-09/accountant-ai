@@ -39,6 +39,9 @@ const ScanHistory = lazy(() => import("./pages/ScanHistory"));
 const HMRCIntegration = lazy(() => import("./pages/HMRCIntegration"));
 const HMRCCallback = lazy(() => import("./components/hmrc/HMRCCallback"));
 const Integrations = lazy(() => import("./pages/Integrations"));
+const APILicensing = lazy(() => import("./pages/APILicensing"));
+const DeveloperDocs = lazy(() => import("./pages/DeveloperDocs"));
+const HelpCenter = lazy(() => import("./pages/HelpCenter"));
 
 // Loading fallback component
 const PageLoader = () => (
@@ -203,6 +206,27 @@ function App() {
             <ProtectedRoute>
               <Layout>
                 <Integrations />
+              </Layout>
+            </ProtectedRoute>
+          } />
+          <Route path="/api-licensing" element={
+            <ProtectedRoute>
+              <Layout>
+                <APILicensing />
+              </Layout>
+            </ProtectedRoute>
+          } />
+          <Route path="/api-docs" element={
+            <ProtectedRoute>
+              <Layout>
+                <DeveloperDocs />
+              </Layout>
+            </ProtectedRoute>
+          } />
+          <Route path="/help" element={
+            <ProtectedRoute>
+              <Layout>
+                <HelpCenter />
               </Layout>
             </ProtectedRoute>
           } />
