@@ -20,6 +20,7 @@ const Accounts = lazy(() => import("./pages/Accounts"));
 const Reports = lazy(() => import("./pages/Reports"));
 const Analytics = lazy(() => import("./pages/Analytics"));
 const AdvancedFeatures = lazy(() => import("./pages/AdvancedFeatures"));
+const AdvancedAnalytics = lazy(() => import("./pages/AdvancedAnalytics"));
 const Pricing = lazy(() => import("./pages/Pricing"));
 const Tax = lazy(() => import("./pages/Tax"));
 const Upload = lazy(() => import("./pages/Upload"));
@@ -112,6 +113,13 @@ function App() {
             <ProtectedRoute>
               <Layout>
                 <AdvancedFeatures />
+              </Layout>
+            </ProtectedRoute>
+          } />
+          <Route path="/advanced-analytics" element={
+            <ProtectedRoute>
+              <Layout>
+                <AdvancedAnalytics />
               </Layout>
             </ProtectedRoute>
           } />

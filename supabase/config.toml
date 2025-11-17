@@ -63,3 +63,9 @@ verify_jwt = true   # Require authentication for report generation
 
 [functions.arnold-tax-optimizer-universal]
 verify_jwt = true   # Require authentication for tax optimization
+
+[functions.ai-predict-cashflow]
+verify_jwt = true   # Require authentication for cash flow predictions
+
+[functions.ai-detect-anomalies]
+verify_jwt = true   # Require authentication for anomaly detection

@@ -98,6 +98,12 @@ const Sidebar = ({ isCollapsed, onToggle, isMobileOpen = false, onMobileToggle }
           badge: null,
           tutorialId: "analytics",
         },
+        {
+          href: "/advanced-analytics",
+          label: "AI Insights",
+          icon: TrendingUp,
+          badge: "NEW",
+        },
       ]
     },
     {
