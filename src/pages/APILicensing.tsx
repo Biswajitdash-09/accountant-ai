@@ -9,6 +9,7 @@ import { useToast } from "@/components/ui/use-toast";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { APIKeyManager } from "@/components/api/APIKeyManager";
 import { APIUsageDashboard } from "@/components/api/APIUsageDashboard";
 import { WebhookManagement } from "@/components/api/WebhookManagement";
 
@@ -75,15 +76,18 @@ export default function APILicensing() {
         </h1>
         <p className="text-muted-foreground mt-2">Public API endpoints for Arnold integration</p>
       </div>
-      <Tabs defaultValue="keys" className="w-full">
+      <Tabs defaultValue="usage" className="w-full">
         <TabsList className="grid w-full grid-cols-3">
-          <TabsTrigger value="keys">Keys</TabsTrigger>
-          <TabsTrigger value="usage">Usage</TabsTrigger>
+          <TabsTrigger value="usage">Usage & Analytics</TabsTrigger>
+          <TabsTrigger value="keys">API Keys</TabsTrigger>
           <TabsTrigger value="webhooks">Webhooks</TabsTrigger>
         </TabsList>
+        
+        <TabsContent value="usage" className="space-y-4">
+          <APIUsageDashboard />
+        </TabsContent>
         <TabsContent value="keys" className="space-y-4">
-          <Card>
-            <CardHeader><CardTitle>API Keys</CardTitle></CardHeader>
+          <APIKeyManager />
             <CardContent className="space-y-4">
               <div className="flex gap-2">
                 <Input placeholder="Key name" value={newKeyName} onChange={(e) => setNewKeyName(e.target.value)} />

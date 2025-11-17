@@ -2,7 +2,6 @@ import { IntegrationsDashboard } from "@/components/integrations/IntegrationsDas
 import { OpenBankingSandbox } from "@/components/integrations/OpenBankingSandbox";
 import { APITestConsole } from "@/components/integrations/APITestConsole";
 import { SandboxTestTools } from "@/components/integrations/SandboxTestTools";
-import { APITestConsole } from "@/components/integrations/APITestConsole";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Plug } from "lucide-react";
@@ -20,10 +19,11 @@ const Integrations = () => {
         </div>
       </div>
       <Tabs defaultValue="dashboard" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-3">
+        <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="dashboard">Accounts</TabsTrigger>
           <TabsTrigger value="api-console">API Console</TabsTrigger>
           <TabsTrigger value="sandbox">Sandbox</TabsTrigger>
+          <TabsTrigger value="health">Health Monitor</TabsTrigger>
         </TabsList>
         <TabsContent value="dashboard"><IntegrationsDashboard /></TabsContent>
         <TabsContent value="api-console"><APITestConsole /></TabsContent>
@@ -33,6 +33,7 @@ const Integrations = () => {
             <CardContent><OpenBankingSandbox /></CardContent>
           </Card>
         </TabsContent>
+        <TabsContent value="health"><SandboxTestTools /></TabsContent>
       </Tabs>
     </div>
   );
