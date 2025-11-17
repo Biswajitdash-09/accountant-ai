@@ -1,6 +1,8 @@
 import { IntegrationsDashboard } from "@/components/integrations/IntegrationsDashboard";
 import { OpenBankingSandbox } from "@/components/integrations/OpenBankingSandbox";
 import { APITestConsole } from "@/components/integrations/APITestConsole";
+import { SandboxTestTools } from "@/components/integrations/SandboxTestTools";
+import { APITestConsole } from "@/components/integrations/APITestConsole";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Plug } from "lucide-react";
