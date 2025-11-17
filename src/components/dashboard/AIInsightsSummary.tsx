@@ -4,22 +4,27 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
-import { Brain, TrendingUp, AlertTriangle, Lightbulb, RefreshCw, FileText, Bitcoin, X } from "lucide-react";
+import { Brain, TrendingUp, AlertTriangle, Lightbulb, RefreshCw, FileText, Bitcoin, X, ArrowRight } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useNavigate } from "react-router-dom";
 
 interface Insight {
   id: string;
   type: 'success' | 'warning' | 'info' | 'tip';
+  priority: 'low' | 'medium' | 'high';
   message: string;
   icon: React.ReactNode;
   action?: string;
+  actionUrl?: string;
   source?: string;
+  confidence?: number;
 }
 
 const AIInsightsSummary = () => {
   const { user } = useAuth();
   const { toast } = useToast();
+  const navigate = useNavigate();
   const [insights, setInsights] = useState<Insight[]>([]);
   const [loading, setLoading] = useState(true);
   const [analyzing, setAnalyzing] = useState(false);
@@ -42,22 +47,32 @@ const AIInsightsSummary = () => {
       const generatedInsights: Insight[] = [];
 
       // Fetch crypto insights
-      const { data: cryptoHoldings } = await supabase
-        .from('crypto_holdings')
-        .select('*')
-        .eq('wallet_id', user.id);
-      
-      if (cryptoHoldings && cryptoHoldings.length > 0) {
-        const totalCryptoValue = cryptoHoldings.reduce((sum, h) => sum + (h.value_usd || 0), 0);
-        if (totalCryptoValue > 0) {
-          generatedInsights.push({
-            id: 'crypto_portfolio',
-            type: 'info',
-            message: `Your crypto portfolio is worth $${totalCryptoValue.toFixed(2)}. Track performance across ${cryptoHoldings.length} assets.`,
-            icon: <Bitcoin className="h-4 w-4" />,
-            action: 'View Crypto',
-            source: 'crypto',
-          });
+      const { data: cryptoWallets } = await supabase
+        .from('crypto_wallets')
+        .select('id')
+        .eq('user_id', user.id);
+
+      if (cryptoWallets && cryptoWallets.length > 0) {
+        const { data: cryptoHoldings } = await supabase
+          .from('crypto_holdings')
+          .select('*')
+          .in('wallet_id', cryptoWallets.map(w => w.id));
+        
+        if (cryptoHoldings && cryptoHoldings.length > 0) {
+          const totalCryptoValue = cryptoHoldings.reduce((sum, h) => sum + (h.value_usd || 0), 0);
+          if (totalCryptoValue > 0) {
+            generatedInsights.push({
+              id: 'crypto_portfolio',
+              type: 'info',
+              priority: 'medium',
+              message: `Your crypto portfolio is worth $${totalCryptoValue.toFixed(2)}. Track performance across ${cryptoHoldings.length} assets.`,
+              icon: <Bitcoin className="h-4 w-4" />,
+              action: 'View Crypto',
+              actionUrl: '/markets',
+              source: 'crypto',
+              confidence: 95,
+            });
+          }
         }
       }
 
@@ -80,10 +95,13 @@ const AIInsightsSummary = () => {
           generatedInsights.push({
             id: 'recent_documents',
             type: 'tip',
+            priority: 'low',
             message: `${recentDocs.length} documents uploaded recently. Review for potential tax deductions.`,
             icon: <FileText className="h-4 w-4" />,
             action: 'View Documents',
+            actionUrl: '/upload',
             source: 'documents',
+            confidence: 82,
           });
         }
       }
@@ -105,163 +123,89 @@ const AIInsightsSummary = () => {
           generatedInsights.push({
             id: 'savings_rate_high',
             type: 'success',
+            priority: 'low',
             message: `Excellent! Your savings rate is ${data.savingsRate.toFixed(1)}% - well above the 20% target!`,
             icon: <TrendingUp className="h-4 w-4" />,
-            source: 'transactions',
-          });
-        } else if (data.savingsRate > 0) {
-          generatedInsights.push({
-            id: 'savings_rate_medium',
-            type: 'info',
-            message: `Your savings rate is ${data.savingsRate.toFixed(1)}%. Try to increase it to 20% or more.`,
-            icon: <TrendingUp className="h-4 w-4" />,
-            source: 'transactions',
-          });
-        } else {
-          generatedInsights.push({
-            id: 'savings_rate_low',
-            type: 'warning',
-            message: `You're spending more than you earn. Review your expenses to find savings opportunities.`,
-            icon: <AlertTriangle className="h-4 w-4" />,
-            source: 'transactions',
+            action: 'View Analytics',
+            actionUrl: '/analytics',
+            source: 'analytics',
+            confidence: 90,
           });
         }
 
-        // Top spending category insight
-        if (data.topCategories?.length > 0) {
-          const topCategory = data.topCategories[0];
+        // Check for overspending
+        if (data.spendingTrend && data.spendingTrend === 'increasing') {
           generatedInsights.push({
-            id: 'top_spending_category',
-            type: 'info',
-            message: `Your biggest expense is ${topCategory.category} at ${topCategory.percentage.toFixed(0)}% of total spending.`,
-            icon: <Lightbulb className="h-4 w-4" />,
-            source: 'transactions',
-          });
-        }
-
-        // Anomaly alerts
-        if (data.anomalies?.length > 0) {
-          generatedInsights.push({
-            id: 'anomaly_detection',
+            id: 'spending_increasing',
             type: 'warning',
-            message: `${data.anomalies.length} unusual transactions detected this month. Review them for accuracy.`,
+            priority: 'high',
+            message: `Your spending has increased significantly. Consider reviewing your budget categories.`,
             icon: <AlertTriangle className="h-4 w-4" />,
-            action: 'View Anomalies',
-            source: 'transactions',
+            action: 'Review Budget',
+            actionUrl: '/dashboard',
+            source: 'analytics',
+            confidence: 88,
           });
         }
       }
 
-      // Fetch cash flow forecast
-      const { data: forecastData } = await supabase
-        .from('analytics_cache')
-        .select('data')
-        .eq('user_id', user.id)
-        .eq('cache_key', 'cashflow_forecast_30d')
-        .gt('expires_at', new Date().toISOString())
-        .single();
-
-      if (forecastData?.data) {
-        const forecast = forecastData.data as any;
-        
-        if (forecast.projectedChange < 0) {
-          generatedInsights.push({
-            id: 'forecast_negative',
-            type: 'warning',
-            message: `Projected to spend ${Math.abs(forecast.projectedChange).toFixed(0)} more than you earn in the next 30 days.`,
-            icon: <AlertTriangle className="h-4 w-4" />,
-            source: 'forecast',
-          });
-        } else {
-          generatedInsights.push({
-            id: 'forecast_positive',
-            type: 'success',
-            message: `On track to save ${forecast.projectedChange.toFixed(0)} in the next 30 days!`,
-            icon: <TrendingUp className="h-4 w-4" />,
-            source: 'forecast',
-          });
-        }
-      }
-
-      // Tax optimization insights
-      const { data: taxData } = await supabase
-        .from('analytics_cache')
-        .select('data')
-        .eq('user_id', user.id)
-        .like('cache_key', 'tax_optimization_%')
-        .gt('expires_at', new Date().toISOString())
-        .limit(1)
-        .single();
-
-      if (taxData?.data) {
-        const tax = taxData.data as any;
-        
-        if (tax.suggestedDeductions > 0) {
-          generatedInsights.push({
-            id: 'tax_deductions',
-            type: 'tip',
-            message: `Found ${tax.suggestedDeductions} potential tax deductions worth ~${tax.totalPotentialSavings.toFixed(0)} in savings!`,
-            icon: <Lightbulb className="h-4 w-4" />,
-            action: 'View Deductions',
-            source: 'tax',
-          });
-        }
-      }
-
-      // Default insights if none available
-      if (generatedInsights.length === 0) {
+      // Tax season reminder
+      const currentMonth = new Date().getMonth();
+      if (currentMonth >= 0 && currentMonth <= 3) {
         generatedInsights.push({
-          id: 'default_welcome',
+          id: 'tax_season',
           type: 'info',
-          message: 'Connect your bank accounts, crypto wallets, and upload documents to get comprehensive AI insights from all your financial sources.',
-          icon: <Brain className="h-4 w-4" />,
+          priority: 'high',
+          message: `Tax season is here! Make sure all your documents and transactions are up to date.`,
+          icon: <Lightbulb className="h-4 w-4" />,
+          action: 'View Tax Center',
+          actionUrl: '/tax',
+          source: 'system',
+          confidence: 100,
         });
       }
 
-      // Filter out dismissed insights
-      const filtered = generatedInsights.filter(i => !dismissedInsights.includes(i.id));
-      setInsights(filtered.slice(0, 6)); // Show top 6
+      setInsights(generatedInsights);
     } catch (error) {
       console.error('Error fetching insights:', error);
+      toast({
+        title: "Error loading insights",
+        description: "Unable to fetch AI insights at this time.",
+        variant: "destructive",
+      });
     } finally {
       setLoading(false);
     }
   };
 
-  const runAnalysis = async () => {
-    if (!user || analyzing) return;
+  const analyzeWithAI = async () => {
+    if (!user) return;
 
     try {
       setAnalyzing(true);
-      toast({
-        title: "Analyzing your finances",
-        description: "Arnold is reviewing all your data sources...",
+      
+      const { data, error } = await supabase.functions.invoke('arnold-universal-analysis', {
+        body: {
+          query: 'Analyze my recent financial activity and provide 3-5 actionable insights',
+          includeData: ['transactions', 'accounts', 'crypto', 'investments'],
+        },
       });
 
-      // Run all AI analyses
-      await Promise.all([
-        supabase.functions.invoke('ai-analyze-spending', {
-          body: { period: 'month' },
-        }),
-        supabase.functions.invoke('ai-forecast-cashflow', {
-          body: { days: 30 },
-        }),
-        supabase.functions.invoke('ai-tax-optimizer', {
-          body: { taxYear: new Date().getFullYear() },
-        }),
-      ]);
+      if (error) throw error;
 
-      toast({
-        title: "Analysis complete!",
-        description: "Your AI insights have been updated with data from all sources.",
-      });
-
-      fetchInsights();
+      if (data?.analysis) {
+        toast({
+          title: "Analysis Complete",
+          description: "Arnold has generated new insights for you.",
+        });
+        
+        await fetchInsights();
+      }
     } catch (error) {
-      console.error('Error running analysis:', error);
+      console.error('AI analysis error:', error);
       toast({
-        title: "Analysis failed",
-        description: "Please try again later.",
+        title: "Analysis Failed",
+        description: "Unable to analyze data at this time.",
         variant: "destructive",
       });
     } finally {
@@ -271,95 +215,124 @@ const AIInsightsSummary = () => {
 
   useEffect(() => {
     fetchInsights();
-  }, [user, dismissedInsights]);
+  }, [user]);
 
-  const getInsightVariant = (type: Insight['type']) => {
+  const getTypeColor = (type: Insight['type']) => {
     switch (type) {
-      case 'success': return 'default';
-      case 'warning': return 'destructive';
-      case 'info': return 'secondary';
-      case 'tip': return 'outline';
-      default: return 'default';
+      case 'success':
+        return 'border-green-500 bg-green-500/10';
+      case 'warning':
+        return 'border-yellow-500 bg-yellow-500/10';
+      case 'info':
+        return 'border-blue-500 bg-blue-500/10';
+      case 'tip':
+        return 'border-purple-500 bg-purple-500/10';
+      default:
+        return 'border-gray-500 bg-gray-500/10';
     }
   };
 
-  const getSourceBadge = (source?: string) => {
-    if (!source) return null;
-    const badges: Record<string, { label: string; icon: React.ReactNode }> = {
-      crypto: { label: 'Crypto', icon: <Bitcoin className="h-3 w-3 mr-1" /> },
-      documents: { label: 'Docs', icon: <FileText className="h-3 w-3 mr-1" /> },
-      transactions: { label: 'Bank', icon: null },
-      integrations: { label: 'Connected', icon: null },
-      tax: { label: 'Tax', icon: null },
-      forecast: { label: 'Forecast', icon: null },
-    };
-    const badge = badges[source];
-    if (!badge) return null;
-    return (
-      <Badge variant="outline" className="text-xs ml-2">
-        {badge.icon}
-        {badge.label}
-      </Badge>
-    );
+  const getPriorityColor = (priority: string) => {
+    switch (priority) {
+      case 'high':
+        return 'text-destructive';
+      case 'medium':
+        return 'text-warning';
+      default:
+        return 'text-muted-foreground';
+    }
   };
 
+  const handleAction = (url?: string) => {
+    if (url) {
+      navigate(url);
+    }
+  };
+
+  const visibleInsights = insights.filter(i => !dismissedInsights.includes(i.id));
+
   return (
-    <Card>
-      <CardHeader className="flex flex-row items-center justify-between">
+    <Card className="overflow-hidden">
+      <CardHeader className="flex flex-row items-center justify-between pb-4">
         <div className="flex items-center gap-2">
           <Brain className="h-5 w-5 text-primary" />
-          <CardTitle>AI Financial Insights</CardTitle>
+          <CardTitle>Arnold's Insights</CardTitle>
         </div>
         <Button
-          size="sm"
           variant="outline"
-          onClick={runAnalysis}
+          size="sm"
+          onClick={analyzeWithAI}
           disabled={analyzing}
+          className="h-8 gap-2"
         >
-          <RefreshCw className={`h-4 w-4 mr-2 ${analyzing ? 'animate-spin' : ''}`} />
+          <RefreshCw className={`h-3 w-3 ${analyzing ? 'animate-spin' : ''}`} />
           {analyzing ? 'Analyzing...' : 'Refresh'}
         </Button>
       </CardHeader>
       <CardContent className="space-y-3">
         {loading ? (
-          <>
-            <Skeleton className="h-16 w-full" />
-            <Skeleton className="h-16 w-full" />
-            <Skeleton className="h-16 w-full" />
-          </>
-        ) : (
-          insights.map((insight) => (
-            <div
-              key={insight.id}
-              className="flex items-start gap-3 p-3 rounded-lg border bg-card relative group"
+          <div className="space-y-3">
+            <Skeleton className="h-24 w-full" />
+            <Skeleton className="h-24 w-full" />
+            <Skeleton className="h-24 w-full" />
+          </div>
+        ) : visibleInsights.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-8 text-center text-muted-foreground">
+            <Brain className="h-12 w-12 mb-3 opacity-50" />
+            <p className="text-sm font-medium">No insights yet</p>
+            <p className="text-xs">Arnold is learning your financial patterns</p>
+            <Button
+              variant="outline"
+              size="sm"
+              className="mt-4"
+              onClick={analyzeWithAI}
             >
-              <Badge variant={getInsightVariant(insight.type)} className="mt-0.5">
-                {insight.icon}
-              </Badge>
-              <div className="flex-1 pr-8">
-                <div className="flex items-center gap-1 flex-wrap">
-                  <p className="text-sm">{insight.message}</p>
-                  {getSourceBadge(insight.source)}
-                </div>
-                {insight.action && (
-                  <Button
-                    size="sm"
-                    variant="link"
-                    className="h-auto p-0 mt-1"
-                  >
-                    {insight.action} →
-                  </Button>
-                )}
-              </div>
+              Generate Insights
+            </Button>
+          </div>
+        ) : (
+          visibleInsights.map((insight) => (
+            <Card key={insight.id} className={`relative group hover:shadow-md transition-all ${getTypeColor(insight.type)}`}>
               <Button
-                size="icon"
                 variant="ghost"
-                className="absolute top-2 right-2 h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity touch-manipulation"
+                size="icon"
+                className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity h-6 w-6 z-10"
                 onClick={() => dismissInsight(insight.id)}
               >
                 <X className="h-4 w-4" />
               </Button>
-            </div>
+              <CardContent className="pt-4 pb-3">
+                <div className="flex gap-3">
+                  <div className="shrink-0 mt-0.5">
+                    {insight.icon}
+                  </div>
+                  <div className="flex-1 space-y-2 min-w-0">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <Badge variant="outline" className={`text-xs ${getPriorityColor(insight.priority)}`}>
+                        {insight.priority} priority
+                      </Badge>
+                      {insight.confidence && (
+                        <span className="text-xs text-muted-foreground">
+                          {insight.confidence}% confident
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-sm leading-relaxed">{insight.message}</p>
+                    {insight.action && insight.actionUrl && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-8 px-3 text-xs -ml-3"
+                        onClick={() => handleAction(insight.actionUrl)}
+                      >
+                        {insight.action}
+                        <ArrowRight className="h-3 w-3 ml-2" />
+                      </Button>
+                    )}
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
           ))
         )}
       </CardContent>
