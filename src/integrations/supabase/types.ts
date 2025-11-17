@@ -3881,6 +3881,100 @@ export type Database = {
         }
         Relationships: []
       }
+      webhook_deliveries: {
+        Row: {
+          attempts: number | null
+          created_at: string | null
+          delivered_at: string | null
+          error_message: string | null
+          event_type: string
+          http_status: number | null
+          id: string
+          payload: Json
+          response_body: string | null
+          status: string
+          webhook_id: string
+        }
+        Insert: {
+          attempts?: number | null
+          created_at?: string | null
+          delivered_at?: string | null
+          error_message?: string | null
+          event_type: string
+          http_status?: number | null
+          id?: string
+          payload: Json
+          response_body?: string | null
+          status?: string
+          webhook_id: string
+        }
+        Update: {
+          attempts?: number | null
+          created_at?: string | null
+          delivered_at?: string | null
+          error_message?: string | null
+          event_type?: string
+          http_status?: number | null
+          id?: string
+          payload?: Json
+          response_body?: string | null
+          status?: string
+          webhook_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "webhook_deliveries_webhook_id_fkey"
+            columns: ["webhook_id"]
+            isOneToOne: false
+            referencedRelation: "webhooks"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      webhooks: {
+        Row: {
+          api_key_id: string | null
+          created_at: string | null
+          events: string[]
+          id: string
+          is_active: boolean | null
+          secret: string
+          updated_at: string | null
+          url: string
+          user_id: string
+        }
+        Insert: {
+          api_key_id?: string | null
+          created_at?: string | null
+          events?: string[]
+          id?: string
+          is_active?: boolean | null
+          secret: string
+          updated_at?: string | null
+          url: string
+          user_id: string
+        }
+        Update: {
+          api_key_id?: string | null
+          created_at?: string | null
+          events?: string[]
+          id?: string
+          is_active?: boolean | null
+          secret?: string
+          updated_at?: string | null
+          url?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "webhooks_api_key_id_fkey"
+            columns: ["api_key_id"]
+            isOneToOne: false
+            referencedRelation: "api_keys"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       yodlee_connections: {
         Row: {
           access_token: string
@@ -3999,6 +4093,10 @@ export type Database = {
       }
       refresh_financial_views: { Args: never; Returns: undefined }
       reset_daily_credits: { Args: { user_id: string }; Returns: boolean }
+      trigger_webhooks: {
+        Args: { p_event_type: string; p_payload: Json; p_user_id: string }
+        Returns: undefined
+      }
       user_use_credits: {
         Args: { p_credits_to_use?: number }
         Returns: boolean
