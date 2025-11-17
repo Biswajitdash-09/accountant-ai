@@ -88,47 +88,11 @@ export default function APILicensing() {
         </TabsContent>
         <TabsContent value="keys" className="space-y-4">
           <APIKeyManager />
-            <CardContent className="space-y-4">
-              <div className="flex gap-2">
-                <Input placeholder="Key name" value={newKeyName} onChange={(e) => setNewKeyName(e.target.value)} />
-                <select value={newKeyPrefix} onChange={(e) => setNewKeyPrefix(e.target.value)} className="h-10 px-3 rounded-md border">
-                  <option value="live">Live</option>
-                  <option value="test">Test</option>
-                </select>
-                <Button onClick={() => newKeyName && createKeyMutation.mutate(newKeyName)}>
-                  <Plus className="h-4 w-4" />
-                </Button>
-              </div>
-              {isLoading ? <div>Loading...</div> : apiKeys.map((key) => (
-                <div key={key.id} className="flex items-center justify-between p-4 border rounded-lg">
-                  <div className="space-y-2 flex-1">
-                    <div className="flex items-center gap-2">
-                      <h3 className="font-medium">{key.key_name}</h3>
-                      <Badge>{key.is_active ? "active" : "inactive"}</Badge>
-                    </div>
-                    <div className="flex items-center gap-2 font-mono text-sm">
-                      <code className="bg-muted px-2 py-1 rounded">
-                        {showKey[key.id] && (key as any).full_key ? (key as any).full_key : `${key.key_prefix}••••`}
-                      </code>
-                      <Button variant="ghost" size="sm" onClick={() => setShowKey({ ...showKey, [key.id]: !showKey[key.id] })}>
-                        {showKey[key.id] ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                      </Button>
-                      <Button variant="ghost" size="sm" onClick={() => navigator.clipboard.writeText((key as any).full_key || key.key_prefix)}>
-                        <Copy className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </div>
-                  <Button variant="ghost" size="sm" onClick={() => deleteKeyMutation.mutate(key.id)}>
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
-                </div>
-              ))}
-            </CardContent>
-          </Card>
         </TabsContent>
-        <TabsContent value="usage"><APIUsageDashboard /></TabsContent>
         <TabsContent value="webhooks"><WebhookManagement /></TabsContent>
       </Tabs>
     </div>
+  );
+}
   );
 }
