@@ -18,6 +18,7 @@ import { User, Settings, Shield, LogOut, Clock, Calendar, Bell, ExternalLink } f
 import { formatDistanceToNow } from "date-fns";
 import { HMRCSettings } from "@/components/hmrc/HMRCSettings";
 import { useHMRCConnection } from "@/hooks/useHMRCConnection";
+import { SampleDataManager } from "@/components/settings/SampleDataManager";
 
 const Profile = () => {
   const { signOut } = useAuth();
@@ -247,6 +248,9 @@ const Profile = () => {
               </CardContent>
             </Card>
           )}
+
+          {/* Sample Data Manager */}
+          <SampleDataManager />
         </TabsContent>
 
         <TabsContent value="security" className="space-y-4">
