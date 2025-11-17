@@ -1,5 +1,6 @@
 import { IntegrationsDashboard } from "@/components/integrations/IntegrationsDashboard";
 import { OpenBankingSandbox } from "@/components/integrations/OpenBankingSandbox";
+import { APITestConsole } from "@/components/integrations/APITestConsole";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Plug } from "lucide-react";
@@ -12,39 +13,26 @@ const Integrations = () => {
           <Plug className="h-6 w-6 text-primary" />
         </div>
         <div>
-          <h1 className="text-3xl font-bold">Integrations</h1>
-          <p className="text-muted-foreground">
-            Connect your financial accounts and explore our Open Banking sandbox
-          </p>
+          <h1 className="text-3xl font-bold">Integrations & API Testing</h1>
+          <p className="text-muted-foreground">Connect accounts and test Arnold APIs</p>
         </div>
       </div>
-
       <Tabs defaultValue="dashboard" className="space-y-6">
-        <TabsList>
-          <TabsTrigger value="dashboard">Connected Accounts</TabsTrigger>
-          <TabsTrigger value="sandbox">Open Banking Sandbox</TabsTrigger>
+        <TabsList className="grid w-full grid-cols-3">
+          <TabsTrigger value="dashboard">Accounts</TabsTrigger>
+          <TabsTrigger value="api-console">API Console</TabsTrigger>
+          <TabsTrigger value="sandbox">Sandbox</TabsTrigger>
         </TabsList>
-
-        <TabsContent value="dashboard" className="space-y-6">
-          <IntegrationsDashboard />
-        </TabsContent>
-
-        <TabsContent value="sandbox" className="space-y-6">
+        <TabsContent value="dashboard"><IntegrationsDashboard /></TabsContent>
+        <TabsContent value="api-console"><APITestConsole /></TabsContent>
+        <TabsContent value="sandbox">
           <Card>
-            <CardHeader>
-              <CardTitle>Open Banking API Sandbox</CardTitle>
-              <CardDescription>
-                Test and explore Open Banking APIs from multiple providers in a safe sandbox environment
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <OpenBankingSandbox />
-            </CardContent>
+            <CardHeader><CardTitle>Open Banking Sandbox</CardTitle></CardHeader>
+            <CardContent><OpenBankingSandbox /></CardContent>
           </Card>
         </TabsContent>
       </Tabs>
     </div>
   );
 };
-
 export default Integrations;
