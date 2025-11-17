@@ -10,6 +10,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { APIUsageDashboard } from "@/components/api/APIUsageDashboard";
+import { WebhookManagement } from "@/components/api/WebhookManagement";
 
 export default function APILicensing() {
   const { toast } = useToast();
@@ -122,7 +123,7 @@ export default function APILicensing() {
           </Card>
         </TabsContent>
         <TabsContent value="usage"><APIUsageDashboard /></TabsContent>
-        <TabsContent value="webhooks"><Card><CardHeader><CardTitle>Webhooks (Phase 5)</CardTitle></CardHeader></Card></TabsContent>
+        <TabsContent value="webhooks"><WebhookManagement /></TabsContent>
       </Tabs>
     </div>
   );
