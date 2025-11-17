@@ -3,6 +3,7 @@ import React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { LucideIcon } from "lucide-react";
 import { useCurrencyFormatter } from "@/hooks/useCurrencyFormatter";
+import { MultiCurrencyTooltip } from "@/components/currency/MultiCurrencyTooltip";
 
 interface MetricCardProps {
   title: string;
@@ -15,6 +16,7 @@ interface MetricCardProps {
   };
   currency?: boolean;
   currencyId?: string;
+  showCurrencyConversion?: boolean;
 }
 
 export const MetricCard = ({ 
@@ -23,13 +25,16 @@ export const MetricCard = ({
   icon: Icon, 
   trend, 
   currency = false, 
-  currencyId 
+  currencyId,
+  showCurrencyConversion = false,
 }: MetricCardProps) => {
   const { formatCurrency } = useCurrencyFormatter();
 
   const displayValue = currency && typeof value === 'number' 
     ? formatCurrency(value, currencyId, undefined, { showSymbol: true, showCode: false })
     : value;
+
+  const numericValue = typeof value === 'number' ? value : undefined;
 
   return (
     <Card>
@@ -38,7 +43,12 @@ export const MetricCard = ({
         <Icon className="h-4 w-4 text-muted-foreground" />
       </CardHeader>
       <CardContent>
-        <div className="text-2xl font-bold">{displayValue}</div>
+        <div className="flex items-baseline gap-1">
+          <div className="text-2xl font-bold">{displayValue}</div>
+          {showCurrencyConversion && numericValue !== undefined && (
+            <MultiCurrencyTooltip amount={numericValue} />
+          )}
+        </div>
         {trend && (
           <p className="text-xs text-muted-foreground">
             <span className={trend.isPositive ? "text-green-600" : "text-red-600"}>

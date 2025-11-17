@@ -89,12 +89,14 @@ const Sidebar = ({ isCollapsed, onToggle, isMobileOpen = false, onMobileToggle }
           label: "Reports",
           icon: FileText,
           badge: null,
+          tutorialId: "reports",
         },
         {
           href: "/analytics",
           label: "Analytics",
           icon: BarChart3,
           badge: null,
+          tutorialId: "analytics",
         },
       ]
     },
@@ -138,6 +140,7 @@ const Sidebar = ({ isCollapsed, onToggle, isMobileOpen = false, onMobileToggle }
           label: "Documents",
           icon: Upload,
           badge: null,
+          tutorialId: "upload",
         },
         {
           href: "/barcode",
@@ -271,7 +274,11 @@ const Sidebar = ({ isCollapsed, onToggle, isMobileOpen = false, onMobileToggle }
                         }
                       }}
                     >
-                      <Link to={item.href} className="flex items-center gap-3 w-full">
+                      <Link 
+                        to={item.href} 
+                        className="flex items-center gap-3 w-full"
+                        data-tutorial={(item as any).tutorialId}
+                      >
                         <item.icon className="h-4 w-4 shrink-0" />
                         {(!isCollapsed || isMobileSheet) && (
                           <>
