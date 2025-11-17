@@ -19,6 +19,7 @@ import CreditBalance from "./CreditBalance";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { cn } from "@/lib/utils";
 import { Menu } from "lucide-react";
+import { ArnoldNotificationCenter } from "./notifications/ArnoldNotificationCenter";
 
 interface HeaderProps {
   onMobileMenuToggle: () => void;
@@ -103,6 +104,9 @@ const Header = ({ onMobileMenuToggle, onSearchToggle }: HeaderProps) => {
               </Link>
             </Button>
           )}
+          
+          {/* Arnold Notifications */}
+          <ArnoldNotificationCenter />
           
           {/* Currency Selector - Hidden on mobile */}
           <div className="hidden sm:flex">

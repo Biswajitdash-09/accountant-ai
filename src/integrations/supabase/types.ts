@@ -153,6 +153,125 @@ export type Database = {
         }
         Relationships: []
       }
+      api_keys: {
+        Row: {
+          created_at: string | null
+          expires_at: string | null
+          id: string
+          is_active: boolean | null
+          key_hash: string
+          key_name: string
+          key_prefix: string
+          last_used_at: string | null
+          rate_limit_per_minute: number | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          expires_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          key_hash: string
+          key_name: string
+          key_prefix: string
+          last_used_at?: string | null
+          rate_limit_per_minute?: number | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          expires_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          key_hash?: string
+          key_name?: string
+          key_prefix?: string
+          last_used_at?: string | null
+          rate_limit_per_minute?: number | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      api_usage_logs: {
+        Row: {
+          api_key_id: string
+          created_at: string | null
+          credits_consumed: number | null
+          endpoint: string
+          id: string
+          method: string
+          response_time_ms: number | null
+          status_code: number
+        }
+        Insert: {
+          api_key_id: string
+          created_at?: string | null
+          credits_consumed?: number | null
+          endpoint: string
+          id?: string
+          method: string
+          response_time_ms?: number | null
+          status_code: number
+        }
+        Update: {
+          api_key_id?: string
+          created_at?: string | null
+          credits_consumed?: number | null
+          endpoint?: string
+          id?: string
+          method?: string
+          response_time_ms?: number | null
+          status_code?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "api_usage_logs_api_key_id_fkey"
+            columns: ["api_key_id"]
+            isOneToOne: false
+            referencedRelation: "api_keys"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      arnold_notifications: {
+        Row: {
+          action_url: string | null
+          created_at: string | null
+          id: string
+          is_read: boolean | null
+          message: string
+          metadata: Json | null
+          notification_type: string
+          priority: string | null
+          title: string
+          user_id: string
+        }
+        Insert: {
+          action_url?: string | null
+          created_at?: string | null
+          id?: string
+          is_read?: boolean | null
+          message: string
+          metadata?: Json | null
+          notification_type: string
+          priority?: string | null
+          title: string
+          user_id: string
+        }
+        Update: {
+          action_url?: string | null
+          created_at?: string | null
+          id?: string
+          is_read?: boolean | null
+          message?: string
+          metadata?: Json | null
+          notification_type?: string
+          priority?: string | null
+          title?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       audit_logs: {
         Row: {
           action: string
@@ -1979,8 +2098,11 @@ export type Database = {
       profiles: {
         Row: {
           accounting_software: string | null
+          arnold_notification_frequency: string | null
+          arnold_notifications_enabled: boolean | null
           avatar_url: string | null
           created_at: string | null
+          dismissed_card_ids: string[] | null
           email: string | null
           fiscal_year_end: string | null
           full_name: string | null
@@ -1994,8 +2116,11 @@ export type Database = {
         }
         Insert: {
           accounting_software?: string | null
+          arnold_notification_frequency?: string | null
+          arnold_notifications_enabled?: boolean | null
           avatar_url?: string | null
           created_at?: string | null
+          dismissed_card_ids?: string[] | null
           email?: string | null
           fiscal_year_end?: string | null
           full_name?: string | null
@@ -2009,8 +2134,11 @@ export type Database = {
         }
         Update: {
           accounting_software?: string | null
+          arnold_notification_frequency?: string | null
+          arnold_notifications_enabled?: boolean | null
           avatar_url?: string | null
           created_at?: string | null
+          dismissed_card_ids?: string[] | null
           email?: string | null
           fiscal_year_end?: string | null
           full_name?: string | null
