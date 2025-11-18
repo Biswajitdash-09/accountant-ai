@@ -3812,6 +3812,48 @@ export type Database = {
           },
         ]
       }
+      user_security_settings: {
+        Row: {
+          backup_codes: string[] | null
+          biometric_enabled: boolean | null
+          created_at: string | null
+          id: string
+          last_password_change: string | null
+          security_questions: Json | null
+          two_factor_enabled: boolean | null
+          two_factor_secret: string | null
+          two_factor_verified: boolean | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          backup_codes?: string[] | null
+          biometric_enabled?: boolean | null
+          created_at?: string | null
+          id?: string
+          last_password_change?: string | null
+          security_questions?: Json | null
+          two_factor_enabled?: boolean | null
+          two_factor_secret?: string | null
+          two_factor_verified?: boolean | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          backup_codes?: string[] | null
+          biometric_enabled?: boolean | null
+          created_at?: string | null
+          id?: string
+          last_password_change?: string | null
+          security_questions?: Json | null
+          two_factor_enabled?: boolean | null
+          two_factor_secret?: string | null
+          two_factor_verified?: boolean | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_sessions: {
         Row: {
           created_at: string | null
