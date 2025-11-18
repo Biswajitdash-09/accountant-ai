@@ -6,6 +6,10 @@ import { Routes, Route, Navigate } from "react-router-dom";
 import { lazy, Suspense } from "react";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import Layout from "@/components/Layout";
+import { PWAInstallPrompt } from "@/components/PWAInstallPrompt";
+import { OfflineIndicator } from "@/components/mobile/OfflineIndicator";
+import { MobileQuickActions } from "@/components/mobile/MobileQuickActions";
+import { MobileSyncStatus } from "@/components/mobile/MobileSyncStatus";
 import "./App.css";
 
 // Eager load only critical public pages
@@ -56,6 +60,10 @@ function App() {
     <TooltipProvider>
       <Toaster />
       <Sonner />
+      <PWAInstallPrompt />
+      <OfflineIndicator />
+      <MobileQuickActions />
+      <MobileSyncStatus />
       <Suspense fallback={<PageLoader />}>
         <Routes>
           {/* Public routes */}
