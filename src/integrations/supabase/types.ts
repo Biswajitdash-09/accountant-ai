@@ -1810,6 +1810,69 @@ export type Database = {
           },
         ]
       }
+      invoices: {
+        Row: {
+          amount: number
+          created_at: string | null
+          currency: string
+          due_date: string | null
+          id: string
+          invoice_number: string
+          metadata: Json | null
+          paid_at: string | null
+          payment_id: string | null
+          pdf_url: string | null
+          status: string | null
+          subscription_id: string | null
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string | null
+          currency: string
+          due_date?: string | null
+          id?: string
+          invoice_number: string
+          metadata?: Json | null
+          paid_at?: string | null
+          payment_id?: string | null
+          pdf_url?: string | null
+          status?: string | null
+          subscription_id?: string | null
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string | null
+          currency?: string
+          due_date?: string | null
+          id?: string
+          invoice_number?: string
+          metadata?: Json | null
+          paid_at?: string | null
+          payment_id?: string | null
+          pdf_url?: string | null
+          status?: string | null
+          subscription_id?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "invoices_payment_id_fkey"
+            columns: ["payment_id"]
+            isOneToOne: false
+            referencedRelation: "payments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "invoices_subscription_id_fkey"
+            columns: ["subscription_id"]
+            isOneToOne: false
+            referencedRelation: "subscriptions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       mono_connections: {
         Row: {
           account_id: string
@@ -1921,6 +1984,51 @@ export type Database = {
         }
         Relationships: []
       }
+      payment_attempts: {
+        Row: {
+          amount: number | null
+          created_at: string | null
+          currency: string | null
+          failure_reason: string | null
+          id: string
+          ip_address: unknown
+          metadata: Json | null
+          payment_method: string | null
+          risk_score: number | null
+          status: string | null
+          user_agent: string | null
+          user_id: string | null
+        }
+        Insert: {
+          amount?: number | null
+          created_at?: string | null
+          currency?: string | null
+          failure_reason?: string | null
+          id?: string
+          ip_address?: unknown
+          metadata?: Json | null
+          payment_method?: string | null
+          risk_score?: number | null
+          status?: string | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          amount?: number | null
+          created_at?: string | null
+          currency?: string | null
+          failure_reason?: string | null
+          id?: string
+          ip_address?: unknown
+          metadata?: Json | null
+          payment_method?: string | null
+          risk_score?: number | null
+          status?: string | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       payment_webhook_logs: {
         Row: {
           id: string
@@ -1959,6 +2067,7 @@ export type Database = {
           currency: string
           failure_reason: string | null
           id: string
+          invoice_id: string | null
           metadata: Json | null
           payment_link: string | null
           payment_method: string | null
@@ -1968,9 +2077,13 @@ export type Database = {
           provider_order_id: string | null
           provider_payment_id: string | null
           provider_session_id: string | null
+          refund_amount: number | null
+          refunded: boolean | null
+          risk_assessment: Json | null
           status: string
           stripe_payment_intent_id: string | null
           stripe_session_id: string | null
+          subscription_id: string | null
           updated_at: string
           upi_vpa: string | null
           user_id: string
@@ -1982,6 +2095,7 @@ export type Database = {
           currency?: string
           failure_reason?: string | null
           id?: string
+          invoice_id?: string | null
           metadata?: Json | null
           payment_link?: string | null
           payment_method?: string | null
@@ -1991,9 +2105,13 @@ export type Database = {
           provider_order_id?: string | null
           provider_payment_id?: string | null
           provider_session_id?: string | null
+          refund_amount?: number | null
+          refunded?: boolean | null
+          risk_assessment?: Json | null
           status?: string
           stripe_payment_intent_id?: string | null
           stripe_session_id?: string | null
+          subscription_id?: string | null
           updated_at?: string
           upi_vpa?: string | null
           user_id: string
@@ -2005,6 +2123,7 @@ export type Database = {
           currency?: string
           failure_reason?: string | null
           id?: string
+          invoice_id?: string | null
           metadata?: Json | null
           payment_link?: string | null
           payment_method?: string | null
@@ -2014,14 +2133,33 @@ export type Database = {
           provider_order_id?: string | null
           provider_payment_id?: string | null
           provider_session_id?: string | null
+          refund_amount?: number | null
+          refunded?: boolean | null
+          risk_assessment?: Json | null
           status?: string
           stripe_payment_intent_id?: string | null
           stripe_session_id?: string | null
+          subscription_id?: string | null
           updated_at?: string
           upi_vpa?: string | null
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "payments_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: false
+            referencedRelation: "invoices"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payments_subscription_id_fkey"
+            columns: ["subscription_id"]
+            isOneToOne: false
+            referencedRelation: "subscriptions"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       performance_metrics: {
         Row: {
@@ -2220,6 +2358,56 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      refunds: {
+        Row: {
+          amount: number
+          created_at: string | null
+          currency: string
+          id: string
+          metadata: Json | null
+          payment_id: string
+          processed_at: string | null
+          provider_refund_id: string | null
+          reason: string | null
+          status: string | null
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string | null
+          currency: string
+          id?: string
+          metadata?: Json | null
+          payment_id: string
+          processed_at?: string | null
+          provider_refund_id?: string | null
+          reason?: string | null
+          status?: string | null
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string | null
+          currency?: string
+          id?: string
+          metadata?: Json | null
+          payment_id?: string
+          processed_at?: string | null
+          provider_refund_id?: string | null
+          reason?: string | null
+          status?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "refunds_payment_id_fkey"
+            columns: ["payment_id"]
+            isOneToOne: false
+            referencedRelation: "payments"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       report_executions: {
         Row: {
@@ -2529,6 +2717,69 @@ export type Database = {
           subscription_tier?: string | null
           updated_at?: string
           user_id?: string | null
+        }
+        Relationships: []
+      }
+      subscriptions: {
+        Row: {
+          amount: number
+          billing_cycle: string | null
+          cancel_at_period_end: boolean | null
+          cancelled_at: string | null
+          cashfree_subscription_id: string | null
+          created_at: string | null
+          currency: string | null
+          current_period_end: string | null
+          current_period_start: string | null
+          id: string
+          metadata: Json | null
+          plan_id: string
+          plan_name: string
+          status: string | null
+          stripe_subscription_id: string | null
+          trial_end: string | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          billing_cycle?: string | null
+          cancel_at_period_end?: boolean | null
+          cancelled_at?: string | null
+          cashfree_subscription_id?: string | null
+          created_at?: string | null
+          currency?: string | null
+          current_period_end?: string | null
+          current_period_start?: string | null
+          id?: string
+          metadata?: Json | null
+          plan_id: string
+          plan_name: string
+          status?: string | null
+          stripe_subscription_id?: string | null
+          trial_end?: string | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          billing_cycle?: string | null
+          cancel_at_period_end?: boolean | null
+          cancelled_at?: string | null
+          cashfree_subscription_id?: string | null
+          created_at?: string | null
+          currency?: string | null
+          current_period_end?: string | null
+          current_period_start?: string | null
+          id?: string
+          metadata?: Json | null
+          plan_id?: string
+          plan_name?: string
+          status?: string | null
+          stripe_subscription_id?: string | null
+          trial_end?: string | null
+          updated_at?: string | null
+          user_id?: string
         }
         Relationships: []
       }
