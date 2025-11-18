@@ -1,6 +1,7 @@
 
 import { Bell, User, Sun, Moon, CreditCard } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { RealtimeNotificationBell } from "./notifications/RealtimeNotificationBell";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -104,6 +105,9 @@ const Header = ({ onMobileMenuToggle, onSearchToggle }: HeaderProps) => {
               </Link>
             </Button>
           )}
+          
+          {/* Real-time Notifications */}
+          <RealtimeNotificationBell />
           
           {/* Arnold Notifications */}
           <ArnoldNotificationCenter />
