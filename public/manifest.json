@@ -1,13 +1,14 @@
 {
-  "name": "Accountant AI - Financial Management",
+  "name": "Accountant AI - Smart Financial Management",
   "short_name": "Accountant AI",
-  "description": "AI-powered financial management and accounting platform",
+  "description": "AI-powered financial management and accounting platform with real-time insights, tax optimization, and smart automation.",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#0A0A0A",
   "theme_color": "#8B5CF6",
   "orientation": "portrait-primary",
   "scope": "/",
+  "categories": ["finance", "productivity", "business"],
   "icons": [
     {
       "src": "/icon-72x72.png",
@@ -58,7 +59,6 @@
       "purpose": "maskable any"
     }
   ],
-  "categories": ["finance", "productivity", "business"],
   "shortcuts": [
     {
       "name": "Dashboard",
@@ -69,19 +69,42 @@
     },
     {
       "name": "Add Transaction",
-      "short_name": "Add Transaction",
+      "short_name": "Add",
       "description": "Add new transaction",
       "url": "/transactions?add=true",
       "icons": [{"src": "/icon-96x96.png", "sizes": "96x96"}]
     },
     {
+      "name": "Scan Receipt",
+      "short_name": "Scan",
+      "description": "Scan and upload receipt",
+      "url": "/upload",
+      "icons": [{"src": "/icon-96x96.png", "sizes": "96x96"}]
+    },
+    {
       "name": "AI Assistant",
-      "short_name": "AI Assistant",
+      "short_name": "Assistant",
       "description": "Open AI financial assistant",
       "url": "/assistant",
       "icons": [{"src": "/icon-96x96.png", "sizes": "96x96"}]
     }
   ],
+  "screenshots": [
+    {
+      "src": "/icon-512x512.png",
+      "sizes": "540x720",
+      "type": "image/png",
+      "form_factor": "narrow"
+    },
+    {
+      "src": "/icon-512x512.png",
+      "sizes": "1280x720",
+      "type": "image/png",
+      "form_factor": "wide"
+    }
+  ],
+  "related_applications": [],
+  "prefer_related_applications": false,
   "lang": "en-US",
   "dir": "ltr"
 }
