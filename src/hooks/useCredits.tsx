@@ -54,9 +54,9 @@ export const useCredits = () => {
             .from('user_credits')
             .insert({
               user_id: user.id,
-              total_credits: 5,
+              total_credits: 50,
               used_credits: 0,
-              daily_free_credits: 5,
+              daily_free_credits: 10,
               subscription_tier: 'free',
               current_plan_id: 'free'
             })

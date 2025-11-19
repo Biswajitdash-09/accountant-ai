@@ -106,12 +106,14 @@ const Accounts = () => {
             <Card key={account.id} className="hover:shadow-lg transition-shadow">
               <CardHeader className="pb-3">
                 <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-3">
-                    <div className="p-2 bg-primary/10 rounded-lg">
+                  <div className="flex items-center space-x-3 min-w-0 flex-1">
+                    <div className="p-2 bg-primary/10 rounded-lg flex-shrink-0">
                       {getAccountIcon(account.account_type)}
                     </div>
-                    <div>
-                      <CardTitle className="text-lg">{account.account_name}</CardTitle>
+                    <div className="min-w-0 flex-1">
+                      <CardTitle className="text-lg truncate max-w-[180px]" title={account.account_name}>
+                        {account.account_name}
+                      </CardTitle>
                       <Badge className={getAccountTypeColor(account.account_type)} variant="outline">
                         {account.account_type}
                       </Badge>

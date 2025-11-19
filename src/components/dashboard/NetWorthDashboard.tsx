@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useCryptoHoldings } from "@/hooks/useCryptoHoldings";
+import { useCurrencyFormatter } from "@/hooks/useCurrencyFormatter";
 import { TrendingUp, TrendingDown, DollarSign, Bitcoin } from "lucide-react";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -23,6 +24,7 @@ const NetWorthDashboard = () => {
   const [data, setData] = useState<NetWorthData | null>(null);
   const [loading, setLoading] = useState(true);
   const { totalValue: cryptoTotal } = useCryptoHoldings();
+  const { formatCurrency } = useCurrencyFormatter();
 
   useEffect(() => {
     if (!user) return;
@@ -118,7 +120,7 @@ const NetWorthDashboard = () => {
           <div className="space-y-1">
             <p className="text-sm text-muted-foreground">Total Assets</p>
             <p className="text-2xl font-bold text-primary">
-              ${data.assets.toLocaleString()}
+              {formatCurrency(data.assets)}
             </p>
           </div>
           <div className="space-y-1">
@@ -127,20 +129,20 @@ const NetWorthDashboard = () => {
               Crypto Assets
             </p>
             <p className="text-2xl font-bold text-primary">
-              ${data.cryptoAssets.toLocaleString()}
+              {formatCurrency(data.cryptoAssets)}
             </p>
           </div>
           <div className="space-y-1">
             <p className="text-sm text-muted-foreground">Total Liabilities</p>
             <p className="text-2xl font-bold text-destructive">
-              ${data.liabilities.toLocaleString()}
+              {formatCurrency(data.liabilities)}
             </p>
           </div>
           <div className="space-y-1">
             <p className="text-sm text-muted-foreground">Net Worth</p>
             <div className="flex items-center gap-2">
               <p className="text-2xl font-bold">
-                ${data.netWorth.toLocaleString()}
+                {formatCurrency(data.netWorth)}
               </p>
               {trend !== 0 && (
                 <div className={`flex items-center text-sm ${trend > 0 ? 'text-green-600' : 'text-red-600'}`}>

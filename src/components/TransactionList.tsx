@@ -153,7 +153,7 @@ const TransactionList = ({
                           >
                             {transaction.type === 'income' ? '↗' : '↙'} {transaction.type}
                           </Badge>
-                          <span className="font-medium text-sm sm:text-base">
+                          <span className="font-medium text-sm sm:text-base truncate max-w-[200px] sm:max-w-[300px]" title={transaction.description || 'No description'}>
                             {transaction.description || 'No description'}
                           </span>
                         </div>
