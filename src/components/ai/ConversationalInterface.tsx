@@ -1,9 +1,9 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Send, Sparkles, TrendingUp, Calculator, FileText, Target } from "lucide-react";
+import { Send, Sparkles, TrendingUp, Calculator, FileText, Target, Loader2 } from "lucide-react";
 import { useAI } from "@/hooks/useAI";
 import { useToast } from "@/hooks/use-toast";
 
@@ -47,6 +47,13 @@ export const ConversationalInterface = () => {
   const [input, setInput] = useState("");
   const { generateResponse, isLoading } = useAI();
   const { toast } = useToast();
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const scrollAreaRef = useRef<HTMLDivElement>(null);
+
+  // Auto-scroll to bottom when new messages arrive
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages]);
 
   const handleSend = async (messageText?: string) => {
     const textToSend = messageText || input;
@@ -96,14 +103,14 @@ export const ConversationalInterface = () => {
           Ask anything about your finances in plain English
         </CardDescription>
       </CardHeader>
-      <CardContent className="flex-1 flex flex-col gap-4 p-0">
+      <CardContent className="flex-1 flex flex-col gap-4 p-0 overflow-hidden">
         {/* Messages */}
-        <ScrollArea className="flex-1 px-6">
+        <ScrollArea className="flex-1 px-6" ref={scrollAreaRef}>
           <div className="space-y-4 pb-4">
             {messages.map((message, idx) => (
               <div
                 key={idx}
-                className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
+                className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'} animate-fade-in`}
               >
                 <div
                   className={`max-w-[80%] rounded-lg p-3 ${
@@ -119,6 +126,17 @@ export const ConversationalInterface = () => {
                 </div>
               </div>
             ))}
+            {/* Loading indicator */}
+            {isLoading && (
+              <div className="flex justify-start animate-fade-in">
+                <div className="bg-muted rounded-lg p-3 flex items-center gap-2">
+                  <Loader2 className="h-4 w-4 animate-spin text-primary" />
+                  <p className="text-sm text-muted-foreground">Arnold is thinking...</p>
+                </div>
+              </div>
+            )}
+            {/* Scroll anchor */}
+            <div ref={messagesEndRef} />
           </div>
         </ScrollArea>
 
