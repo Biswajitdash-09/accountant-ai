@@ -19,22 +19,22 @@ export const SocialMediaLinks = () => {
     {
       icon: Youtube,
       label: "YouTube",
-      href: "https://www.youtube.com/@hello.arnold",
+      href: "http://www.youtube.com/@hello.arnold",
       tooltip: "@hello.arnold",
       ariaLabel: "Follow us on YouTube",
     },
     {
       icon: Instagram,
       label: "Instagram",
-      href: "https://www.instagram.com/hello.arnold.ai",
+      href: "https://www.instagram.com/hello.arnold.ai/",
       tooltip: "@hello.arnold.ai",
       ariaLabel: "Follow us on Instagram",
     },
     {
       icon: Twitter,
       label: "X (Twitter)",
-      href: "https://twitter.com/Mynameisarnold_",
-      tooltip: "@Mynameisarnold_",
+      href: "https://x.com/MynameisArnold_",
+      tooltip: "@MynameisArnold_",
       ariaLabel: "Follow us on X (Twitter)",
     },
   ];
