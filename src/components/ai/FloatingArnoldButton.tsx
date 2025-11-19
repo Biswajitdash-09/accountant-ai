@@ -26,14 +26,14 @@ export const FloatingArnoldButton = () => {
       </Button>
 
       <Dialog open={isOpen} onOpenChange={setIsOpen}>
-        <DialogContent className="max-w-3xl h-[80vh] p-0">
-          <DialogHeader className="p-6 pb-0">
+        <DialogContent className="max-w-3xl h-[80vh] p-0 flex flex-col">
+          <DialogHeader className="p-6 pb-0 shrink-0">
             <DialogTitle className="flex items-center gap-2">
               <Brain className="h-5 w-5 text-primary" />
               Arnold AI Assistant
             </DialogTitle>
           </DialogHeader>
-          <div className="flex-1 overflow-hidden">
+          <div className="flex-1 overflow-hidden p-6 pt-0">
             <ConversationalInterface />
           </div>
         </DialogContent>

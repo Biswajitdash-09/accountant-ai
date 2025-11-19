@@ -9,6 +9,7 @@ import { useState, useEffect } from "react";
 import { useToast } from "@/components/ui/use-toast";
 import DemoTutorial from "@/components/DemoTutorial";
 import VideoTutorial from "@/components/VideoTutorial";
+import { SocialMediaLinks } from "@/components/SocialMediaLinks";
 import {
   CalculatorIcon,
   FileTextIcon,
@@ -379,7 +380,11 @@ const Landing = () => {
             <Bot className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
             <span className="text-lg sm:text-xl font-bold">Accountant AI</span>
           </div>
-          <nav className="mt-2 flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-sm text-muted-foreground">
+          
+          {/* Social Media Links */}
+          <SocialMediaLinks />
+          
+          <nav className="mt-6 flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-sm text-muted-foreground">
             <Link to="/roadmap" className="story-link">Roadmap</Link>
             <Link to="/pricing" className="story-link">Pricing</Link>
             <Link to="/privacy" className="story-link">Privacy Policy</Link>
