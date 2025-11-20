@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { validateInput, unifiedPaymentSchema } from "../_shared/validation.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -27,7 +28,21 @@ serve(async (req) => {
       throw new Error('Unauthorized');
     }
 
-    const { provider, plan_id, amount, currency, payment_method } = await req.json();
+    // Parse and validate payment details
+    const body = await req.json();
+    const validation = validateInput(unifiedPaymentSchema, body);
+    
+    if (!validation.success) {
+      return new Response(
+        JSON.stringify({ error: validation.error }),
+        { 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 400 
+        }
+      );
+    }
+
+    const { provider, plan_id, amount, currency, payment_method } = validation.data;
 
     // Log payment attempt for fraud detection
     const ipAddress = req.headers.get('x-forwarded-for') || 'unknown';

@@ -1,6 +1,7 @@
 
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
+import { validateInput, createOrderSchema } from "../_shared/validation.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -36,8 +37,26 @@ serve(async (req) => {
     if (!user?.email) throw new Error("User not authenticated or email not available");
     logStep("User authenticated", { userId: user.id, email: user.email });
 
-    const { planId, amount, currency = 'INR' } = await req.json();
-    logStep("Request data", { planId, amount, currency });
+    // Parse and validate request body
+    const body = await req.json();
+    const validation = validateInput(createOrderSchema, {
+      ...body,
+      currency: body.currency || 'INR' // Default to INR if not provided
+    });
+    
+    if (!validation.success) {
+      logStep("ERROR: Invalid request data", validation.error);
+      return new Response(
+        JSON.stringify({ error: validation.error }),
+        { 
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          status: 400 
+        }
+      );
+    }
+
+    const { planId, amount, currency } = validation.data;
+    logStep("Request data validated", { planId, amount, currency });
 
     // Get Cashfree credentials
     const cashfreeAppId = Deno.env.get("CASHFREE_APP_ID");
