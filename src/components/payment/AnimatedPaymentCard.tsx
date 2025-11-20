@@ -8,24 +8,32 @@ interface AnimatedPaymentCardProps {
   planId: string;
   name: string;
   price: number;
-  currency: string;
+  currency?: string;
   billingCycle: "monthly" | "yearly";
   features: string[];
   isPopular?: boolean;
   isSelected?: boolean;
   onSelect: () => void;
+  icon?: React.ReactNode;
+  gradientColors?: string;
+  credits?: number;
+  children?: React.ReactNode;
 }
 
 export const AnimatedPaymentCard = ({
   planId,
   name,
   price,
-  currency,
+  currency = "USD",
   billingCycle,
   features,
   isPopular,
   isSelected,
   onSelect,
+  icon,
+  gradientColors,
+  credits,
+  children,
 }: AnimatedPaymentCardProps) => {
   return (
     <motion.div
@@ -43,11 +51,14 @@ export const AnimatedPaymentCard = ({
       <Card className={`p-6 relative overflow-hidden ${
         isSelected ? 'ring-2 ring-primary shadow-lg' : ''
       }`}>
+        {children}
+        
         {/* Animated background gradient */}
         <motion.div
-          className="absolute inset-0 opacity-10"
+          className={`absolute inset-0 opacity-10 bg-gradient-to-br ${
+            gradientColors || "from-primary to-accent"
+          }`}
           style={{
-            background: "linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--accent)) 100%)",
             backgroundSize: "200% 200%",
           }}
           animate={{
@@ -56,7 +67,7 @@ export const AnimatedPaymentCard = ({
           transition={{
             duration: 5,
             repeat: Infinity,
-            ease: "linear" as any,
+            ease: "linear",
           }}
         />
 
