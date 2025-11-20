@@ -1,10 +1,11 @@
 
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
+import { verifyCashfreeSignature, validateInput, cashfreeWebhookSchema } from "../_shared/validation.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-webhook-signature, x-webhook-timestamp",
 };
 
 const logStep = (step: string, details?: any) => {
@@ -37,23 +38,68 @@ serve(async (req) => {
       { auth: { persistSession: false } }
     );
 
+    // CRITICAL: Verify webhook signature to prevent fraud
+    const cashfreeSecret = Deno.env.get("CASHFREE_WEBHOOK_SECRET");
+    if (!cashfreeSecret) {
+      logStep("ERROR: CASHFREE_WEBHOOK_SECRET not configured");
+      throw new Error("Webhook secret not configured");
+    }
+
+    const isValidSignature = await verifyCashfreeSignature(
+      body,
+      signature,
+      timestamp,
+      cashfreeSecret
+    );
+
+    if (!isValidSignature) {
+      logStep("ERROR: Invalid webhook signature", { signature, timestamp });
+      
+      // Log failed verification attempt
+      await supabase.from('payment_webhook_logs').insert({
+        provider: 'cashfree',
+        raw_headers: Object.fromEntries(req.headers.entries()),
+        payload: JSON.parse(body),
+        signature: signature || '',
+        status: 'signature_failed'
+      });
+      
+      return new Response(
+        JSON.stringify({ error: "Invalid webhook signature" }),
+        { 
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          status: 401 
+        }
+      );
+    }
+
+    logStep("Signature verified successfully");
+
+    // Parse and validate webhook data
+    const webhookData = JSON.parse(body);
+    const validation = validateInput(cashfreeWebhookSchema, webhookData);
+    
+    if (!validation.success) {
+      logStep("ERROR: Invalid webhook data", validation.error);
+      return new Response(
+        JSON.stringify({ error: validation.error }),
+        { 
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          status: 400 
+        }
+      );
+    }
+
+    logStep("Webhook parsed and validated", webhookData);
+
     // Log the webhook for debugging
     await supabase.from('payment_webhook_logs').insert({
       provider: 'cashfree',
       raw_headers: Object.fromEntries(req.headers.entries()),
-      payload: JSON.parse(body),
+      payload: webhookData,
       signature: signature || '',
-      status: 'received'
+      status: 'verified'
     });
-
-    const webhookData = JSON.parse(body);
-    logStep("Webhook parsed", webhookData);
-
-    // Verify webhook signature (optional but recommended)
-    // const isValidSignature = await verifyWebhookSignature(body, signature, timestamp);
-    // if (!isValidSignature) {
-    //   throw new Error("Invalid webhook signature");
-    // }
 
     // Handle different event types
     const { type: eventType, data } = webhookData;
