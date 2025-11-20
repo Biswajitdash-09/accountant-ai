@@ -196,6 +196,10 @@ export default {
 				'shimmer': {
 					'0%': { backgroundPosition: '-200% 0' },
 					'100%': { backgroundPosition: '200% 0' }
+				},
+				'gradient': {
+					'0%, 100%': { backgroundPosition: '0% 50%' },
+					'50%': { backgroundPosition: '100% 50%' }
 				}
 			},
 			animation: {
@@ -208,6 +212,7 @@ export default {
 				'scale-in': 'scale-in 0.2s ease-out',
 				'bounce-in': 'bounce-in 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55)',
 				'count-up': 'count-up 0.6s ease-out',
+				'gradient': 'gradient 15s ease infinite',
 				'success': 'success 0.6s ease-out',
 				'glow': 'glow 2s ease-in-out infinite',
 				'pulse-glow': 'pulse-glow 2s ease-in-out infinite',

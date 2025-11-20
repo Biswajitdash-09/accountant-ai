@@ -1,4 +1,3 @@
-
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -10,6 +9,12 @@ import { useToast } from "@/components/ui/use-toast";
 import DemoTutorial from "@/components/DemoTutorial";
 import VideoTutorial from "@/components/VideoTutorial";
 import { SocialMediaLinks } from "@/components/SocialMediaLinks";
+import { StatsSection } from "@/components/landing/StatsSection";
+import { TrustBadges } from "@/components/landing/TrustBadges";
+import { ComparisonSection } from "@/components/landing/ComparisonSection";
+import { FAQSection } from "@/components/landing/FAQSection";
+import { EnhancedTestimonials } from "@/components/landing/EnhancedTestimonials";
+import { motion } from "framer-motion";
 import {
   CalculatorIcon,
   FileTextIcon,
@@ -22,6 +27,7 @@ import {
   Bot,
   Shield,
   Zap,
+  ArrowRight,
 } from "lucide-react";
 
 const Landing = () => {
@@ -190,51 +196,80 @@ const Landing = () => {
       </section>
 
       {/* Hero Section */}
-      <section className="py-16 sm:py-20 md:py-24 px-4 sm:px-6">
-        <div className="max-w-7xl mx-auto text-center space-y-8 sm:space-y-10">
-          <div className="space-y-6 animate-fade-in">
-            <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl font-bold bg-gradient-to-r from-primary via-primary to-primary/60 bg-clip-text text-transparent leading-[1.1] tracking-tight">
-              AI-Powered Accounting
-            </h1>
-            <div className="bg-gradient-primary/10 rounded-2xl px-6 py-5 mx-auto max-w-2xl backdrop-blur-sm border-2 border-primary/20 shadow-soft hover:shadow-medium transition-all duration-300">
-              <p className="text-xl sm:text-2xl md:text-3xl font-bold text-primary leading-relaxed">
-                "Accounting made easy, accounting in your pocket."
-              </p>
-            </div>
-            <p className="text-lg sm:text-xl md:text-2xl lg:text-3xl text-muted-foreground max-w-4xl mx-auto px-2 leading-relaxed">
-              Transform your financial management with intelligent automation, real-time insights, and seamless tax preparation.
+      <section className="text-center py-20 px-4 relative overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-purple-500/5 to-transparent animate-gradient" />
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8 }}
+          className="relative z-10 max-w-4xl mx-auto"
+        >
+          <motion.h1 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.2 }}
+            className="text-4xl md:text-6xl font-bold mb-6 bg-clip-text text-transparent bg-gradient-to-r from-primary via-purple-500 to-primary"
+          >
+            AI-Powered Accounting Made Simple
+          </motion.h1>
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.3 }}
+            className="bg-gradient-primary/10 rounded-2xl px-6 py-5 mx-auto max-w-2xl backdrop-blur-sm border-2 border-primary/20 shadow-soft hover:shadow-medium transition-all duration-300"
+          >
+            <p className="text-xl sm:text-2xl md:text-3xl font-bold text-primary leading-relaxed">
+              "Accounting made easy, accounting in your pocket."
             </p>
-          </div>
-          
-          <div className="flex flex-col sm:flex-row gap-4 sm:gap-5 justify-center items-center animate-slide-up px-2">
-            <Link to="/auth" className="w-full sm:w-auto">
-              <Button 
-                size="lg" 
-                className="w-full sm:w-auto text-lg sm:text-xl px-8 sm:px-10 py-6 sm:py-7 hover-scale hover:shadow-large transition-all duration-300 min-h-[56px] sm:min-h-[60px] rounded-xl font-semibold shadow-medium"
-              >
-                Start Free Trial
-              </Button>
-            </Link>
+          </motion.div>
+          <motion.p 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.4 }}
+            className="text-xl md:text-2xl text-muted-foreground mt-6 mb-8"
+          >
+            Transform your financial management with intelligent automation, real-time insights, and expert guidance.
+          </motion.p>
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.6 }}
+            className="flex flex-col sm:flex-row gap-4 justify-center"
+          >
+            <Button 
+              size="lg" 
+              onClick={() => navigate("/auth")}
+              className="text-lg px-8 py-6 group"
+            >
+              Start Free Trial 
+              <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
+            </Button>
             <Button 
               variant="outline" 
               size="lg" 
               onClick={handleDemoMode}
               disabled={isDemoLoading}
-              className="w-full sm:w-auto text-lg sm:text-xl px-8 sm:px-10 py-6 sm:py-7 hover-scale hover:shadow-large transition-all duration-300 min-h-[56px] sm:min-h-[60px] rounded-xl font-semibold shadow-soft"
+              className="text-lg px-8 py-6"
             >
               {isDemoLoading ? "Loading Demo..." : "Try Demo"}
             </Button>
             <Button 
-              variant="secondary" 
+              variant="outline" 
               size="lg" 
               onClick={() => setShowVideoTutorial(true)}
-              className="w-full sm:w-auto text-lg sm:text-xl px-8 sm:px-10 py-6 sm:py-7 hover-scale hover:shadow-large transition-all duration-300 min-h-[56px] sm:min-h-[60px] rounded-xl font-semibold shadow-soft"
+              className="text-lg px-8 py-6"
             >
               Watch Tutorial
             </Button>
-          </div>
-        </div>
+          </motion.div>
+        </motion.div>
       </section>
+
+      {/* Stats Section */}
+      <StatsSection />
+
+      {/* Trust Badges */}
+      <TrustBadges />
 
       {/* Features Section */}
       <section className="py-12 sm:py-16 md:py-20 px-4 sm:px-6 bg-muted/50">
@@ -311,66 +346,49 @@ const Landing = () => {
         </div>
       </section>
 
-      {/* Testimonials Section */}
-      <section className="py-12 sm:py-16 md:py-20 px-4 sm:px-6 bg-muted/50">
-        <div className="max-w-7xl mx-auto">
-          <div className="text-center space-y-4 mb-12 sm:mb-16">
-            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold">What Our Users Say</h2>
-            <p className="text-base sm:text-lg md:text-xl text-muted-foreground px-4">
-              Join thousands of satisfied customers
-            </p>
-          </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 md:gap-8">
-            {testimonials.map((testimonial, index) => (
-              <Card key={index} className="hover:shadow-lg transition-shadow duration-300 h-full">
-                <CardHeader className="pb-3">
-                  <div className="flex items-center space-x-1 mb-2">
-                    {[...Array(testimonial.rating)].map((_, i) => (
-                      <StarIcon key={i} className="h-3 w-3 sm:h-4 sm:w-4 fill-yellow-400 text-yellow-400" />
-                    ))}
-                  </div>
-                  <CardTitle className="text-base sm:text-lg">{testimonial.name}</CardTitle>
-                  <CardDescription className="text-sm">{testimonial.role}</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-muted-foreground text-sm sm:text-base leading-relaxed">
-                    "{testimonial.content}"
-                  </p>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </div>
-      </section>
+      {/* Enhanced Testimonials */}
+      <EnhancedTestimonials />
+
+      {/* Comparison Section */}
+      <ComparisonSection />
+
+      {/* FAQ Section */}
+      <FAQSection />
 
       {/* CTA Section */}
-      <section className="py-12 sm:py-16 md:py-20 px-4 sm:px-6">
-        <div className="max-w-4xl mx-auto text-center space-y-6 sm:space-y-8">
-          <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold">Ready to Transform Your Finances?</h2>
-          <p className="text-base sm:text-lg md:text-xl text-muted-foreground px-4">
-            Join thousands of businesses already using Accountant AI to streamline their financial operations.
+      <section className="py-20 px-4 bg-gradient-to-r from-primary/10 via-purple-500/5 to-primary/10">
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.8 }}
+          className="max-w-4xl mx-auto text-center"
+        >
+          <h2 className="text-3xl md:text-4xl font-bold mb-6">
+            Ready to Transform Your Financial Management?
+          </h2>
+          <p className="text-xl text-muted-foreground mb-8">
+            Join thousands of businesses already using Accountant AI
           </p>
-          <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center px-4">
-            <Link to="/auth" className="w-full sm:w-auto">
-              <Button 
-                size="lg" 
-                className="w-full sm:w-auto text-base sm:text-lg px-6 sm:px-8 py-4 sm:py-6 min-h-[44px]"
-              >
-                Get Started Today
-              </Button>
-            </Link>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button 
-              variant="outline" 
-              size="lg"
-              onClick={handleDemoMode}
-              disabled={isDemoLoading}
-              className="w-full sm:w-auto text-base sm:text-lg px-6 sm:px-8 py-4 sm:py-6 min-h-[44px]"
+              size="lg" 
+              onClick={() => navigate("/auth")}
+              className="text-lg px-8 py-6 group"
             >
-              {isDemoLoading ? "Loading Demo..." : "Try Demo"}
+              Get Started Now 
+              <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
+            </Button>
+            <Button 
+              size="lg" 
+              variant="outline"
+              onClick={() => navigate("/pricing")}
+              className="text-lg px-8 py-6"
+            >
+              View Pricing
             </Button>
           </div>
-        </div>
+        </motion.div>
       </section>
 
       {/* Footer */}
