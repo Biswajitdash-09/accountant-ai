@@ -1,6 +1,7 @@
 import { AnimatedCounter } from "@/components/ui/animated-counter";
 import { motion } from "framer-motion";
 import { Users, DollarSign, TrendingUp, Shield } from "lucide-react";
+import { useReducedMotion, getAnimationConfig } from "@/hooks/useReducedMotion";
 
 const stats = [
   {
@@ -36,12 +37,14 @@ const stats = [
 ];
 
 export const StatsSection = () => {
+  const prefersReducedMotion = useReducedMotion();
+  const containerAnim = getAnimationConfig(prefersReducedMotion);
+
   return (
     <section className="py-16 bg-gradient-to-b from-background to-muted/20">
       <div className="container mx-auto px-4">
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
+          {...containerAnim}
           viewport={{ once: true }}
           transition={{ duration: 0.6 }}
           className="grid grid-cols-2 md:grid-cols-4 gap-8"
@@ -49,8 +52,8 @@ export const StatsSection = () => {
           {stats.map((stat, index) => (
             <motion.div
               key={stat.label}
-              initial={{ opacity: 0, scale: 0.8 }}
-              whileInView={{ opacity: 1, scale: 1 }}
+              initial={prefersReducedMotion ? {} : { opacity: 0, scale: 0.8 }}
+              whileInView={prefersReducedMotion ? {} : { opacity: 1, scale: 1 }}
               viewport={{ once: true }}
               transition={{ duration: 0.5, delay: index * 0.1 }}
               className="flex flex-col items-center text-center space-y-3"

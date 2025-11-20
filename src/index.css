@@ -11,6 +11,33 @@
   }
 }
 
+/* Performance optimizations */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Hardware acceleration for common animations */
+.animate-fade-in,
+.animate-slide-up,
+.animate-scale-in,
+.animate-gradient {
+  will-change: transform, opacity;
+}
+
+.animate-fade-in:not(:hover),
+.animate-slide-up:not(:hover),
+.animate-scale-in:not(:hover),
+.animate-gradient:not(:hover) {
+  will-change: auto;
+}
+
 /* Ensure text remains visible during font load */
 @font-face {
   font-family: 'Poppins';
