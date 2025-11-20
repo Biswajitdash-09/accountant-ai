@@ -1,6 +1,8 @@
-const CACHE_NAME = 'accountant-ai-v2.0';
-const STATIC_CACHE = 'accountant-ai-static-v2.0';
-const DYNAMIC_CACHE = 'accountant-ai-dynamic-v2.0';
+const CACHE_NAME = 'accountant-ai-v3.0';
+const STATIC_CACHE = 'accountant-ai-static-v3.0';
+const DYNAMIC_CACHE = 'accountant-ai-dynamic-v3.0';
+const IMAGE_CACHE = 'accountant-ai-images-v3.0';
+const API_CACHE = 'accountant-ai-api-v3.0';
 
 const STATIC_ASSETS = [
   '/',
@@ -30,7 +32,12 @@ self.addEventListener('activate', (event) => {
       .then((cacheNames) => {
         return Promise.all(
           cacheNames
-            .filter((name) => name !== STATIC_CACHE && name !== DYNAMIC_CACHE)
+            .filter((name) => 
+              name !== STATIC_CACHE && 
+              name !== DYNAMIC_CACHE && 
+              name !== IMAGE_CACHE && 
+              name !== API_CACHE
+            )
             .map((name) => {
               console.log('[SW] Deleting old cache:', name);
               return caches.delete(name);
@@ -41,34 +48,72 @@ self.addEventListener('activate', (event) => {
   );
 });
 
-// Fetch event - network first, fallback to cache
+// Fetch event - intelligent caching strategies
 self.addEventListener('fetch', (event) => {
   const { request } = event;
   const url = new URL(request.url);
 
-  // Skip cross-origin requests
-  if (url.origin !== location.origin) {
+  // Skip cross-origin requests except for known CDNs
+  if (url.origin !== location.origin && !url.hostname.includes('supabase')) {
     return;
   }
 
-  // Network-first strategy for API calls
+  // Image caching - stale-while-revalidate
+  if (request.destination === 'image' || /\.(jpg|jpeg|png|gif|webp|svg|ico)$/i.test(url.pathname)) {
+    event.respondWith(
+      caches.open(IMAGE_CACHE).then((cache) => {
+        return cache.match(request).then((cached) => {
+          const fetchPromise = fetch(request).then((response) => {
+            if (response.ok) {
+              cache.put(request, response.clone());
+            }
+            return response;
+          }).catch(() => cached);
+
+          return cached || fetchPromise;
+        });
+      })
+    );
+    return;
+  }
+
+  // API calls - network first with 5-minute cache
   if (url.pathname.includes('/functions/') || url.pathname.includes('/rest/')) {
     event.respondWith(
       fetch(request)
         .then((response) => {
-          // Clone and cache successful responses
-          if (response.ok) {
+          // Only cache successful GET requests
+          if (response.ok && request.method === 'GET') {
             const responseClone = response.clone();
-            caches.open(DYNAMIC_CACHE).then((cache) => {
-              cache.put(request, responseClone);
+            caches.open(API_CACHE).then((cache) => {
+              // Add cache expiration header
+              const headers = new Headers(responseClone.headers);
+              headers.set('sw-cache-time', Date.now().toString());
+              const modifiedResponse = new Response(responseClone.body, {
+                status: responseClone.status,
+                statusText: responseClone.statusText,
+                headers: headers
+              });
+              cache.put(request, modifiedResponse);
             });
           }
           return response;
         })
         .catch(() => {
-          // Fallback to cache if network fails
+          // Check cache for offline fallback
           return caches.match(request).then((cached) => {
-            return cached || new Response(
+            if (cached) {
+              // Check if cache is stale (older than 5 minutes)
+              const cacheTime = cached.headers.get('sw-cache-time');
+              if (cacheTime) {
+                const age = Date.now() - parseInt(cacheTime);
+                if (age > 5 * 60 * 1000) {
+                  console.log('[SW] Serving stale API cache');
+                }
+              }
+              return cached;
+            }
+            return new Response(
               JSON.stringify({ error: 'Offline - data not available' }),
               { 
                 headers: { 'Content-Type': 'application/json' },
@@ -81,7 +126,7 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // Cache-first strategy for static assets
+  // Static assets - cache first
   event.respondWith(
     caches.match(request)
       .then((cached) => {
@@ -91,7 +136,6 @@ self.addEventListener('fetch', (event) => {
 
         return fetch(request)
           .then((response) => {
-            // Cache successful responses
             if (response.ok) {
               const responseClone = response.clone();
               caches.open(STATIC_CACHE).then((cache) => {
@@ -101,7 +145,6 @@ self.addEventListener('fetch', (event) => {
             return response;
           })
           .catch(() => {
-            // Return offline page for navigation requests
             if (request.mode === 'navigate') {
               return caches.match('/');
             }
