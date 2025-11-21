@@ -16,6 +16,8 @@ import {
   Calendar, Filter, Download, Eye, BarChart3
 } from "lucide-react";
 import { useCurrencyFormatter } from "@/hooks/useCurrencyFormatter";
+import { useChartData } from "@/hooks/useChartData";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface AnalyticsData {
   period: string;
@@ -42,18 +44,21 @@ interface FinancialMetric {
 
 export const AdvancedAnalytics = () => {
   const { formatCurrency } = useCurrencyFormatter();
-  const [selectedPeriod, setSelectedPeriod] = useState("6months");
+  const [selectedPeriod, setSelectedPeriod] = useState<number>(6);
   const [selectedView, setSelectedView] = useState("overview");
+  
+  // Fetch real chart data based on selected period
+  const { data: analyticsData, isLoading } = useChartData(selectedPeriod);
 
-  // Sample analytics data - in real app, this would come from your data
-  const analyticsData: AnalyticsData[] = [
-    { period: "Jan", income: 8500, expenses: 6200, profit: 2300, savings: 2000 },
-    { period: "Feb", income: 9200, expenses: 6800, profit: 2400, savings: 2100 },
-    { period: "Mar", income: 8800, expenses: 6500, profit: 2300, savings: 1900 },
-    { period: "Apr", income: 9500, expenses: 7200, profit: 2300, savings: 2200 },
-    { period: "May", income: 10200, expenses: 7500, profit: 2700, savings: 2400 },
-    { period: "Jun", income: 9800, expenses: 7100, profit: 2700, savings: 2300 },
-  ];
+  const handlePeriodChange = (value: string) => {
+    const monthsMap: { [key: string]: number } = {
+      '3months': 3,
+      '6months': 6,
+      '1year': 12,
+      '2years': 24,
+    };
+    setSelectedPeriod(monthsMap[value] || 6);
+  };
 
   const expenseCategories: CategoryBreakdown[] = [
     { name: "Housing", amount: 2500, percentage: 35, color: "#0088FE" },
@@ -86,11 +91,13 @@ export const AdvancedAnalytics = () => {
   }));
 
   const exportData = () => {
+    if (!analyticsData) return;
+    
     // Generate CSV content
     const csvData = [
       ['Period', 'Income', 'Expenses', 'Profit', 'Savings'],
       ...analyticsData.map(item => [
-        item.period,
+        item.month,
         item.income.toString(),
         item.expenses.toString(),
         item.profit.toString(),
@@ -105,13 +112,31 @@ export const AdvancedAnalytics = () => {
     if (link.download !== undefined) {
       const url = URL.createObjectURL(blob);
       link.setAttribute('href', url);
-      link.setAttribute('download', `analytics-${selectedPeriod}-${new Date().toISOString().split('T')[0]}.csv`);
+      link.setAttribute('download', `analytics-${selectedPeriod}months-${new Date().toISOString().split('T')[0]}.csv`);
       link.style.visibility = 'hidden';
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
     }
   };
+
+  if (isLoading) {
+    return (
+      <div className="space-y-6">
+        <Skeleton className="h-20" />
+        <div className="grid gap-4 md:grid-cols-4">
+          {[...Array(4)].map((_, i) => (
+            <Skeleton key={i} className="h-32" />
+          ))}
+        </div>
+        <Skeleton className="h-[600px]" />
+      </div>
+    );
+  }
+
+  if (!analyticsData || analyticsData.length === 0) {
+    return <div>No analytics data available</div>;
+  }
 
   return (
     <div className="space-y-6">
@@ -127,15 +152,18 @@ export const AdvancedAnalytics = () => {
           </p>
         </div>
         <div className="flex flex-col sm:flex-row gap-2">
-          <Select value={selectedPeriod} onValueChange={setSelectedPeriod}>
+          <Select 
+            value={`${selectedPeriod === 3 ? '3months' : selectedPeriod === 6 ? '6months' : selectedPeriod === 12 ? '1year' : '2years'}`} 
+            onValueChange={handlePeriodChange}
+          >
             <SelectTrigger className="w-[140px]">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="3months">Last 3 Months</SelectItem>
               <SelectItem value="6months">Last 6 Months</SelectItem>
-              <SelectItem value="1year">Last Year</SelectItem>
-              <SelectItem value="2years">Last 2 Years</SelectItem>
+              <SelectItem value="1year">Last 12 Months</SelectItem>
+              <SelectItem value="2years">Last 24 Months</SelectItem>
             </SelectContent>
           </Select>
           <Button variant="outline" onClick={exportData}>
@@ -191,7 +219,7 @@ export const AdvancedAnalytics = () => {
               <CardHeader>
                 <CardTitle>Profit & Loss Analysis</CardTitle>
                 <CardDescription>
-                  Monthly income vs expenses breakdown
+                  Last {selectedPeriod} months including current month
                 </CardDescription>
               </CardHeader>
               <CardContent>

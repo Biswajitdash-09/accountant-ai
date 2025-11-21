@@ -1,25 +1,35 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useFinancialDataHub } from "@/hooks/useFinancialDataHub";
 import { useCurrencyFormatter } from "@/hooks/useCurrencyFormatter";
+import { useInvestmentChartData } from "@/hooks/useChartData";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from "recharts";
 import { TrendingUp, Package } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export const InvestmentPerformanceChart = () => {
-  const { financialData, getInvestmentPerformance, isLoading } = useFinancialDataHub();
+  const { financialData, getInvestmentPerformance, isLoading: dataLoading } = useFinancialDataHub();
+  const { data: historicalData, isLoading: chartLoading } = useInvestmentChartData(12);
   const { formatCurrency } = useCurrencyFormatter();
 
-  if (isLoading) return <div className="animate-pulse">Loading investment data...</div>;
+  const isLoading = dataLoading || chartLoading;
+
+  if (isLoading) {
+    return (
+      <div className="space-y-6">
+        <div className="grid gap-4 md:grid-cols-4">
+          {[...Array(4)].map((_, i) => (
+            <Skeleton key={i} className="h-32" />
+          ))}
+        </div>
+        <Skeleton className="h-[400px]" />
+      </div>
+    );
+  }
 
   const performance = getInvestmentPerformance();
-  if (!performance || !financialData) return <div>No investment data available</div>;
-
-  // Mock historical data for demonstration
-  const historicalData = [
-    { month: 'Jan', stocks: performance.stocks.value * 0.85, crypto: performance.crypto.value * 0.75 },
-    { month: 'Feb', stocks: performance.stocks.value * 0.90, crypto: performance.crypto.value * 0.80 },
-    { month: 'Mar', stocks: performance.stocks.value * 0.95, crypto: performance.crypto.value * 0.90 },
-    { month: 'Apr', stocks: performance.stocks.value, crypto: performance.crypto.value },
-  ];
+  if (!performance || !financialData || !historicalData) {
+    return <div>No investment data available</div>;
+  }
 
   const totalROI = performance.total > 0 ? ((performance.total - (performance.stocks.value * 0.85 + performance.crypto.value * 0.75)) / (performance.stocks.value * 0.85 + performance.crypto.value * 0.75) * 100).toFixed(2) : 0;
 
@@ -77,7 +87,7 @@ export const InvestmentPerformanceChart = () => {
       <Card>
         <CardHeader>
           <CardTitle>Investment Performance Over Time</CardTitle>
-          <CardDescription>Stocks vs Crypto performance comparison</CardDescription>
+          <CardDescription>Last 12 months of portfolio performance (dynamically updated)</CardDescription>
         </CardHeader>
         <CardContent className="h-[400px]">
           <ResponsiveContainer width="100%" height="100%">

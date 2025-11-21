@@ -103,15 +103,7 @@ const Dashboard = () => {
     // triggering a re-render with updated currency formatting
   }, [selectedCurrency]);
 
-  // Sample data for charts
-  const incomeExpenseData = [
-    { month: "Jan", income: 8000, expenses: 5500 },
-    { month: "Feb", income: 8500, expenses: 6000 },
-    { month: "Mar", income: 9000, expenses: 6200 },
-    { month: "Apr", income: 8800, expenses: 5800 },
-    { month: "May", income: 9500, expenses: 6500 },
-    { month: "Jun", income: 10000, expenses: 7000 },
-  ];
+  // Income/Expense chart now fetches dynamic data internally
 
   const expenseData = [
     { name: "Housing", value: 2500 },
@@ -263,7 +255,7 @@ const Dashboard = () => {
 
             {/* Charts and Financial Goals */}
             <div className="grid gap-3 sm:gap-6 grid-cols-1 xl:grid-cols-2">
-              <IncomeExpenseChart data={incomeExpenseData} />
+              <IncomeExpenseChart />
               <ExpenseChart data={expenseData} />
             </div>
 
