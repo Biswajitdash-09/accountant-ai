@@ -1,6 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { format, subMonths, startOfMonth, endOfMonth } from "date-fns";
+import { useState, useEffect } from "react";
 
 interface MonthlyData {
   month: string;
@@ -11,20 +12,34 @@ interface MonthlyData {
 }
 
 export const useChartData = (months: number = 6) => {
+  const [userId, setUserId] = useState<string | null>(null);
+
+  // Get user ID safely
+  useEffect(() => {
+    const getUser = async () => {
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        setUserId(user?.id || null);
+      } catch (error) {
+        console.warn('Failed to get user for chart data:', error);
+      }
+    };
+    getUser();
+  }, []);
+
   const fetchChartData = async (): Promise<MonthlyData[]> => {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) throw new Error("Not authenticated");
+    if (!userId) throw new Error("Not authenticated");
 
     const endDate = new Date();
     const startDate = subMonths(endDate, months - 1);
 
     // Check cache first
-    const cacheKey = `chart-data-${months}-${user.id}`;
+    const cacheKey = `chart-data-${months}-${userId}`;
     const { data: cached } = await supabase
       .from('analytics_cache')
       .select('data')
       .eq('cache_key', cacheKey)
-      .eq('user_id', user.id)
+      .eq('user_id', userId)
       .gt('expires_at', new Date().toISOString())
       .single();
 
@@ -36,7 +51,7 @@ export const useChartData = (months: number = 6) => {
     const { data: transactions, error } = await supabase
       .from('transactions')
       .select('date, amount, type')
-      .eq('user_id', user.id)
+      .eq('user_id', userId)
       .gte('date', format(startDate, 'yyyy-MM-dd'))
       .lte('date', format(endDate, 'yyyy-MM-dd'))
       .order('date', { ascending: true });
@@ -83,7 +98,7 @@ export const useChartData = (months: number = 6) => {
       .from('analytics_cache')
       .upsert({
         cache_key: cacheKey,
-        user_id: user.id,
+        user_id: userId,
         data: chartData as any,
         expires_at: expiresAt.toISOString(),
       });
@@ -92,17 +107,32 @@ export const useChartData = (months: number = 6) => {
   };
 
   return useQuery({
-    queryKey: ['chart-data', months],
+    queryKey: ['chart-data', months, userId],
     queryFn: fetchChartData,
+    enabled: !!userId, // Only run query if user is authenticated
     staleTime: 60 * 60 * 1000, // 1 hour
     gcTime: 2 * 60 * 60 * 1000, // 2 hours
   });
 };
 
 export const useInvestmentChartData = (months: number = 12) => {
+  const [userId, setUserId] = useState<string | null>(null);
+
+  // Get user ID safely
+  useEffect(() => {
+    const getUser = async () => {
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        setUserId(user?.id || null);
+      } catch (error) {
+        console.warn('Failed to get user for investment chart data:', error);
+      }
+    };
+    getUser();
+  }, []);
+
   const fetchInvestmentData = async () => {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) throw new Error("Not authenticated");
+    if (!userId) throw new Error("Not authenticated");
 
     const endDate = new Date();
     const chartData = [];
@@ -118,7 +148,7 @@ export const useInvestmentChartData = (months: number = 12) => {
       const { data: stocks } = await supabase
         .from('investment_portfolio')
         .select('quantity, purchase_price')
-        .eq('user_id', user.id)
+        .eq('user_id', userId)
         .lte('purchase_date', format(monthEnd, 'yyyy-MM-dd'));
 
       const stocksValue = stocks?.reduce((sum, s) => 
@@ -129,7 +159,7 @@ export const useInvestmentChartData = (months: number = 12) => {
       const { data: wallets } = await supabase
         .from('crypto_wallets')
         .select('id')
-        .eq('user_id', user.id);
+        .eq('user_id', userId);
 
       let cryptoValue = 0;
       if (wallets && wallets.length > 0) {
@@ -158,8 +188,9 @@ export const useInvestmentChartData = (months: number = 12) => {
   };
 
   return useQuery({
-    queryKey: ['investment-chart', months],
+    queryKey: ['investment-chart', months, userId],
     queryFn: fetchInvestmentData,
+    enabled: !!userId, // Only run query if user is authenticated
     staleTime: 30 * 60 * 1000, // 30 minutes
   });
 };

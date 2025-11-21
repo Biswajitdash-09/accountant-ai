@@ -27,6 +27,16 @@ export class ErrorBoundary extends Component<Props, State> {
 
   public componentDidCatch(error: Error, errorInfo: ErrorInfo) {
     console.error("ErrorBoundary caught an error:", error, errorInfo);
+    
+    // Check if this is a context error
+    const isContextError = error.message.includes('useContext') || 
+                          error.message.includes('context') ||
+                          error.message.includes('QueryClient');
+    
+    if (isContextError) {
+      console.error('Context initialization error detected. This usually means a hook was called before providers were ready.');
+    }
+    
     this.setState({
       error,
       errorInfo,
@@ -35,6 +45,10 @@ export class ErrorBoundary extends Component<Props, State> {
 
   private handleReset = () => {
     this.setState({ hasError: false, error: null, errorInfo: null });
+    // Force a small delay to ensure contexts are ready
+    setTimeout(() => {
+      window.location.reload();
+    }, 100);
   };
 
   private handleGoHome = () => {
@@ -65,6 +79,12 @@ export class ErrorBoundary extends Component<Props, State> {
                   <p className="font-mono text-sm text-destructive">
                     {this.state.error.message}
                   </p>
+                  {(this.state.error.message.includes('useContext') || 
+                    this.state.error.message.includes('QueryClient')) && (
+                    <p className="text-sm text-muted-foreground mt-2">
+                      💡 This appears to be a context initialization issue. Clicking "Try Again" will reload the page.
+                    </p>
+                  )}
                 </div>
               )}
 
