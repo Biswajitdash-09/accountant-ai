@@ -28,7 +28,6 @@ serve(async (req) => {
     }
 
     const { taxYear, region } = await req.json();
-    console.log(`Preparing tax filing for user ${user.id}, region: ${region}, year: ${taxYear}`);
 
     // Get user profile for region info
     const { data: profile } = await supabaseClient
@@ -38,6 +37,7 @@ serve(async (req) => {
       .single();
 
     const userRegion = region || profile?.region || 'US';
+    console.log(`Preparing tax filing for user ${user.id}, region: ${userRegion}, year: ${taxYear}`);
 
     // Fetch all transactions for the tax year
     const { data: transactions } = await supabaseClient

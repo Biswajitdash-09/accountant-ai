@@ -220,7 +220,7 @@ async function performEnhancedOCR(documentBuffer: ArrayBuffer, fileType: string)
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'gpt-5-2025-08-07',
+        model: 'gpt-4o',
         messages: [{
           role: 'user',
           content: [
@@ -244,7 +244,8 @@ async function performEnhancedOCR(documentBuffer: ArrayBuffer, fileType: string)
             }
           ]
         }],
-        max_completion_tokens: 4000
+        max_tokens: 4000,
+        temperature: 0.3
       })
     });
 

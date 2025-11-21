@@ -248,19 +248,21 @@ const TransactionList = ({
           </div>
         )}
 
-        {editingTransaction && (
-          <Dialog open={!!editingTransaction} onOpenChange={() => setEditingTransaction(null)}>
-            <DialogContent className="max-w-2xl">
-              <DialogHeader>
-                <DialogTitle>Edit Transaction</DialogTitle>
-              </DialogHeader>
+        <Dialog open={!!editingTransaction} onOpenChange={(open) => {
+          if (!open) setEditingTransaction(null);
+        }}>
+          <DialogContent className="max-w-2xl">
+            <DialogHeader>
+              <DialogTitle>Edit Transaction</DialogTitle>
+            </DialogHeader>
+            {editingTransaction && (
               <TransactionForm 
                 transaction={editingTransaction}
                 onSuccess={() => setEditingTransaction(null)} 
               />
-            </DialogContent>
-          </Dialog>
-        )}
+            )}
+          </DialogContent>
+        </Dialog>
       </CardContent>
     </Card>
   );
