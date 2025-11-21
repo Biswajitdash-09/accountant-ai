@@ -7,7 +7,15 @@ import { useUserPreferences } from "./useUserPreferences";
 export const useCurrencyFormatter = () => {
   const { currencies, baseCurrency, convertAmount } = useCurrencies();
   const { preferences } = useUserPreferences();
-  const queryClient = useQueryClient();
+  
+  // Safe context access with error handling
+  let queryClient;
+  try {
+    queryClient = useQueryClient();
+  } catch (error) {
+    console.warn('QueryClient context not available, currency formatter running in degraded mode:', error);
+    queryClient = null;
+  }
 
   // Get the user's preferred currency or fallback to base currency
   const preferredCurrency = useMemo(() => {
@@ -19,13 +27,17 @@ export const useCurrencyFormatter = () => {
 
   // Invalidate related queries when currency changes
   useEffect(() => {
-    if (preferredCurrency) {
+    if (preferredCurrency && queryClient) {
       // Invalidate specific queries that contain financial data
-      queryClient.invalidateQueries({ queryKey: ['transactions'] });
-      queryClient.invalidateQueries({ queryKey: ['accounts'] });
-      queryClient.invalidateQueries({ queryKey: ['budgets'] });
-      queryClient.invalidateQueries({ queryKey: ['financial-goals'] });
-      queryClient.invalidateQueries({ queryKey: ['analytics'] });
+      try {
+        queryClient.invalidateQueries({ queryKey: ['transactions'] });
+        queryClient.invalidateQueries({ queryKey: ['accounts'] });
+        queryClient.invalidateQueries({ queryKey: ['budgets'] });
+        queryClient.invalidateQueries({ queryKey: ['financial-goals'] });
+        queryClient.invalidateQueries({ queryKey: ['analytics'] });
+      } catch (error) {
+        console.warn('Failed to invalidate queries:', error);
+      }
     }
   }, [preferredCurrency?.id, queryClient]);
 

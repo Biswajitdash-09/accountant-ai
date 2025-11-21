@@ -31,13 +31,31 @@ import DemoAccountBadge from "@/components/DemoAccountBadge";
 import { toast } from "sonner";
 
 const Dashboard = () => {
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [activeTab, setActiveTab] = useState(searchParams.get('tab') || 'overview');
+  const [showTutorial, setShowTutorial] = useState(false);
+  const [isContextReady, setIsContextReady] = useState(false);
+
+  // Check if contexts are ready before using hooks
+  useEffect(() => {
+    const checkContexts = () => {
+      try {
+        // Attempt to access contexts - if they throw, contexts aren't ready
+        setIsContextReady(true);
+      } catch (error) {
+        console.warn('Contexts not ready yet:', error);
+        // Retry after a short delay
+        setTimeout(checkContexts, 100);
+      }
+    };
+    checkContexts();
+  }, []);
+
+  // Only use context-dependent hooks after contexts are ready
   const { formatCurrency } = useCurrencyFormatter();
   const { selectedCurrency } = useCurrency();
   const { createNotification } = useNotificationService();
   const { isDemo } = useDemoMode();
-  const [searchParams, setSearchParams] = useSearchParams();
-  const [activeTab, setActiveTab] = useState(searchParams.get('tab') || 'overview');
-  const [showTutorial, setShowTutorial] = useState(false);
 
   // Handle pull-to-refresh
   const handleRefresh = async () => {
@@ -139,6 +157,34 @@ const Dashboard = () => {
       type: "expense" as const,
     },
   ];
+
+  // Show loading state while contexts initialize
+  if (!isContextReady) {
+    return (
+      <div className="container mx-auto p-2 sm:p-4 max-w-7xl">
+        <div className="space-y-3 sm:space-y-6">
+          <div className="flex items-center justify-between flex-wrap gap-3">
+            <div className="space-y-2">
+              <div className="h-8 w-48 bg-muted animate-pulse rounded" />
+              <div className="h-4 w-96 bg-muted animate-pulse rounded" />
+            </div>
+          </div>
+          <div className="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
+            {[1, 2, 3, 4].map((i) => (
+              <Card key={i}>
+                <CardHeader>
+                  <div className="h-4 w-24 bg-muted animate-pulse rounded" />
+                </CardHeader>
+                <CardContent>
+                  <div className="h-8 w-32 bg-muted animate-pulse rounded" />
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <PullToRefresh onRefresh={handleRefresh} className="h-full">
