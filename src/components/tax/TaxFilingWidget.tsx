@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -15,6 +15,26 @@ const TaxFilingWidget = () => {
   const [taxYear, setTaxYear] = useState(new Date().getFullYear().toString());
   const [preparing, setPreparing] = useState(false);
   const [taxData, setTaxData] = useState<any>(null);
+  const [userRegion, setUserRegion] = useState<string>('US');
+
+  // Fetch user's region from profile
+  useEffect(() => {
+    const fetchUserProfile = async () => {
+      if (!user) return;
+      
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('region')
+        .eq('id', user.id)
+        .single();
+      
+      if (profile?.region) {
+        setUserRegion(profile.region);
+      }
+    };
+    
+    fetchUserProfile();
+  }, [user]);
 
   const years = Array.from({ length: 5 }, (_, i) => (new Date().getFullYear() - i).toString());
 
@@ -28,8 +48,13 @@ const TaxFilingWidget = () => {
         description: "Analyzing your financial data...",
       });
 
+      console.log('Preparing tax filing for region:', userRegion);
+
       const { data, error } = await supabase.functions.invoke('prepare-tax-filing', {
-        body: { taxYear: parseInt(taxYear) },
+        body: { 
+          taxYear: parseInt(taxYear),
+          region: userRegion 
+        },
       });
 
       if (error) throw error;
@@ -214,7 +239,27 @@ const TaxFilingWidget = () => {
                       </a>
                     </Button>
                   ))}
-                  <Button variant="outline" size="sm">
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => {
+                      if (!taxData) return;
+                      
+                      const dataStr = JSON.stringify(taxData, null, 2);
+                      const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
+                      const exportFileDefaultName = `tax-filing-${taxYear}-${userRegion}.json`;
+                      
+                      const linkElement = document.createElement('a');
+                      linkElement.setAttribute('href', dataUri);
+                      linkElement.setAttribute('download', exportFileDefaultName);
+                      linkElement.click();
+                      
+                      toast({
+                        title: "Export complete",
+                        description: "Tax data downloaded successfully",
+                      });
+                    }}
+                  >
                     <Download className="h-3 w-3 mr-1" />
                     Export Data
                   </Button>

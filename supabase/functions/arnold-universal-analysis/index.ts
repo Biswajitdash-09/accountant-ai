@@ -164,38 +164,61 @@ ${JSON.stringify(context, null, 2)}
 
 Provide comprehensive analysis addressing their query while considering all available data.`;
 
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${apiKey}`,
-      },
-      body: JSON.stringify({
-        model: 'gpt-5-2025-08-07',
-        messages: [
-          { role: 'system', content: systemPrompt },
-          { role: 'user', content: query }
-        ],
-        max_completion_tokens: 4000
-      })
-    });
+    // Create abort controller with 30-second timeout
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 30000);
 
-    if (!response.ok) {
-      const errorText = await response.text();
-      throw new Error(`AI API Error: ${response.status} - ${errorText}`);
+    try {
+      const response = await fetch('https://api.openai.com/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${apiKey}`,
+        },
+        body: JSON.stringify({
+          model: 'gpt-4o',
+          messages: [
+            { role: 'system', content: systemPrompt },
+            { role: 'user', content: query }
+          ],
+          max_tokens: 4000,
+          temperature: 0.7
+        }),
+        signal: controller.signal
+      });
+
+      clearTimeout(timeoutId);
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error("[ARNOLD-ANALYSIS] OpenAI API Error:", response.status, errorText);
+        throw new Error(`AI API Error: ${response.status} - ${errorText}`);
+      }
+
+      const data = await response.json();
+      const aiResponse = data.choices?.[0]?.message?.content;
+
+      if (!aiResponse) {
+        throw new Error("No response generated from AI");
+      }
+
+      console.log("[ARNOLD-ANALYSIS] AI response generated successfully");
+      return new Response(JSON.stringify({ 
+        analysis: aiResponse,
+        context: context,
+        success: true 
+      }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 200,
+      });
+    } catch (fetchError) {
+      clearTimeout(timeoutId);
+      if (fetchError.name === 'AbortError') {
+        console.error("[ARNOLD-ANALYSIS] Request timeout after 30 seconds");
+        throw new Error("AI analysis timed out. Please try again.");
+      }
+      throw fetchError;
     }
-
-    const data = await response.json();
-    const aiResponse = data.choices?.[0]?.message?.content;
-
-    return new Response(JSON.stringify({ 
-      analysis: aiResponse,
-      context: context,
-      success: true 
-    }), {
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-      status: 200,
-    });
 
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
