@@ -23,7 +23,17 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
-  const { toast } = useToast();
+  
+  // Safely get toast with fallback
+  let toastFn = (props: any) => {};
+  try {
+    const toastHook = useToast();
+    toastFn = toastHook.toast;
+  } catch (error) {
+    console.warn("[AuthProvider] Toast not available:", error);
+  }
+  
+  const toast = toastFn;
 
   useEffect(() => {
     console.log('Setting up auth state listener...');
@@ -39,10 +49,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         
         // Handle different auth events
         if (event === 'SIGNED_IN') {
-          toast({
-            title: "Welcome!",
-            description: "You have been signed in successfully.",
-          });
+          if (toast) {
+            toast({
+              title: "Welcome!",
+              description: "You have been signed in successfully.",
+            });
+          }
           
           // Clear any demo mode when user signs in
           localStorage.removeItem('isGuest');
@@ -56,10 +68,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         }
         
         if (event === 'SIGNED_OUT') {
-          toast({
-            title: "Signed out",
-            description: "You have been signed out successfully.",
-          });
+          if (toast) {
+            toast({
+              title: "Signed out",
+              description: "You have been signed out successfully.",
+            });
+          }
           
           // Clear all data and redirect to landing page
           setTimeout(() => {
@@ -101,11 +115,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       }
     } catch (error) {
       console.error("Error signing out:", error);
-      toast({
-        title: "Error",
-        description: "Something went wrong. Please try again.",
-        variant: "destructive",
-      });
+      if (toast) {
+        toast({
+          title: "Error",
+          description: "Something went wrong. Please try again.",
+          variant: "destructive",
+        });
+      }
     } finally {
       setLoading(false);
     }

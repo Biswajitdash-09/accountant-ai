@@ -1,4 +1,5 @@
-import { useState, useEffect, ReactNode } from "react"
+import * as React from "react"
+import { ReactNode } from "react"
 
 import type {
   ToastActionElement,
@@ -169,9 +170,19 @@ function toast({ ...props }: Toast) {
 }
 
 function useToast() {
-  const [state, setState] = useState<State>(memoryState)
+  // Safety check for React context
+  if (!React || !React.useState) {
+    console.error("[useToast] React not available");
+    return {
+      toasts: [],
+      toast,
+      dismiss: () => {},
+    };
+  }
 
-  useEffect(() => {
+  const [state, setState] = React.useState<State>(memoryState)
+
+  React.useEffect(() => {
     listeners.push(setState)
     return () => {
       const index = listeners.indexOf(setState)
