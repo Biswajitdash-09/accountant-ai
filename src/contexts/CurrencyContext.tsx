@@ -1,5 +1,5 @@
 
-import React, { createContext, useContext, useEffect, useState } from "react";
+import React, { createContext, useContext, useEffect, useState, useMemo } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useQueryClient } from "@tanstack/react-query";
@@ -174,14 +174,17 @@ export const CurrencyProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     return `${selectedCurrency.symbol}${convertedAmount.toFixed(2)}`;
   };
 
+  // Memoize context value to prevent unnecessary re-renders
+  const contextValue = useMemo(() => ({
+    selectedCurrency,
+    currencies,
+    loading,
+    setCurrency,
+    formatAmount
+  }), [selectedCurrency, currencies, loading]);
+
   return (
-    <CurrencyContext.Provider value={{
-      selectedCurrency,
-      currencies,
-      loading,
-      setCurrency,
-      formatAmount
-    }}>
+    <CurrencyContext.Provider value={contextValue}>
       {children}
     </CurrencyContext.Provider>
   );
