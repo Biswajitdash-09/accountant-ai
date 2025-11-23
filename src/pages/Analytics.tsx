@@ -4,13 +4,14 @@ import { useNavigate } from "react-router-dom";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { BarChart3, Brain, TrendingUp, Target, ArrowLeft, PieChart, TrendingDown } from "lucide-react";
+import { BarChart3, Brain, TrendingUp, Target, ArrowLeft, PieChart, TrendingDown, Shield } from "lucide-react";
 import { AdvancedAnalytics } from "@/components/analytics/AdvancedAnalytics";
 import { PredictiveInsights } from "@/components/analytics/PredictiveInsights";
 import { AllSourcesOverview } from "@/components/analytics/AllSourcesOverview";
 import { SourceComparison } from "@/components/analytics/SourceComparison";
 import { InvestmentPerformanceChart } from "@/components/analytics/InvestmentPerformanceChart";
 import { TaxImpactAnalyzer } from "@/components/analytics/TaxImpactAnalyzer";
+import AnomalyDetector from "@/components/ai/AnomalyDetector";
 import DemoAccountBadge from "@/components/DemoAccountBadge";
 
 const Analytics = () => {
@@ -44,14 +45,14 @@ const Analytics = () => {
         <DemoAccountBadge />
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-3 sm:grid-cols-6">
+          <TabsList className="grid w-full grid-cols-3 sm:grid-cols-7">
             <TabsTrigger value="overview" className="gap-2">
               <PieChart className="h-4 w-4" />
-              <span className="hidden sm:inline">All Sources</span>
+              <span className="hidden sm:inline">Overview</span>
             </TabsTrigger>
             <TabsTrigger value="comparison" className="gap-2">
               <BarChart3 className="h-4 w-4" />
-              <span className="hidden sm:inline">Comparison</span>
+              <span className="hidden sm:inline">Compare</span>
             </TabsTrigger>
             <TabsTrigger value="investments" className="gap-2">
               <TrendingUp className="h-4 w-4" />
@@ -59,15 +60,19 @@ const Analytics = () => {
             </TabsTrigger>
             <TabsTrigger value="tax" className="gap-2">
               <TrendingDown className="h-4 w-4" />
-              <span className="hidden sm:inline">Tax Impact</span>
+              <span className="hidden sm:inline">Tax</span>
+            </TabsTrigger>
+            <TabsTrigger value="predictions" className="gap-2">
+              <Brain className="h-4 w-4" />
+              <span className="hidden sm:inline">Predictions</span>
+            </TabsTrigger>
+            <TabsTrigger value="anomalies" className="gap-2">
+              <Shield className="h-4 w-4" />
+              <span className="hidden sm:inline">Anomalies</span>
             </TabsTrigger>
             <TabsTrigger value="advanced" className="gap-2">
               <Target className="h-4 w-4" />
               <span className="hidden sm:inline">Advanced</span>
-            </TabsTrigger>
-            <TabsTrigger value="insights" className="gap-2">
-              <Brain className="h-4 w-4" />
-              <span className="hidden sm:inline">AI Insights</span>
             </TabsTrigger>
           </TabsList>
 
@@ -87,12 +92,16 @@ const Analytics = () => {
             <TaxImpactAnalyzer />
           </TabsContent>
 
-          <TabsContent value="advanced" className="space-y-6">
-            <AdvancedAnalytics />
+          <TabsContent value="predictions" className="space-y-6">
+            <PredictiveInsights />
           </TabsContent>
 
-          <TabsContent value="insights" className="space-y-6">
-            <PredictiveInsights />
+          <TabsContent value="anomalies" className="space-y-6">
+            <AnomalyDetector />
+          </TabsContent>
+
+          <TabsContent value="advanced" className="space-y-6">
+            <AdvancedAnalytics />
           </TabsContent>
         </Tabs>
       </div>

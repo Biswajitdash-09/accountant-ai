@@ -20,22 +20,18 @@ export const LazyAIAssistant = lazyLoadComponent(
   () => import("@/pages/AIAssistant")
 );
 
-export const LazyAdvancedAnalytics = lazyLoadComponent(
-  () => import("@/pages/AdvancedAnalytics")
-);
-
 export const LazyReports = lazyLoadComponent(
   () => import("@/pages/Reports")
 );
 
 export const LazyAdvancedFeatures = lazyLoadComponent(
-  () => import("@/pages/AdvancedFeatures")
+  () => import("@/pages/AdvancedFeaturesEnhanced")
 );
 
 export const LazyHMRCIntegration = lazyLoadComponent(
   () => import("@/pages/HMRCIntegration")
 );
 
-export const LazyBarcodeManager = lazyLoadComponent(
-  () => import("@/pages/BarcodeManager")
+export const LazyScanner = lazyLoadComponent(
+  () => import("@/pages/Scanner")
 );
