@@ -20,21 +20,27 @@ const queryClient = new QueryClient({
   },
 });
 
-createRoot(document.getElementById("root")!).render(
+const rootElement = document.getElementById("root");
+
+if (!rootElement) {
+  throw new Error("Root element not found");
+}
+
+createRoot(rootElement).render(
   <StrictMode>
     <ErrorBoundary>
       <QueryClientProvider client={queryClient}>
         <BrowserRouter>
-          <AuthProvider>
-            <CurrencyProvider>
-              <ThemeProvider defaultTheme="light" storageKey="accountant-ai-theme">
+          <ThemeProvider defaultTheme="light" storageKey="accountant-ai-theme">
+            <AuthProvider>
+              <CurrencyProvider>
                 <App />
-                <Toaster />
-              </ThemeProvider>
-            </CurrencyProvider>
-          </AuthProvider>
+              </CurrencyProvider>
+            </AuthProvider>
+          </ThemeProvider>
         </BrowserRouter>
       </QueryClientProvider>
+      <Toaster />
     </ErrorBoundary>
   </StrictMode>
 );
