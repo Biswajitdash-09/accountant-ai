@@ -2,6 +2,8 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { format, subMonths, startOfMonth, endOfMonth } from "date-fns";
 import { useState, useEffect } from "react";
+import { requestManager } from "@/utils/requestManager";
+import { performanceMonitor } from "@/utils/performanceMonitor";
 
 interface MonthlyData {
   month: string;
@@ -30,22 +32,28 @@ export const useChartData = (months: number = 6) => {
   const fetchChartData = async (): Promise<MonthlyData[]> => {
     if (!userId) throw new Error("Not authenticated");
 
-    const endDate = new Date();
-    const startDate = subMonths(endDate, months - 1);
-
-    // Check cache first
+    const stopMeasure = performanceMonitor.startMeasure('fetchChartData');
     const cacheKey = `chart-data-${months}-${userId}`;
-    const { data: cached } = await supabase
-      .from('analytics_cache')
-      .select('data')
-      .eq('cache_key', cacheKey)
-      .eq('user_id', userId)
-      .gt('expires_at', new Date().toISOString())
-      .single();
 
-    if (cached?.data) {
-      return cached.data as any as MonthlyData[];
-    }
+    try {
+      // Use request manager to prevent duplicate requests
+      return await requestManager.execute(cacheKey, async () => {
+        const endDate = new Date();
+        const startDate = subMonths(endDate, months - 1);
+
+        // Check cache first
+        const { data: cached } = await supabase
+          .from('analytics_cache')
+          .select('data')
+          .eq('cache_key', cacheKey)
+          .eq('user_id', userId)
+          .gt('expires_at', new Date().toISOString())
+          .single();
+
+        if (cached?.data) {
+          console.log(`[ChartData] Cache hit for ${cacheKey}`);
+          return cached.data as any as MonthlyData[];
+        }
 
     // Fetch transactions for the period
     const { data: transactions, error } = await supabase
@@ -103,15 +111,21 @@ export const useChartData = (months: number = 6) => {
         expires_at: expiresAt.toISOString(),
       });
 
-    return chartData;
+        return chartData;
+      });
+    } finally {
+      stopMeasure();
+    }
   };
 
   return useQuery({
     queryKey: ['chart-data', months, userId],
     queryFn: fetchChartData,
-    enabled: !!userId, // Only run query if user is authenticated
-    staleTime: 60 * 60 * 1000, // 1 hour
-    gcTime: 2 * 60 * 60 * 1000, // 2 hours
+    enabled: !!userId,
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    gcTime: 30 * 60 * 1000, // 30 minutes
+    retry: 3,
+    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 10000),
   });
 };
 
@@ -134,8 +148,13 @@ export const useInvestmentChartData = (months: number = 12) => {
   const fetchInvestmentData = async () => {
     if (!userId) throw new Error("Not authenticated");
 
-    const endDate = new Date();
-    const chartData = [];
+    const stopMeasure = performanceMonitor.startMeasure('fetchInvestmentData');
+    const cacheKey = `investment-chart-${months}-${userId}`;
+
+    try {
+      return await requestManager.execute(cacheKey, async () => {
+        const endDate = new Date();
+        const chartData = [];
 
     // Generate last N months
     for (let i = months - 1; i >= 0; i--) {
@@ -184,13 +203,20 @@ export const useInvestmentChartData = (months: number = 12) => {
       });
     }
 
-    return chartData;
+        return chartData;
+      });
+    } finally {
+      stopMeasure();
+    }
   };
 
   return useQuery({
     queryKey: ['investment-chart', months, userId],
     queryFn: fetchInvestmentData,
-    enabled: !!userId, // Only run query if user is authenticated
-    staleTime: 30 * 60 * 1000, // 30 minutes
+    enabled: !!userId,
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    gcTime: 30 * 60 * 1000, // 30 minutes
+    retry: 3,
+    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 10000),
   });
 };
