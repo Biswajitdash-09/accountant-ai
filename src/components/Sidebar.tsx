@@ -98,48 +98,16 @@ const Sidebar = ({ isCollapsed, onToggle, isMobileOpen = false, onMobileToggle }
           badge: null,
           tutorialId: "analytics",
         },
-        {
-          href: "/advanced-analytics",
-          label: "AI Insights",
-          icon: TrendingUp,
-          badge: "NEW",
-        },
       ]
     },
     {
       title: "Tools",
       items: [
         {
-          href: "/advanced-features",
-          label: "Advanced",
-          icon: Zap,
-          badge: "Pro",
-        },
-        {
-          href: "/performance",
-          label: "Performance",
-          icon: TrendingUp,
-          badge: "PWA",
-          technicalOnly: true,
-        },
-        {
-          href: "/security",
-          label: "Security",
-          icon: Bot,
-          badge: null,
-          technicalOnly: true,
-        },
-        {
           href: "/tax",
           label: "Tax Center",
           icon: Calculator,
           badge: null,
-        },
-        {
-          href: "/hmrc",
-          label: "HMRC",
-          icon: FileText,
-          badge: "UK",
         },
         {
           href: "/upload",
@@ -149,14 +117,8 @@ const Sidebar = ({ isCollapsed, onToggle, isMobileOpen = false, onMobileToggle }
           tutorialId: "upload",
         },
         {
-          href: "/barcode",
+          href: "/scanner",
           label: "Scanner",
-          icon: QrCode,
-          badge: "New",
-        },
-        {
-          href: "/scan-history",
-          label: "Scan History", 
           icon: QrCode,
           badge: null,
         },
@@ -164,7 +126,7 @@ const Sidebar = ({ isCollapsed, onToggle, isMobileOpen = false, onMobileToggle }
           href: "/assistant",
           label: "AI Assistant",
           icon: Bot,
-          badge: "AI",
+          badge: null,
         },
         {
           href: "/markets",
@@ -176,13 +138,34 @@ const Sidebar = ({ isCollapsed, onToggle, isMobileOpen = false, onMobileToggle }
           href: "/integrations",
           label: "Integrations",
           icon: Plug,
-          badge: "New",
+          badge: null,
+        },
+        {
+          href: "/advanced-features",
+          label: "Advanced",
+          icon: Zap,
+          badge: null,
+          technicalOnly: true,
         },
         {
           href: "/performance",
           label: "Performance",
-          icon: Zap,
-          badge: "PWA",
+          icon: TrendingUp,
+          badge: null,
+          technicalOnly: true,
+        },
+        {
+          href: "/security",
+          label: "Security",
+          icon: Bot,
+          badge: null,
+          technicalOnly: true,
+        },
+        {
+          href: "/hmrc",
+          label: "HMRC",
+          icon: FileText,
+          badge: null,
         },
       ]
     },

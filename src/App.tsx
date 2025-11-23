@@ -23,12 +23,11 @@ const Transactions = lazy(() => import("./pages/Transactions"));
 const Accounts = lazy(() => import("./pages/Accounts"));
 const Reports = lazy(() => import("./pages/Reports"));
 const Analytics = lazy(() => import("./pages/Analytics"));
-const AdvancedFeatures = lazy(() => import("./pages/AdvancedFeatures"));
-const AdvancedAnalytics = lazy(() => import("./pages/AdvancedAnalytics"));
+const AdvancedFeatures = lazy(() => import("./pages/AdvancedFeaturesEnhanced"));
 const Pricing = lazy(() => import("./pages/Pricing"));
 const Tax = lazy(() => import("./pages/Tax"));
 const Upload = lazy(() => import("./pages/Upload"));
-const Assistant = lazy(() => import("./pages/Assistant"));
+const AIAssistant = lazy(() => import("./pages/AIAssistant"));
 const Markets = lazy(() => import("./pages/Markets"));
 const Profile = lazy(() => import("./pages/Profile"));
 const Notifications = lazy(() => import("./pages/Notifications"));
@@ -39,8 +38,7 @@ const Privacy = lazy(() => import("./pages/Privacy"));
 const Terms = lazy(() => import("./pages/Terms"));
 const Cookies = lazy(() => import("./pages/Cookies"));
 const NotFound = lazy(() => import("./pages/NotFound"));
-const BarcodeManager = lazy(() => import("./pages/BarcodeManager"));
-const ScanHistory = lazy(() => import("./pages/ScanHistory"));
+const Scanner = lazy(() => import("./pages/Scanner"));
 const HMRCIntegration = lazy(() => import("./pages/HMRCIntegration"));
 const HMRCCallback = lazy(() => import("./components/hmrc/HMRCCallback"));
 const Integrations = lazy(() => import("./pages/Integrations"));
@@ -124,13 +122,6 @@ function App() {
               </Layout>
             </ProtectedRoute>
           } />
-          <Route path="/advanced-analytics" element={
-            <ProtectedRoute>
-              <Layout>
-                <AdvancedAnalytics />
-              </Layout>
-            </ProtectedRoute>
-          } />
           <Route path="/pricing" element={
             <ProtectedRoute>
               <Layout>
@@ -155,7 +146,7 @@ function App() {
           <Route path="/assistant" element={
             <ProtectedRoute>
               <Layout>
-                <Assistant />
+                <AIAssistant />
               </Layout>
             </ProtectedRoute>
           } />
@@ -194,20 +185,17 @@ function App() {
               </Layout>
             </ProtectedRoute>
           } />
-          <Route path="/barcode" element={
+          <Route path="/scanner" element={
             <ProtectedRoute>
               <Layout>
-                <BarcodeManager />
+                <Scanner />
               </Layout>
             </ProtectedRoute>
           } />
-          <Route path="/scan-history" element={
-            <ProtectedRoute>
-              <Layout>
-                <ScanHistory />
-              </Layout>
-            </ProtectedRoute>
-          } />
+          {/* Legacy routes - redirect to new consolidated pages */}
+          <Route path="/barcode" element={<Navigate to="/scanner" replace />} />
+          <Route path="/scan-history" element={<Navigate to="/scanner?tab=history" replace />} />
+          <Route path="/advanced-analytics" element={<Navigate to="/analytics?tab=predictions" replace />} />
           <Route path="/hmrc" element={
             <ProtectedRoute>
               <HMRCIntegration />
