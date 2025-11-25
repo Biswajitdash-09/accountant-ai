@@ -4174,6 +4174,45 @@ export type Database = {
         }
         Relationships: []
       }
+      waitlist: {
+        Row: {
+          company_name: string | null
+          created_at: string | null
+          email: string
+          full_name: string | null
+          id: string
+          metadata: Json | null
+          notified_at: string | null
+          position: number | null
+          referral_source: string | null
+          status: string | null
+        }
+        Insert: {
+          company_name?: string | null
+          created_at?: string | null
+          email: string
+          full_name?: string | null
+          id?: string
+          metadata?: Json | null
+          notified_at?: string | null
+          position?: number | null
+          referral_source?: string | null
+          status?: string | null
+        }
+        Update: {
+          company_name?: string | null
+          created_at?: string | null
+          email?: string
+          full_name?: string | null
+          id?: string
+          metadata?: Json | null
+          notified_at?: string | null
+          position?: number | null
+          referral_source?: string | null
+          status?: string | null
+        }
+        Relationships: []
+      }
       webhook_deliveries: {
         Row: {
           attempts: number | null
