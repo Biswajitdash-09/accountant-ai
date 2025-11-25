@@ -1,6 +1,15 @@
 project_id = "erqisavlnwynkyfvnltb"
 
 # Edge function configurations for security
+[functions.waitlist-signup]
+verify_jwt = false  # Public waitlist signup
+
+[functions.check-waitlist-position]
+verify_jwt = false  # Public position check
+
+[functions.notify-waitlist]
+verify_jwt = true  # Require admin authentication
+
 [functions.stripe-webhook]
 verify_jwt = false  # Stripe calls without JWT
 

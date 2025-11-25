@@ -45,6 +45,7 @@ const Integrations = lazy(() => import("./pages/Integrations"));
 const APILicensing = lazy(() => import("./pages/APILicensing"));
 const DeveloperDocs = lazy(() => import("./pages/DeveloperDocs"));
 const HelpCenter = lazy(() => import("./pages/HelpCenter"));
+const WaitlistManagement = lazy(() => import("./pages/admin/WaitlistManagement"));
 
 // Loading fallback component
 const PageLoader = () => (
@@ -237,6 +238,15 @@ function App() {
           
           {/* Default redirect to dashboard */}
           <Route path="/app" element={<Navigate to="/dashboard" replace />} />
+          
+          {/* Admin Routes */}
+          <Route path="/admin/waitlist" element={
+            <ProtectedRoute>
+              <Layout>
+                <WaitlistManagement />
+              </Layout>
+            </ProtectedRoute>
+          } />
           
           {/* 404 route */}
           <Route path="*" element={<NotFound />} />

@@ -14,6 +14,8 @@ import { TrustBadges } from "@/components/landing/TrustBadges";
 import { ComparisonSection } from "@/components/landing/ComparisonSection";
 import { FAQSection } from "@/components/landing/FAQSection";
 import { EnhancedTestimonials } from "@/components/landing/EnhancedTestimonials";
+import { WaitlistForm } from "@/components/landing/WaitlistForm";
+import { WaitlistCounter } from "@/components/landing/WaitlistCounter";
 import { motion } from "framer-motion";
 import {
   CalculatorIcon,
@@ -28,6 +30,7 @@ import {
   Shield,
   Zap,
   ArrowRight,
+  Rocket,
 } from "lucide-react";
 
 const Landing = () => {
@@ -195,7 +198,7 @@ const Landing = () => {
         </div>
       </section>
 
-      {/* Hero Section */}
+      {/* Hero Section with Waitlist */}
       <section className="text-center py-20 px-4 relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-purple-500/5 to-transparent animate-gradient" />
         <motion.div 
@@ -204,6 +207,16 @@ const Landing = () => {
           transition={{ duration: 0.8 }}
           className="relative z-10 max-w-4xl mx-auto"
         >
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.1 }}
+            className="inline-flex items-center gap-2 bg-primary/10 text-primary px-4 py-2 rounded-full mb-6 text-sm font-medium"
+          >
+            <Rocket className="h-4 w-4" />
+            Launching Soon - Join the Waitlist
+          </motion.div>
+
           <motion.h1 
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -226,24 +239,50 @@ const Landing = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.4 }}
-            className="text-xl md:text-2xl text-muted-foreground mt-6 mb-8"
+            className="text-xl md:text-2xl text-muted-foreground mt-6 mb-4"
           >
             Transform your financial management with intelligent automation, real-time insights, and expert guidance.
           </motion.p>
+
+          {/* Waitlist Section */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.5 }}
+            className="my-12 space-y-6"
+          >
+            <WaitlistCounter />
+            
+            <div className="glass rounded-2xl p-8 max-w-3xl mx-auto">
+              <h3 className="text-2xl font-bold mb-3">Be Among the First to Experience the Future</h3>
+              <p className="text-muted-foreground mb-6">
+                Join the waitlist and get exclusive early access with special launch benefits
+              </p>
+              
+              <WaitlistForm />
+              
+              <div className="mt-8 grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
+                {[
+                  "✨ 30% launch discount",
+                  "🎁 100 bonus AI credits",
+                  "🏆 Priority support",
+                  "📞 Personal onboarding"
+                ].map((benefit, i) => (
+                  <div key={i} className="flex items-center gap-2 text-left">
+                    <span className="text-lg">{benefit.split(' ')[0]}</span>
+                    <span>{benefit.split(' ').slice(1).join(' ')}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </motion.div>
+
           <motion.div 
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.6 }}
+            transition={{ duration: 0.8, delay: 0.7 }}
             className="flex flex-col sm:flex-row gap-4 justify-center"
           >
-            <Button 
-              size="lg" 
-              onClick={() => navigate("/auth")}
-              className="text-lg px-8 py-6 group"
-            >
-              Start Free Trial 
-              <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
-            </Button>
             <Button 
               variant="outline" 
               size="lg" 
