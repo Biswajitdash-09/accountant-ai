@@ -2,8 +2,11 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
-import { Code, ExternalLink, PlayCircle, Globe } from "lucide-react";
+import { Code, ExternalLink, PlayCircle, Globe, Loader2 } from "lucide-react";
 import { useState } from "react";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { useToast } from "@/hooks/use-toast";
 
 interface SandboxEndpoint {
   name: string;
@@ -160,10 +163,183 @@ const integrations = {
   },
 };
 
+// Mock API responses
+const getMockResponse = (endpoint: SandboxEndpoint, provider: string) => {
+  const responses: Record<string, any> = {
+    "/link/token/create": {
+      link_token: "link-sandbox-abc123def456",
+      expiration: "2025-12-31T23:59:59Z",
+      request_id: "req_" + Math.random().toString(36).substr(2, 9)
+    },
+    "/accounts/get": {
+      accounts: [
+        {
+          account_id: "acc_123456",
+          name: "Checking Account",
+          type: "depository",
+          subtype: "checking",
+          balances: {
+            available: 2500.50,
+            current: 2800.75,
+            currency: "USD"
+          }
+        }
+      ]
+    },
+    "/transactions/get": {
+      transactions: [
+        {
+          transaction_id: "txn_001",
+          amount: -45.67,
+          date: "2025-01-15",
+          name: "Amazon Purchase",
+          category: ["Shopping", "Online"]
+        }
+      ]
+    },
+    "/account/auth": {
+      id: "mono_auth_" + Math.random().toString(36).substr(2, 9),
+      type: "mono",
+      status: "successful"
+    },
+    "/accounts/:id": {
+      account: {
+        id: "acc_mono_123",
+        institution: "GTBank",
+        name: "Savings Account",
+        currency: "NGN",
+        balance: 450000.00
+      }
+    },
+    "/auth/token": {
+      token: {
+        accessToken: "yodlee_token_" + Math.random().toString(36).substr(2, 16),
+        expiresIn: 1800
+      }
+    },
+    "/connect/token": {
+      auth_url: "https://auth.truelayer-sandbox.com/connect?token=tl_" + Math.random().toString(36).substr(2, 12),
+      expires_at: "2025-01-20T12:00:00Z"
+    },
+    "/v1/sessions": {
+      session_id: "setu_session_" + Math.random().toString(36).substr(2, 10),
+      redirect_url: "https://setu.co/consent?session=" + Math.random().toString(36).substr(2, 8),
+      status: "created"
+    }
+  };
+
+  return responses[endpoint.endpoint] || {
+    success: true,
+    message: "Mock response for " + endpoint.name,
+    data: { sample: "data" }
+  };
+};
+
+// Code examples
+const getCodeExample = (endpoint: SandboxEndpoint, provider: string) => {
+  const examples: Record<string, string> = {
+    plaid: `// Plaid - ${endpoint.name}
+const response = await fetch('https://sandbox.plaid.com${endpoint.endpoint}', {
+  method: '${endpoint.method}',
+  headers: {
+    'Content-Type': 'application/json',
+    'PLAID-CLIENT-ID': process.env.PLAID_CLIENT_ID,
+    'PLAID-SECRET': process.env.PLAID_SECRET
+  },
+  body: JSON.stringify({
+    client_name: 'AccountantAI',
+    country_codes: ['US'],
+    language: 'en',
+    user: { client_user_id: 'user_123' }
+  })
+});
+
+const data = await response.json();
+console.log(data);`,
+    mono: `// Mono - ${endpoint.name}
+const response = await fetch('https://api.withmono.com${endpoint.endpoint}', {
+  method: '${endpoint.method}',
+  headers: {
+    'Content-Type': 'application/json',
+    'mono-sec-key': process.env.MONO_SECRET_KEY
+  }
+});
+
+const data = await response.json();
+console.log(data);`,
+    yodlee: `// Yodlee - ${endpoint.name}
+const response = await fetch('https://sandbox.api.yodlee.com/ysl${endpoint.endpoint}', {
+  method: '${endpoint.method}',
+  headers: {
+    'Content-Type': 'application/json',
+    'Api-Version': '1.1',
+    'loginName': 'sbMemtest1'
+  }
+});
+
+const data = await response.json();
+console.log(data);`,
+    truelayer: `// TrueLayer - ${endpoint.name}
+const response = await fetch('https://api.truelayer-sandbox.com${endpoint.endpoint}', {
+  method: '${endpoint.method}',
+  headers: {
+    'Content-Type': 'application/json',
+    'Authorization': 'Bearer ' + accessToken
+  }
+});
+
+const data = await response.json();
+console.log(data);`,
+    setu: `// Setu - ${endpoint.name}
+const response = await fetch('https://sandbox.setu.co${endpoint.endpoint}', {
+  method: '${endpoint.method}',
+  headers: {
+    'Content-Type': 'application/json',
+    'x-client-id': process.env.SETU_CLIENT_ID,
+    'x-client-secret': process.env.SETU_CLIENT_SECRET
+  }
+});
+
+const data = await response.json();
+console.log(data);`
+  };
+
+  return examples[provider] || `// ${provider} - ${endpoint.name}\n// Code example for ${endpoint.method} ${endpoint.endpoint}`;
+};
+
 export const OpenBankingSandbox = () => {
   const [selectedIntegration, setSelectedIntegration] = useState<keyof typeof integrations>("plaid");
+  const [apiResponse, setApiResponse] = useState<any>(null);
+  const [isExecuting, setIsExecuting] = useState(false);
+  const [responseDialogOpen, setResponseDialogOpen] = useState(false);
+  const [codeDialogOpen, setCodeDialogOpen] = useState(false);
+  const [currentEndpoint, setCurrentEndpoint] = useState<SandboxEndpoint | null>(null);
+  const { toast } = useToast();
 
   const currentIntegration = integrations[selectedIntegration];
+
+  const handleTryEndpoint = async (endpoint: SandboxEndpoint) => {
+    setCurrentEndpoint(endpoint);
+    setIsExecuting(true);
+    
+    // Simulate API call with delay
+    await new Promise(resolve => setTimeout(resolve, 1500));
+    
+    const mockResponse = getMockResponse(endpoint, selectedIntegration);
+    setApiResponse(mockResponse);
+    setIsExecuting(false);
+    setResponseDialogOpen(true);
+    
+    toast({
+      title: "API Request Successful",
+      description: `${endpoint.method} ${endpoint.endpoint} executed successfully`,
+    });
+  };
+
+  const handleViewExample = (endpoint: SandboxEndpoint) => {
+    setCurrentEndpoint(endpoint);
+    setCodeDialogOpen(true);
+  };
 
   return (
     <div className="space-y-6">
@@ -243,11 +419,29 @@ export const OpenBankingSandbox = () => {
                         )}
 
                         <div className="flex gap-2">
-                          <Button size="sm" variant="default">
-                            <PlayCircle className="h-4 w-4 mr-2" />
-                            Try it now
+                          <Button 
+                            size="sm" 
+                            variant="default"
+                            onClick={() => handleTryEndpoint(endpoint)}
+                            disabled={isExecuting}
+                          >
+                            {isExecuting ? (
+                              <>
+                                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                                Executing...
+                              </>
+                            ) : (
+                              <>
+                                <PlayCircle className="h-4 w-4 mr-2" />
+                                Try it now
+                              </>
+                            )}
                           </Button>
-                          <Button size="sm" variant="outline">
+                          <Button 
+                            size="sm" 
+                            variant="outline"
+                            onClick={() => handleViewExample(endpoint)}
+                          >
                             <Code className="h-4 w-4 mr-2" />
                             View Example
                           </Button>
@@ -262,6 +456,40 @@ export const OpenBankingSandbox = () => {
           </Tabs>
         </CardContent>
       </Card>
+
+      {/* API Response Dialog */}
+      <Dialog open={responseDialogOpen} onOpenChange={setResponseDialogOpen}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>API Response - {currentEndpoint?.name}</DialogTitle>
+            <DialogDescription>
+              Simulated response from {currentEndpoint?.method} {currentEndpoint?.endpoint}
+            </DialogDescription>
+          </DialogHeader>
+          <ScrollArea className="h-96">
+            <pre className="bg-muted p-4 rounded-md text-xs overflow-x-auto">
+              <code>{JSON.stringify(apiResponse, null, 2)}</code>
+            </pre>
+          </ScrollArea>
+        </DialogContent>
+      </Dialog>
+
+      {/* Code Example Dialog */}
+      <Dialog open={codeDialogOpen} onOpenChange={setCodeDialogOpen}>
+        <DialogContent className="max-w-3xl">
+          <DialogHeader>
+            <DialogTitle>Code Example - {currentEndpoint?.name}</DialogTitle>
+            <DialogDescription>
+              Implementation example for {currentIntegration.name}
+            </DialogDescription>
+          </DialogHeader>
+          <ScrollArea className="h-96">
+            <pre className="bg-muted p-4 rounded-md text-xs overflow-x-auto">
+              <code>{currentEndpoint ? getCodeExample(currentEndpoint, selectedIntegration) : ''}</code>
+            </pre>
+          </ScrollArea>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
