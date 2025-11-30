@@ -4,22 +4,24 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Calculator, Building2 } from "lucide-react";
-import { calculateNigeriaTax, calculateNigeriaBusinessTax, type NigeriaDeductions } from "@/lib/nigeriaTaxCalculations";
+import { Calculator, Building2, Info } from "lucide-react";
+import { calculateNigeriaTax2026, calculateNigeriaBusinessTax } from "@/lib/nigeriaTaxCalculations";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 export const NigeriaTaxCalculator = () => {
-  // Individual Tax State
+  // Individual Tax State (2026 Updated)
   const [grossIncome, setGrossIncome] = useState<number>(0);
-  const [deductions, setDeductions] = useState<NigeriaDeductions>({
-    rentAllowance: 0,
-    pensionContribution: 0,
-    nhfContribution: 0,
-    lifeInsurance: 0,
-    medicalExpenses: 0,
-  });
-  const [individualResult, setIndividualResult] = useState<ReturnType<typeof calculateNigeriaTax> | null>(null);
+  const [annualRent, setAnnualRent] = useState<number>(0);
+  const [pension, setPension] = useState<number>(0);
+  const [nhis, setNhis] = useState<number>(0);
+  const [nhf, setNhf] = useState<number>(0);
+  const [lifeInsurance, setLifeInsurance] = useState<number>(0);
+  const [housingLoanInterest, setHousingLoanInterest] = useState<number>(0);
+  const [childEducation, setChildEducation] = useState<number>(0);
+  const [disability, setDisability] = useState<number>(0);
+  const [individualResult, setIndividualResult] = useState<ReturnType<typeof calculateNigeriaTax2026> | null>(null);
 
   // Business Tax State
   const [revenue, setRevenue] = useState<number>(0);
@@ -28,7 +30,16 @@ export const NigeriaTaxCalculator = () => {
   const [businessResult, setBusinessResult] = useState<ReturnType<typeof calculateNigeriaBusinessTax> | null>(null);
 
   const handleIndividualCalculate = () => {
-    const result = calculateNigeriaTax(grossIncome, deductions);
+    const result = calculateNigeriaTax2026({
+      grossIncome,
+      annualRent,
+      pension,
+      nhis,
+      nhf,
+      lifeInsurance,
+      housingLoanInterest,
+      otherDeductions: childEducation + disability
+    });
     setIndividualResult(result);
   };
 
@@ -71,62 +82,139 @@ export const NigeriaTaxCalculator = () => {
               </div>
 
               <div className="space-y-3">
-                <Label className="text-base font-semibold">Allowable Deductions</Label>
+                <Label className="text-base font-semibold">Allowable Deductions (2026 Updated)</Label>
                 
-                <div>
-                  <Label htmlFor="rentAllowance" className="text-sm text-muted-foreground">Rent Allowance/Relief</Label>
-                  <Input
-                    id="rentAllowance"
-                    type="number"
-                    value={deductions.rentAllowance || ''}
-                    onChange={(e) => setDeductions({...deductions, rentAllowance: parseFloat(e.target.value) || 0})}
-                    placeholder="Enter rent allowance"
-                  />
-                </div>
+                <TooltipProvider>
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <Label htmlFor="annualRent" className="text-sm text-muted-foreground">Annual Rent Paid</Label>
+                      <Tooltip>
+                        <TooltipTrigger><Info className="h-3 w-3" /></TooltipTrigger>
+                        <TooltipContent>20% of rent paid, capped at ₦500,000</TooltipContent>
+                      </Tooltip>
+                    </div>
+                    <Input
+                      id="annualRent"
+                      type="number"
+                      value={annualRent || ''}
+                      onChange={(e) => setAnnualRent(parseFloat(e.target.value) || 0)}
+                      placeholder="Enter annual rent paid"
+                    />
+                  </div>
 
-                <div>
-                  <Label htmlFor="pension" className="text-sm text-muted-foreground">Pension Contribution (8% minimum)</Label>
-                  <Input
-                    id="pension"
-                    type="number"
-                    value={deductions.pensionContribution || ''}
-                    onChange={(e) => setDeductions({...deductions, pensionContribution: parseFloat(e.target.value) || 0})}
-                    placeholder="Enter pension contribution"
-                  />
-                </div>
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <Label htmlFor="pension" className="text-sm text-muted-foreground">Pension Contribution (8% minimum)</Label>
+                      <Tooltip>
+                        <TooltipTrigger><Info className="h-3 w-3" /></TooltipTrigger>
+                        <TooltipContent>Mandatory 8% of basic salary</TooltipContent>
+                      </Tooltip>
+                    </div>
+                    <Input
+                      id="pension"
+                      type="number"
+                      value={pension || ''}
+                      onChange={(e) => setPension(parseFloat(e.target.value) || 0)}
+                      placeholder="Enter pension contribution"
+                    />
+                  </div>
 
-                <div>
-                  <Label htmlFor="nhf" className="text-sm text-muted-foreground">National Housing Fund (NHF) - 2.5%</Label>
-                  <Input
-                    id="nhf"
-                    type="number"
-                    value={deductions.nhfContribution || ''}
-                    onChange={(e) => setDeductions({...deductions, nhfContribution: parseFloat(e.target.value) || 0})}
-                    placeholder="Enter NHF contribution"
-                  />
-                </div>
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <Label htmlFor="nhis" className="text-sm text-muted-foreground">NHIS Contribution</Label>
+                      <Tooltip>
+                        <TooltipTrigger><Info className="h-3 w-3" /></TooltipTrigger>
+                        <TooltipContent>National Health Insurance Scheme contribution</TooltipContent>
+                      </Tooltip>
+                    </div>
+                    <Input
+                      id="nhis"
+                      type="number"
+                      value={nhis || ''}
+                      onChange={(e) => setNhis(parseFloat(e.target.value) || 0)}
+                      placeholder="Enter NHIS contribution"
+                    />
+                  </div>
 
-                <div>
-                  <Label htmlFor="insurance" className="text-sm text-muted-foreground">Life Insurance Premium</Label>
-                  <Input
-                    id="insurance"
-                    type="number"
-                    value={deductions.lifeInsurance || ''}
-                    onChange={(e) => setDeductions({...deductions, lifeInsurance: parseFloat(e.target.value) || 0})}
-                    placeholder="Enter insurance premium"
-                  />
-                </div>
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <Label htmlFor="nhf" className="text-sm text-muted-foreground">National Housing Fund (NHF) - 2.5%</Label>
+                      <Tooltip>
+                        <TooltipTrigger><Info className="h-3 w-3" /></TooltipTrigger>
+                        <TooltipContent>2.5% of basic salary for NHF</TooltipContent>
+                      </Tooltip>
+                    </div>
+                    <Input
+                      id="nhf"
+                      type="number"
+                      value={nhf || ''}
+                      onChange={(e) => setNhf(parseFloat(e.target.value) || 0)}
+                      placeholder="Enter NHF contribution"
+                    />
+                  </div>
 
-                <div>
-                  <Label htmlFor="medical" className="text-sm text-muted-foreground">Medical/Health Insurance</Label>
-                  <Input
-                    id="medical"
-                    type="number"
-                    value={deductions.medicalExpenses || ''}
-                    onChange={(e) => setDeductions({...deductions, medicalExpenses: parseFloat(e.target.value) || 0})}
-                    placeholder="Enter medical expenses"
-                  />
-                </div>
+                  <div>
+                    <Label htmlFor="insurance" className="text-sm text-muted-foreground">Life Insurance Premium</Label>
+                    <Input
+                      id="insurance"
+                      type="number"
+                      value={lifeInsurance || ''}
+                      onChange={(e) => setLifeInsurance(parseFloat(e.target.value) || 0)}
+                      placeholder="Enter insurance premium"
+                    />
+                  </div>
+
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <Label htmlFor="housingLoan" className="text-sm text-muted-foreground">Housing Loan Interest</Label>
+                      <Tooltip>
+                        <TooltipTrigger><Info className="h-3 w-3" /></TooltipTrigger>
+                        <TooltipContent>Interest paid on housing/mortgage loans</TooltipContent>
+                      </Tooltip>
+                    </div>
+                    <Input
+                      id="housingLoan"
+                      type="number"
+                      value={housingLoanInterest || ''}
+                      onChange={(e) => setHousingLoanInterest(parseFloat(e.target.value) || 0)}
+                      placeholder="Enter housing loan interest"
+                    />
+                  </div>
+
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <Label htmlFor="childEducation" className="text-sm text-muted-foreground">Child Education Allowance</Label>
+                      <Tooltip>
+                        <TooltipTrigger><Info className="h-3 w-3" /></TooltipTrigger>
+                        <TooltipContent>Education expenses for dependent children</TooltipContent>
+                      </Tooltip>
+                    </div>
+                    <Input
+                      id="childEducation"
+                      type="number"
+                      value={childEducation || ''}
+                      onChange={(e) => setChildEducation(parseFloat(e.target.value) || 0)}
+                      placeholder="Enter child education expenses"
+                    />
+                  </div>
+
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <Label htmlFor="disability" className="text-sm text-muted-foreground">Disability Allowance</Label>
+                      <Tooltip>
+                        <TooltipTrigger><Info className="h-3 w-3" /></TooltipTrigger>
+                        <TooltipContent>Allowance for disability-related expenses</TooltipContent>
+                      </Tooltip>
+                    </div>
+                    <Input
+                      id="disability"
+                      type="number"
+                      value={disability || ''}
+                      onChange={(e) => setDisability(parseFloat(e.target.value) || 0)}
+                      placeholder="Enter disability allowance"
+                    />
+                  </div>
+                </TooltipProvider>
               </div>
 
               <Button onClick={handleIndividualCalculate} className="w-full">
@@ -136,47 +224,30 @@ export const NigeriaTaxCalculator = () => {
               {individualResult && (
                 <div className="space-y-4 pt-4">
                   <Separator />
+                  <Badge variant="secondary" className="mb-2">2026 Tax Calculation</Badge>
                   <div className="space-y-3">
-                    <div className="flex justify-between items-center">
-                      <span className="text-sm font-medium">Gross Income:</span>
-                      <span className="text-sm">{formatNaira(individualResult.grossIncome)}</span>
-                    </div>
-                    <div className="flex justify-between items-center">
-                      <span className="text-sm font-medium">Total Deductions:</span>
-                      <span className="text-sm text-destructive">-{formatNaira(individualResult.totalDeductions)}</span>
-                    </div>
                     <div className="flex justify-between items-center">
                       <span className="text-sm font-medium">Taxable Income:</span>
                       <span className="text-sm font-semibold">{formatNaira(individualResult.taxableIncome)}</span>
                     </div>
-                    
-                    <Separator />
-                    
-                    <div className="space-y-2">
-                      <Label className="text-sm font-semibold">Tax Breakdown by Bracket:</Label>
-                      {individualResult.breakdown.map((item, index) => (
-                        <div key={index} className="flex justify-between items-center text-sm pl-4">
-                          <span className="text-muted-foreground">
-                            {item.bracket} @ {item.rate}%:
-                          </span>
-                          <span>{formatNaira(item.tax)}</span>
-                        </div>
-                      ))}
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm font-medium">Total Deductions:</span>
+                      <span className="text-sm text-green-600">-{formatNaira(individualResult.totalDeductions)}</span>
                     </div>
                     
                     <Separator />
                     
                     <div className="flex justify-between items-center">
-                      <span className="text-base font-bold">Total Tax:</span>
-                      <Badge variant="destructive" className="text-base">{formatNaira(individualResult.totalTax)}</Badge>
+                      <span className="text-base font-bold">Annual Tax:</span>
+                      <Badge variant="destructive" className="text-base">{formatNaira(individualResult.taxPayable)}</Badge>
                     </div>
                     <div className="flex justify-between items-center">
-                      <span className="text-base font-bold">Net Income:</span>
-                      <Badge variant="default" className="text-base">{formatNaira(individualResult.netIncome)}</Badge>
+                      <span className="text-base font-bold">Monthly Tax:</span>
+                      <Badge variant="secondary" className="text-base">{formatNaira(individualResult.monthlyTax)}</Badge>
                     </div>
                     <div className="flex justify-between items-center">
                       <span className="text-sm text-muted-foreground">Effective Tax Rate:</span>
-                      <span className="text-sm">{individualResult.effectiveRate.toFixed(2)}%</span>
+                      <span className="text-sm">{individualResult.effectiveRate}%</span>
                     </div>
                   </div>
                 </div>

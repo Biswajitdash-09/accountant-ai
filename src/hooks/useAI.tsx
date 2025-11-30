@@ -12,20 +12,41 @@ interface AIResponse {
 export const useAI = () => {
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
-  const { availableCredits, useCredit } = useCredits();
+  const { availableCredits, useCredit, credits } = useCredits();
+
+  const getTimeUntilReset = () => {
+    const now = new Date();
+    const tomorrow = new Date(now);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    tomorrow.setHours(0, 0, 0, 0);
+    const diff = tomorrow.getTime() - now.getTime();
+    const hours = Math.floor(diff / (1000 * 60 * 60));
+    const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+    return `${hours}h ${minutes}m`;
+  };
 
   const generateResponse = async (message: string): Promise<AIResponse> => {
     // Check if user has credits available
     if (availableCredits <= 0) {
+      const resetTime = getTimeUntilReset();
       toast({
         title: "No Credits Available",
-        description: "You need credits to use AI features. Please purchase credits or wait for daily reset.",
+        description: `Daily free credits reset in ${resetTime}. Purchase credits to continue using AI features now.`,
         variant: "destructive",
       });
       return {
-        text: "I'm sorry, but you don't have enough credits to use AI features. Please purchase credits or wait for your daily free credits to reset.",
+        text: `I'm sorry, but you don't have enough credits. Your daily free credits will reset in ${resetTime}, or you can purchase credits to continue now.`,
         error: 'No credits available'
       };
+    }
+
+    // Warn when credits are low
+    if (availableCredits <= 5 && availableCredits > 0) {
+      toast({
+        title: "Low Credits Warning",
+        description: `You have ${availableCredits} credits remaining. Consider purchasing more.`,
+        variant: "default",
+      });
     }
 
     setIsLoading(true);
