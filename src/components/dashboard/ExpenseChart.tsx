@@ -33,12 +33,12 @@ const ExpenseChart = ({ data }: ExpenseChartProps) => {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Expense Breakdown</CardTitle>
-        <CardDescription>
+        <CardTitle className="text-lg md:text-xl">Expense Breakdown</CardTitle>
+        <CardDescription className="text-sm">
           Your spending by category this month
         </CardDescription>
       </CardHeader>
-      <CardContent>
+      <CardContent className="px-2 md:px-6">
         <ResponsiveContainer width="100%" height={300}>
           <PieChart>
             <Pie

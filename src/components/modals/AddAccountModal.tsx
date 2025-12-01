@@ -1,7 +1,9 @@
 
 import { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerTrigger } from "@/components/ui/drawer";
 import { Button } from "@/components/ui/button";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -24,6 +26,7 @@ const AddAccountModal = ({ trigger }: AddAccountModalProps) => {
 
   const { createAccount } = useAccounts();
   const { toast } = useToast();
+  const isMobile = useIsMobile();
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -64,21 +67,9 @@ const AddAccountModal = ({ trigger }: AddAccountModalProps) => {
     }
   };
 
-  return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        {trigger || (
-          <Button>
-            <Plus className="h-4 w-4 mr-2" />
-            Add Account
-          </Button>
-        )}
-      </DialogTrigger>
-      <DialogContent className="sm:max-w-[425px]">
-        <DialogHeader>
-          <DialogTitle>Add New Account</DialogTitle>
-        </DialogHeader>
-        <div className="rounded-lg border p-3 bg-muted/30">
+  const formContent = (
+    <>
+      <div className="rounded-lg border p-3 bg-muted/30">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium">Link your bank</p>
@@ -88,8 +79,8 @@ const AddAccountModal = ({ trigger }: AddAccountModalProps) => {
               <Link2 className="h-4 w-4 mr-2" /> {linking ? 'Checking...' : 'Link Bank'}
             </Button>
           </div>
-        </div>
-        <form onSubmit={handleSubmit} className="space-y-4">
+      </div>
+      <form onSubmit={handleSubmit} className="mobile-section">
           <div className="space-y-2">
             <Label htmlFor="account_name">Account Name</Label>
             <Input
@@ -97,6 +88,7 @@ const AddAccountModal = ({ trigger }: AddAccountModalProps) => {
               placeholder="e.g., Business Checking"
               value={formData.account_name}
               onChange={(e) => setFormData({ ...formData, account_name: e.target.value })}
+              className="mobile-form-field"
               required
             />
           </div>
@@ -104,10 +96,10 @@ const AddAccountModal = ({ trigger }: AddAccountModalProps) => {
           <div className="space-y-2">
             <Label htmlFor="account_type">Account Type</Label>
             <Select value={formData.account_type} onValueChange={(value) => setFormData({ ...formData, account_type: value })}>
-              <SelectTrigger>
+              <SelectTrigger className="mobile-form-field">
                 <SelectValue placeholder="Select account type" />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent className="z-[100]">
                 <SelectItem value="checking">Checking</SelectItem>
                 <SelectItem value="savings">Savings</SelectItem>
                 <SelectItem value="credit">Credit Card</SelectItem>
@@ -127,6 +119,7 @@ const AddAccountModal = ({ trigger }: AddAccountModalProps) => {
               placeholder="0.00"
               value={formData.balance}
               onChange={(e) => setFormData({ ...formData, balance: e.target.value })}
+              className="mobile-form-field"
             />
           </div>
 
@@ -134,11 +127,52 @@ const AddAccountModal = ({ trigger }: AddAccountModalProps) => {
             <Button type="button" variant="outline" onClick={() => setOpen(false)}>
               Cancel
             </Button>
-            <Button type="submit" disabled={createAccount.isPending}>
+            <Button type="submit" disabled={createAccount.isPending} className="mobile-touch touch-feedback">
               {createAccount.isPending ? "Creating..." : "Create Account"}
             </Button>
           </div>
         </form>
+    </>
+  );
+
+  if (isMobile) {
+    return (
+      <Drawer open={open} onOpenChange={setOpen}>
+        <DrawerTrigger asChild>
+          {trigger || (
+            <Button>
+              <Plus className="h-4 w-4 mr-2" />
+              Add Account
+            </Button>
+          )}
+        </DrawerTrigger>
+        <DrawerContent className="max-h-[90vh] overflow-y-auto">
+          <DrawerHeader className="text-left">
+            <DrawerTitle>Add New Account</DrawerTitle>
+          </DrawerHeader>
+          <div className="px-4 pb-6">
+            {formContent}
+          </div>
+        </DrawerContent>
+      </Drawer>
+    );
+  }
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
+        {trigger || (
+          <Button>
+            <Plus className="h-4 w-4 mr-2" />
+            Add Account
+          </Button>
+        )}
+      </DialogTrigger>
+      <DialogContent className="sm:max-w-[425px] max-h-[90vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle>Add New Account</DialogTitle>
+        </DialogHeader>
+        {formContent}
       </DialogContent>
     </Dialog>
   );
