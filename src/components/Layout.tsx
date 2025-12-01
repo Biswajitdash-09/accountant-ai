@@ -76,7 +76,7 @@ const Layout = ({ children }: LayoutProps) => {
         />
         
         {/* Main Content with Bottom Navigation Space */}
-        <main className="min-h-[calc(100vh-5rem)] pb-28 mobile-scroll bg-background">
+        <main className="min-h-[calc(100vh-5rem)] pb-36 mobile-scroll bg-background">
           {/* PWA Enhancements */}
           <div className="px-5 pt-3">
             <PWAEnhancements />
@@ -105,9 +105,6 @@ const Layout = ({ children }: LayoutProps) => {
         
         {/* Global Search */}
         <GlobalSearch isOpen={isSearchOpen} onClose={closeSearch} />
-        
-        {/* Floating Arnold Button */}
-        <FloatingArnoldButton />
       </div>
     );
   }

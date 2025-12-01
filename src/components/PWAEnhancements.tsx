@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Download, Bell, Wifi, WifiOff } from 'lucide-react';
+import { Download, Bell, Wifi, WifiOff, X } from 'lucide-react';
 import { toast } from 'sonner';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 interface BeforeInstallPromptEvent extends Event {
   readonly platforms: string[];
@@ -18,6 +19,10 @@ const PWAEnhancements = () => {
   const [isInstallable, setIsInstallable] = useState(false);
   const [isOnline, setIsOnline] = useState(navigator.onLine);
   const [notificationPermission, setNotificationPermission] = useState<NotificationPermission>('default');
+  const [isDismissed, setIsDismissed] = useState(() => {
+    return localStorage.getItem('pwa-dismissed') === 'true';
+  });
+  const isMobile = useIsMobile();
 
   useEffect(() => {
     // Register service worker
@@ -108,17 +113,23 @@ const PWAEnhancements = () => {
     }
   };
 
-  // Don't show install prompt if already installed or not installable
-  if (!isInstallable && notificationPermission === 'granted') {
+  const handleDismiss = () => {
+    setIsDismissed(true);
+    localStorage.setItem('pwa-dismissed', 'true');
+    toast.success('You can always install the app from your browser settings');
+  };
+
+  // Don't show if dismissed or if nothing to show
+  if (isDismissed || (!isInstallable && notificationPermission === 'granted')) {
     return null;
   }
 
   return (
     <>
       {/* Connection Status Indicator */}
-      <div className="fixed top-4 right-4 z-50">
+      <div className="fixed top-4 right-4 z-[60]">
         {!isOnline && (
-          <div className="flex items-center gap-2 bg-destructive text-destructive-foreground px-3 py-1 rounded-full text-sm">
+          <div className="flex items-center gap-2 bg-destructive text-destructive-foreground px-3 py-1 rounded-full text-sm shadow-lg">
             <WifiOff className="h-3 w-3" />
             Offline
           </div>
@@ -127,26 +138,43 @@ const PWAEnhancements = () => {
 
       {/* PWA Features Card */}
       {(isInstallable || notificationPermission !== 'granted') && (
-        <Card className="mb-6">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Download className="h-5 w-5" />
-              Enhance Your Experience
-            </CardTitle>
-            <CardDescription>
-              Get the best experience with our mobile app features
-            </CardDescription>
+        <Card className={isMobile ? "mb-3 shadow-soft" : "mb-6"}>
+          <CardHeader className={isMobile ? "pb-3" : ""}>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Download className="h-5 w-5 text-primary" />
+                <CardTitle className="text-base">Enhance Your Experience</CardTitle>
+              </div>
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                className="h-8 w-8 -mr-2"
+                onClick={handleDismiss}
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            </div>
+            {!isMobile && (
+              <CardDescription>
+                Get the best experience with our mobile app features
+              </CardDescription>
+            )}
           </CardHeader>
-          <CardContent className="space-y-3">
+          <CardContent className={isMobile ? "space-y-2 pt-0" : "space-y-3"}>
             {isInstallable && (
-              <div className="flex items-center justify-between p-3 bg-accent rounded-lg">
-                <div>
-                  <h4 className="font-medium">Install App</h4>
-                  <p className="text-sm text-muted-foreground">
-                    Add Accountant AI to your home screen for quick access
-                  </p>
+              <div className={isMobile 
+                ? "flex items-center justify-between gap-3" 
+                : "flex items-center justify-between p-3 bg-accent rounded-lg"
+              }>
+                <div className="flex-1 min-w-0">
+                  <h4 className="font-medium text-sm">Install App</h4>
+                  {!isMobile && (
+                    <p className="text-sm text-muted-foreground">
+                      Add Accountant AI to your home screen for quick access
+                    </p>
+                  )}
                 </div>
-                <Button onClick={handleInstall} size="sm">
+                <Button onClick={handleInstall} size="sm" className="shrink-0">
                   <Download className="h-4 w-4 mr-2" />
                   Install
                 </Button>
@@ -154,14 +182,19 @@ const PWAEnhancements = () => {
             )}
 
             {notificationPermission !== 'granted' && (
-              <div className="flex items-center justify-between p-3 bg-accent rounded-lg">
-                <div>
-                  <h4 className="font-medium">Enable Notifications</h4>
-                  <p className="text-sm text-muted-foreground">
-                    Get alerts for payment due dates, budget limits, and more
-                  </p>
+              <div className={isMobile 
+                ? "flex items-center justify-between gap-3" 
+                : "flex items-center justify-between p-3 bg-accent rounded-lg"
+              }>
+                <div className="flex-1 min-w-0">
+                  <h4 className="font-medium text-sm">Enable Notifications</h4>
+                  {!isMobile && (
+                    <p className="text-sm text-muted-foreground">
+                      Get alerts for payment due dates, budget limits, and more
+                    </p>
+                  )}
                 </div>
-                <Button onClick={handleNotificationPermission} size="sm" variant="outline">
+                <Button onClick={handleNotificationPermission} size="sm" variant="outline" className="shrink-0">
                   <Bell className="h-4 w-4 mr-2" />
                   Enable
                 </Button>

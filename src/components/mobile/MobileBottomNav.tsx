@@ -25,7 +25,7 @@ const MobileBottomNav = () => {
       icon: Receipt,
     },
     {
-      href: '/barcode',
+      href: '/scanner',
       label: 'Scan',
       icon: QrCode,
       isCenter: true,
