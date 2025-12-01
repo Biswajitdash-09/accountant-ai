@@ -48,7 +48,7 @@ export const NavigationBreadcrumbs = () => {
   }
 
   return (
-    <div className="mb-4">
+    <div className="mb-4 hidden md:block">
       <Breadcrumb>
         <BreadcrumbList>
           <BreadcrumbItem>

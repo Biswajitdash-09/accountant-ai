@@ -91,16 +91,16 @@ const TransactionList = ({
                 placeholder="Search transactions..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10 w-full sm:w-64"
+                className="pl-10 w-full sm:w-64 mobile-form-field"
               />
             </div>
             
             <Select value={filterType} onValueChange={setFilterType}>
-              <SelectTrigger className="w-full sm:w-32">
+              <SelectTrigger className="w-full sm:w-32 mobile-form-field">
                 <Filter className="h-4 w-4 mr-2" />
                 <SelectValue />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent className="z-[100]">
                 <SelectItem value="all">All Types</SelectItem>
                 <SelectItem value="income">Income</SelectItem>
                 <SelectItem value="expense">Expense</SelectItem>
@@ -143,7 +143,7 @@ const TransactionList = ({
             <div className="overflow-x-auto">
               <div className="min-w-full">
                 {filteredTransactions.map((transaction) => (
-                  <div key={transaction.id} className="flex flex-col sm:flex-row sm:items-center justify-between p-4 border rounded-lg mb-3 hover:bg-accent/50 transition-colors">
+                  <div key={transaction.id} className="flex flex-col sm:flex-row sm:items-center justify-between mobile-card-spacing border rounded-lg mb-3 hover:bg-accent/50 transition-colors">
                     <div className="flex-1 space-y-2 sm:space-y-0">
                       <div className="flex flex-col sm:flex-row sm:items-center gap-2">
                         <div className="flex items-center gap-2">
@@ -205,7 +205,7 @@ const TransactionList = ({
                             variant="ghost" 
                             size="sm"
                             onClick={() => handleEdit(transaction)}
-                            className="h-8 w-8 p-0"
+                            className="mobile-touch p-0 touch-feedback"
                           >
                             <Pencil className="h-4 w-4" />
                           </Button>
@@ -215,7 +215,7 @@ const TransactionList = ({
                               <Button 
                                 variant="ghost" 
                                 size="sm"
-                                className="h-8 w-8 p-0 text-destructive hover:text-destructive hover:bg-destructive/10"
+                                className="mobile-touch p-0 text-destructive hover:text-destructive hover:bg-destructive/10 touch-feedback"
                               >
                                 <Trash2 className="h-4 w-4" />
                               </Button>

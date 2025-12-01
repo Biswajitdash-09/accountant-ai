@@ -96,17 +96,17 @@ const AccountForm = ({ account, onSuccess, onCancel }: AccountFormProps) => {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
+    <form onSubmit={handleSubmit} className="mobile-section">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="space-y-2">
-          <Label htmlFor="account_name">Account Name</Label>
+          <Label htmlFor="account_name" className="mobile-form-label">Account Name</Label>
           <div className="relative">
             <Wallet className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
             <Input
               id="account_name"
               value={formData.account_name}
               onChange={(e) => setFormData({ ...formData, account_name: e.target.value })}
-              className="pl-10"
+              className="pl-10 mobile-form-field"
               placeholder="e.g., Main Checking Account"
               required
             />
@@ -114,12 +114,12 @@ const AccountForm = ({ account, onSuccess, onCancel }: AccountFormProps) => {
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="account_type">Account Type</Label>
+          <Label htmlFor="account_type" className="mobile-form-label">Account Type</Label>
           <Select value={formData.account_type} onValueChange={(value) => setFormData({ ...formData, account_type: value })}>
-            <SelectTrigger>
+            <SelectTrigger className="mobile-form-field">
               <SelectValue placeholder="Select account type" />
             </SelectTrigger>
-            <SelectContent>
+            <SelectContent className="z-[100]">
               {accountTypes.map((type) => (
                 <SelectItem key={type} value={type}>
                   {type.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
@@ -130,7 +130,7 @@ const AccountForm = ({ account, onSuccess, onCancel }: AccountFormProps) => {
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="balance">Initial Balance</Label>
+          <Label htmlFor="balance" className="mobile-form-label">Initial Balance</Label>
           <div className="relative">
             <DollarSign className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
             <Input
@@ -139,19 +139,19 @@ const AccountForm = ({ account, onSuccess, onCancel }: AccountFormProps) => {
               step="0.01"
               value={formData.balance || ""}
               onChange={(e) => setFormData({ ...formData, balance: parseFloat(e.target.value) || 0 })}
-              className="pl-10"
+              className="pl-10 mobile-form-field"
               placeholder="0.00"
             />
           </div>
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="currency">Currency</Label>
+          <Label htmlFor="currency" className="mobile-form-label">Currency</Label>
           <Select value={formData.currency_id} onValueChange={(value) => setFormData({ ...formData, currency_id: value })}>
-            <SelectTrigger>
+            <SelectTrigger className="mobile-form-field">
               <SelectValue placeholder="Select currency" />
             </SelectTrigger>
-            <SelectContent>
+            <SelectContent className="z-[100]">
               {currencies.map((currency) => (
                 <SelectItem key={currency.id} value={currency.id}>
                   <div className="flex items-center gap-2">
@@ -167,7 +167,7 @@ const AccountForm = ({ account, onSuccess, onCancel }: AccountFormProps) => {
       </div>
 
       <div className="flex gap-3 pt-4">
-        <Button type="submit" disabled={isSubmitting} className="flex-1">
+        <Button type="submit" disabled={isSubmitting} className="flex-1 mobile-touch touch-feedback">
           {isSubmitting ? (
             <>
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />

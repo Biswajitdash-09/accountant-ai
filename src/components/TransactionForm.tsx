@@ -111,18 +111,18 @@ const TransactionForm = ({ transaction, onSuccess, onCancel }: TransactionFormPr
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
+    <form onSubmit={handleSubmit} className="mobile-section">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {/* Transaction Type */}
         <div className="space-y-2">
-          <Label htmlFor="type">Transaction Type</Label>
+          <Label htmlFor="type" className="mobile-form-label">Transaction Type</Label>
           <Select value={formData.type} onValueChange={(value: "income" | "expense") => {
             setFormData({ ...formData, type: value, category: "" });
           }}>
-            <SelectTrigger>
+            <SelectTrigger className="mobile-form-field">
               <SelectValue />
             </SelectTrigger>
-            <SelectContent>
+            <SelectContent className="z-[100]">
               <SelectItem value="income">Income</SelectItem>
               <SelectItem value="expense">Expense</SelectItem>
             </SelectContent>
@@ -131,7 +131,7 @@ const TransactionForm = ({ transaction, onSuccess, onCancel }: TransactionFormPr
 
         {/* Amount */}
         <div className="space-y-2">
-          <Label htmlFor="amount">Amount</Label>
+          <Label htmlFor="amount" className="mobile-form-label">Amount</Label>
           <div className="relative">
             <DollarSign className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
             <Input
@@ -141,7 +141,7 @@ const TransactionForm = ({ transaction, onSuccess, onCancel }: TransactionFormPr
               min="0"
               value={formData.amount || ""}
               onChange={(e) => setFormData({ ...formData, amount: parseFloat(e.target.value) || 0 })}
-              className="pl-10"
+              className="pl-10 mobile-form-field"
               placeholder="0.00"
               required
             />
@@ -150,12 +150,12 @@ const TransactionForm = ({ transaction, onSuccess, onCancel }: TransactionFormPr
 
         {/* Currency */}
         <div className="space-y-2">
-          <Label htmlFor="currency">Currency</Label>
+          <Label htmlFor="currency" className="mobile-form-label">Currency</Label>
           <Select value={formData.currency_id} onValueChange={(value) => setFormData({ ...formData, currency_id: value })}>
-            <SelectTrigger>
+            <SelectTrigger className="mobile-form-field">
               <SelectValue placeholder="Select currency" />
             </SelectTrigger>
-            <SelectContent>
+            <SelectContent className="z-[100]">
               {currencies.map((currency) => (
                 <SelectItem key={currency.id} value={currency.id}>
                   <div className="flex items-center gap-2">
@@ -171,7 +171,7 @@ const TransactionForm = ({ transaction, onSuccess, onCancel }: TransactionFormPr
 
         {/* Date */}
         <div className="space-y-2">
-          <Label htmlFor="date">Date</Label>
+          <Label htmlFor="date" className="mobile-form-label">Date</Label>
           <div className="relative">
             <Calendar className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
             <Input
@@ -179,7 +179,7 @@ const TransactionForm = ({ transaction, onSuccess, onCancel }: TransactionFormPr
               type="date"
               value={formData.date}
               onChange={(e) => setFormData({ ...formData, date: e.target.value })}
-              className="pl-10"
+              className="pl-10 mobile-form-field"
               required
             />
           </div>
@@ -187,14 +187,14 @@ const TransactionForm = ({ transaction, onSuccess, onCancel }: TransactionFormPr
 
         {/* Description */}
         <div className="space-y-2 md:col-span-2">
-          <Label htmlFor="description">Description</Label>
+          <Label htmlFor="description" className="mobile-form-label">Description</Label>
           <div className="relative">
             <FileText className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
             <Input
               id="description"
               value={formData.description}
               onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-              className="pl-10"
+              className="pl-10 mobile-form-field"
               placeholder="Brief description of the transaction"
               required
             />
@@ -203,13 +203,13 @@ const TransactionForm = ({ transaction, onSuccess, onCancel }: TransactionFormPr
 
         {/* Category */}
         <div className="space-y-2">
-          <Label htmlFor="category">Category</Label>
+          <Label htmlFor="category" className="mobile-form-label">Category</Label>
           <Select value={formData.category} onValueChange={(value) => setFormData({ ...formData, category: value })}>
-            <SelectTrigger>
+            <SelectTrigger className="mobile-form-field">
               <Tag className="h-4 w-4 mr-2" />
               <SelectValue placeholder="Select category" />
             </SelectTrigger>
-            <SelectContent>
+            <SelectContent className="z-[100] max-h-[300px]">
               {categories.map((category) => (
                 <SelectItem key={category} value={category}>
                   {category}
@@ -221,23 +221,24 @@ const TransactionForm = ({ transaction, onSuccess, onCancel }: TransactionFormPr
 
         {/* Subcategory */}
         <div className="space-y-2">
-          <Label htmlFor="subcategory">Subcategory (Optional)</Label>
+          <Label htmlFor="subcategory" className="mobile-form-label">Subcategory (Optional)</Label>
           <Input
             id="subcategory"
             value={formData.subcategory}
             onChange={(e) => setFormData({ ...formData, subcategory: e.target.value })}
             placeholder="More specific category"
+            className="mobile-form-field"
           />
         </div>
 
         {/* Account */}
         <div className="space-y-2">
-          <Label htmlFor="account">Account</Label>
+          <Label htmlFor="account" className="mobile-form-label">Account</Label>
           <Select value={formData.account_id} onValueChange={(value) => setFormData({ ...formData, account_id: value })}>
-            <SelectTrigger>
+            <SelectTrigger className="mobile-form-field">
               <SelectValue placeholder="Select account" />
             </SelectTrigger>
-            <SelectContent>
+            <SelectContent className="z-[100] max-h-[300px]">
               {accounts.map((account) => (
                 <SelectItem key={account.id} value={account.id}>
                   {account.account_name} ({account.account_type})
@@ -250,12 +251,12 @@ const TransactionForm = ({ transaction, onSuccess, onCancel }: TransactionFormPr
         {/* Revenue Stream (for income) */}
         {formData.type === "income" && (
           <div className="space-y-2">
-            <Label htmlFor="revenue_stream">Revenue Stream</Label>
+            <Label htmlFor="revenue_stream" className="mobile-form-label">Revenue Stream</Label>
             <Select value={formData.revenue_stream_id} onValueChange={(value) => setFormData({ ...formData, revenue_stream_id: value })}>
-              <SelectTrigger>
+              <SelectTrigger className="mobile-form-field">
                 <SelectValue placeholder="Select revenue stream" />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent className="z-[100] max-h-[300px]">
                 {revenueStreams.map((stream) => (
                   <SelectItem key={stream.id} value={stream.id}>
                     {stream.stream_name}
@@ -268,12 +269,12 @@ const TransactionForm = ({ transaction, onSuccess, onCancel }: TransactionFormPr
 
         {/* Cost Center */}
         <div className="space-y-2">
-          <Label htmlFor="cost_center">Cost Center</Label>
+          <Label htmlFor="cost_center" className="mobile-form-label">Cost Center</Label>
           <Select value={formData.cost_center} onValueChange={(value) => setFormData({ ...formData, cost_center: value })}>
-            <SelectTrigger>
+            <SelectTrigger className="mobile-form-field">
               <SelectValue placeholder="Select cost center" />
             </SelectTrigger>
-            <SelectContent>
+            <SelectContent className="z-[100] max-h-[300px]">
               {costCenters.map((center) => (
                 <SelectItem key={center.id} value={center.name}>
                   {center.name}
@@ -286,13 +287,14 @@ const TransactionForm = ({ transaction, onSuccess, onCancel }: TransactionFormPr
 
       {/* Notes */}
       <div className="space-y-2">
-        <Label htmlFor="notes">Notes (Optional)</Label>
+        <Label htmlFor="notes" className="mobile-form-label">Notes (Optional)</Label>
         <Textarea
           id="notes"
           value={formData.notes}
           onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
           placeholder="Additional notes or details about this transaction"
           rows={3}
+          className="mobile-form-field resize-none"
         />
       </div>
 
@@ -308,7 +310,7 @@ const TransactionForm = ({ transaction, onSuccess, onCancel }: TransactionFormPr
 
       {/* Form Actions */}
       <div className="flex gap-3 pt-4">
-        <Button type="submit" disabled={isSubmitting} className="flex-1">
+        <Button type="submit" disabled={isSubmitting} className="flex-1 mobile-touch touch-feedback">
           {isSubmitting ? (
             <>
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />

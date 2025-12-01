@@ -54,12 +54,12 @@ const IncomeExpenseChart = () => {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Income vs Expenses</CardTitle>
-        <CardDescription>
+        <CardTitle className="text-lg md:text-xl">Income vs Expenses</CardTitle>
+        <CardDescription className="text-sm">
           Last 6 months including current month (dynamically updated)
         </CardDescription>
       </CardHeader>
-      <CardContent>
+      <CardContent className="px-2 md:px-6">
         <ResponsiveContainer width="100%" height={300}>
           <BarChart data={chartData}>
             <CartesianGrid strokeDasharray="3 3" />
