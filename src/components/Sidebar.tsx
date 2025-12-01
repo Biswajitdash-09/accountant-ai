@@ -230,12 +230,15 @@ const Sidebar = ({ isCollapsed, onToggle, isMobileOpen = false, onMobileToggle }
       {/* Navigation */}
       <ScrollArea className="flex-1 px-3 custom-scrollbar">
         <div className="space-y-6 py-4">
-          {menuSections.map((section) => (
+          {menuSections.map((section, idx) => (
             <div key={section.title} className="space-y-2">
               {!isCollapsed && (
-                <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider px-2">
-                  {section.title}
-                </h3>
+                <>
+                  {idx > 0 && <div className="h-px bg-border/50 mx-2 my-3" />}
+                  <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider px-2">
+                    {section.title}
+                  </h3>
+                </>
               )}
               <div className="space-y-1">
                 {section.items.map((item) => {
@@ -322,7 +325,7 @@ const Sidebar = ({ isCollapsed, onToggle, isMobileOpen = false, onMobileToggle }
       <Sheet open={isMobileOpen} onOpenChange={onMobileToggle}>
         <SheetContent 
           side="left" 
-          className="w-80 p-0 ui-glass border-r"
+          className="w-80 p-0 bg-background border-r z-[60]"
           onClick={(e) => e.stopPropagation()}
         >
           <SidebarContent isMobileSheet={true} />

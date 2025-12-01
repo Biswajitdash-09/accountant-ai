@@ -4,10 +4,15 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Brain } from "lucide-react";
 import { ConversationalInterface } from "./ConversationalInterface";
 import { Badge } from "@/components/ui/badge";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 export const FloatingArnoldButton = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [hasNewInsights] = useState(false); // Can be connected to real insight notifications
+  const isMobile = useIsMobile();
+
+  // Hide on mobile - accessible via bottom nav AI button
+  if (isMobile) return null;
 
   return (
     <>

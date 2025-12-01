@@ -481,6 +481,16 @@
     border-top: 1px solid hsl(var(--border));
   }
   
+  /* Z-Index Hierarchy */
+  .z-content { z-index: 10; }
+  .z-sticky { z-index: 20; }
+  .z-modal { z-index: 30; }
+  .z-overlay { z-index: 40; }
+  .z-fab-menu { z-index: 45; }
+  .z-navigation { z-index: 50; }
+  .z-sidebar { z-index: 60; }
+  .z-notification { z-index: 70; }
+  
   /* Mobile Typography */
   .mobile-h1 { font-size: clamp(1.75rem, 4vw, 2.25rem); }
   .mobile-h2 { font-size: clamp(1.5rem, 3.5vw, 1.875rem); }
