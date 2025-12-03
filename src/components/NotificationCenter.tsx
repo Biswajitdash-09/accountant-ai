@@ -39,8 +39,8 @@ export const NotificationCenter = () => {
 
   return (
     <Card>
-      <CardHeader>
-        <div className="flex justify-between items-center">
+      <CardHeader className="pb-4">
+        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
           <div>
             <CardTitle className="flex items-center gap-2">
               <Bell className="h-5 w-5" />
@@ -56,7 +56,11 @@ export const NotificationCenter = () => {
             </CardDescription>
           </div>
           {unreadCount > 0 && (
-            <Button variant="outline" size="sm" onClick={() => markAllAsRead.mutate()}>
+            <Button 
+              variant="outline" 
+              onClick={() => markAllAsRead.mutate()}
+              className="w-full sm:w-auto min-h-[44px]"
+            >
               <CheckCheck className="h-4 w-4 mr-2" />
               Mark All Read
             </Button>
@@ -68,14 +72,14 @@ export const NotificationCenter = () => {
           {notifications.map((notification) => (
             <div
               key={notification.id}
-              className={`p-3 border rounded-lg transition-colors ${
-                !notification.is_read ? 'bg-blue-50 border-blue-200' : 'bg-background'
+              className={`mobile-notification border rounded-lg transition-colors ${
+                !notification.is_read ? 'bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800' : 'bg-background'
               }`}
             >
-              <div className="flex items-start justify-between">
-                <div className="flex-1">
-                  <div className="flex items-center gap-2 mb-1">
-                    <h4 className="font-medium">{notification.title}</h4>
+              <div className="flex items-start justify-between gap-3">
+                <div className="flex-1 min-w-0">
+                  <h4 className="font-medium text-base mb-2 break-words">{notification.title}</h4>
+                  <div className="flex items-center gap-2 flex-wrap mb-2">
                     <Badge variant={getTypeColor(notification.type)} className="text-xs">
                       {notification.type}
                     </Badge>
@@ -88,17 +92,18 @@ export const NotificationCenter = () => {
                       </Badge>
                     )}
                   </div>
-                  <p className="text-sm text-muted-foreground mb-2">{notification.message}</p>
+                  <p className="text-sm text-muted-foreground mb-2 break-words">{notification.message}</p>
                   <p className="text-xs text-muted-foreground">
                     {format(new Date(notification.created_at), 'MMM dd, yyyy hh:mm a')}
                   </p>
                 </div>
-                <div className="flex items-center space-x-2">
+                <div className="flex items-center gap-1 flex-shrink-0">
                   {!notification.is_read && (
                     <Button
                       variant="ghost"
                       size="sm"
                       onClick={() => markAsRead.mutate(notification.id)}
+                      className="min-h-[44px] min-w-[44px]"
                     >
                       <Check className="h-4 w-4" />
                     </Button>
@@ -107,6 +112,7 @@ export const NotificationCenter = () => {
                     variant="ghost"
                     size="sm"
                     onClick={() => deleteNotification.mutate(notification.id)}
+                    className="min-h-[44px] min-w-[44px]"
                   >
                     <X className="h-4 w-4" />
                   </Button>

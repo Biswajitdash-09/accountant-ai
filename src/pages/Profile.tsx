@@ -64,16 +64,16 @@ const Profile = () => {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-        <TabsList className="grid w-full grid-cols-3">
-          <TabsTrigger value="profile" className="flex items-center gap-2">
+        <TabsList className="grid w-full grid-cols-3 h-auto p-1">
+          <TabsTrigger value="profile" className="flex items-center gap-2 min-h-[44px]">
             <User className="h-4 w-4" />
             <span className="hidden sm:inline">Profile</span>
           </TabsTrigger>
-          <TabsTrigger value="settings" className="flex items-center gap-2">
+          <TabsTrigger value="settings" className="flex items-center gap-2 min-h-[44px]">
             <Settings className="h-4 w-4" />
             <span className="hidden sm:inline">Settings</span>
           </TabsTrigger>
-          <TabsTrigger value="security" className="flex items-center gap-2">
+          <TabsTrigger value="security" className="flex items-center gap-2 min-h-[44px]">
             <Shield className="h-4 w-4" />
             <span className="hidden sm:inline">Security</span>
           </TabsTrigger>
@@ -164,61 +164,66 @@ const Profile = () => {
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="flex items-center justify-between">
-                <div className="space-y-0.5">
-                  <Label htmlFor="email-notifications">Email Notifications</Label>
+              <div className="flex items-center justify-between py-2 min-h-[56px]">
+                <div className="space-y-0.5 flex-1 mr-4">
+                  <Label htmlFor="email-notifications" className="text-base">Email Notifications</Label>
                   <p className="text-sm text-muted-foreground">Receive notifications via email</p>
                 </div>
                 <Switch
                   id="email-notifications"
+                  className="scale-110"
                   checked={preferences?.notification_preferences?.email_notifications ?? true}
                   onCheckedChange={(checked) => handleNotificationChange('email_notifications', checked)}
                 />
               </div>
 
-              <div className="flex items-center justify-between">
-                <div className="space-y-0.5">
-                  <Label htmlFor="push-notifications">Push Notifications</Label>
+              <div className="flex items-center justify-between py-2 min-h-[56px]">
+                <div className="space-y-0.5 flex-1 mr-4">
+                  <Label htmlFor="push-notifications" className="text-base">Push Notifications</Label>
                   <p className="text-sm text-muted-foreground">Receive browser push notifications</p>
                 </div>
                 <Switch
                   id="push-notifications"
+                  className="scale-110"
                   checked={preferences?.notification_preferences?.push_notifications ?? true}
                   onCheckedChange={(checked) => handleNotificationChange('push_notifications', checked)}
                 />
               </div>
 
-              <div className="flex items-center justify-between">
-                <div className="space-y-0.5">
-                  <Label htmlFor="tax-reminders">Tax Reminders</Label>
+              <div className="flex items-center justify-between py-2 min-h-[56px]">
+                <div className="space-y-0.5 flex-1 mr-4">
+                  <Label htmlFor="tax-reminders" className="text-base">Tax Reminders</Label>
                   <p className="text-sm text-muted-foreground">Important tax deadline notifications</p>
                 </div>
                 <Switch
                   id="tax-reminders"
+                  className="scale-110"
                   checked={preferences?.notification_preferences?.tax_reminders ?? true}
                   onCheckedChange={(checked) => handleNotificationChange('tax_reminders', checked)}
                 />
               </div>
 
-              <div className="flex items-center justify-between">
-                <div className="space-y-0.5">
-                  <Label htmlFor="goal-updates">Goal Updates</Label>
+              <div className="flex items-center justify-between py-2 min-h-[56px]">
+                <div className="space-y-0.5 flex-1 mr-4">
+                  <Label htmlFor="goal-updates" className="text-base">Goal Updates</Label>
                   <p className="text-sm text-muted-foreground">Progress updates on financial goals</p>
                 </div>
                 <Switch
                   id="goal-updates"
+                  className="scale-110"
                   checked={preferences?.notification_preferences?.goal_updates ?? true}
                   onCheckedChange={(checked) => handleNotificationChange('goal_updates', checked)}
                 />
               </div>
 
-              <div className="flex items-center justify-between">
-                <div className="space-y-0.5">
-                  <Label htmlFor="security-alerts">Security Alerts</Label>
+              <div className="flex items-center justify-between py-2 min-h-[56px]">
+                <div className="space-y-0.5 flex-1 mr-4">
+                  <Label htmlFor="security-alerts" className="text-base">Security Alerts</Label>
                   <p className="text-sm text-muted-foreground">Important security and account changes</p>
                 </div>
                 <Switch
                   id="security-alerts"
+                  className="scale-110"
                   checked={preferences?.notification_preferences?.security_alerts ?? true}
                   onCheckedChange={(checked) => handleNotificationChange('security_alerts', checked)}
                 />

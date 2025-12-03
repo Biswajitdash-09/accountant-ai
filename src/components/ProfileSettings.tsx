@@ -146,17 +146,17 @@ const ProfileSettings = () => {
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
-          <div className="flex items-center space-x-4">
+          <div className="flex flex-col sm:flex-row items-center gap-4 sm:gap-6">
             <div className="relative">
-              <Avatar className="h-20 w-20">
+              <Avatar className="h-24 w-24 mobile-avatar-upload">
                 <AvatarImage src={isDemo ? undefined : profile?.avatar_url} />
-                <AvatarFallback className="text-lg">
+                <AvatarFallback className="text-xl">
                   {displayName.split(' ').map(n => n[0]).join('') || displayEmail?.[0]?.toUpperCase()}
                 </AvatarFallback>
               </Avatar>
               {!isDemo && (
-                <label className="absolute bottom-0 right-0 bg-primary text-primary-foreground rounded-full p-1 cursor-pointer hover:bg-primary/90 transition-colors">
-                  <Camera className="h-3 w-3" />
+                <label className="absolute bottom-0 right-0 bg-primary text-primary-foreground rounded-full p-2 cursor-pointer hover:bg-primary/90 transition-colors min-h-[36px] min-w-[36px] flex items-center justify-center">
+                  <Camera className="h-4 w-4" />
                   <input
                     type="file"
                     accept="image/*"
@@ -188,13 +188,14 @@ const ProfileSettings = () => {
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="full_name">Full Name</Label>
+                <Label htmlFor="full_name" className="mobile-form-label">Full Name</Label>
                 <Input
                   id="full_name"
                   value={formData.full_name}
                   onChange={(e) => setFormData({ ...formData, full_name: e.target.value })}
                   placeholder="Enter your full name"
                   disabled={isDemo}
+                  className="mobile-form-field"
                 />
                 {isDemo && (
                   <p className="text-xs text-muted-foreground flex items-center gap-1">
@@ -204,16 +205,16 @@ const ProfileSettings = () => {
                 )}
               </div>
               <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
+                <Label htmlFor="email" className="mobile-form-label">Email</Label>
                 <div className="relative">
-                  <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                  <Mail className="absolute left-3 top-4 h-4 w-4 text-muted-foreground" />
                   <Input
                     id="email"
                     type="email"
                     value={formData.email}
                     onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                     placeholder="Enter your email"
-                    className="pl-10"
+                    className="pl-10 mobile-form-field"
                     disabled={true}
                   />
                 </div>
@@ -231,6 +232,7 @@ const ProfileSettings = () => {
                 type="submit" 
                 disabled={updateProfile.isPending || isDemo}
                 variant={isDemo ? "secondary" : "default"}
+                className="w-full sm:w-auto min-h-[48px]"
               >
                 {updateProfile.isPending ? (
                   <>

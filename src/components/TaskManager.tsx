@@ -8,15 +8,18 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerTrigger } from "@/components/ui/drawer";
 import { Label } from "@/components/ui/label";
 import { Plus, Edit, Trash2, CheckSquare, Calendar, Clock } from "lucide-react";
 import { useTasks, Task } from "@/hooks/useTasks";
 import { format } from "date-fns";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 export const TaskManager = () => {
   const { tasks, createTask, updateTask, deleteTask } = useTasks();
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
+  const isMobile = useIsMobile();
   const [newTask, setNewTask] = useState({
     title: "",
     description: "",
@@ -87,80 +90,161 @@ export const TaskManager = () => {
               Organize your tasks and stay productive
             </CardDescription>
           </div>
-          <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
-            <DialogTrigger asChild>
-              <Button className="w-full sm:w-auto min-h-[44px]">
-                <Plus className="h-4 w-4 mr-2" />
-                Add Task
-              </Button>
-            </DialogTrigger>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Create New Task</DialogTitle>
-              </DialogHeader>
-              <div className="space-y-4">
-                <div>
-                  <Label htmlFor="title">Title</Label>
-                  <Input
-                    id="title"
-                    value={newTask.title}
-                    onChange={(e) => setNewTask({ ...newTask, title: e.target.value })}
-                    placeholder="Enter task title"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="description">Description</Label>
-                  <Textarea
-                    id="description"
-                    value={newTask.description}
-                    onChange={(e) => setNewTask({ ...newTask, description: e.target.value })}
-                    placeholder="Enter task description"
-                  />
-                </div>
-                <div className="grid grid-cols-2 gap-4">
+          {isMobile ? (
+            <Drawer open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
+              <DrawerTrigger asChild>
+                <Button className="w-full sm:w-auto min-h-[44px]">
+                  <Plus className="h-4 w-4 mr-2" />
+                  Add Task
+                </Button>
+              </DrawerTrigger>
+              <DrawerContent className="mobile-drawer-content">
+                <DrawerHeader>
+                  <DrawerTitle>Create New Task</DrawerTitle>
+                </DrawerHeader>
+                <div className="p-4 space-y-4">
                   <div>
-                    <Label htmlFor="priority">Priority</Label>
-                    <Select value={newTask.priority} onValueChange={(value) => setNewTask({ ...newTask, priority: value as "low" | "medium" | "high" | "critical" })}>
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="low">Low</SelectItem>
-                        <SelectItem value="medium">Medium</SelectItem>
-                        <SelectItem value="high">High</SelectItem>
-                        <SelectItem value="critical">Critical</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div>
-                    <Label htmlFor="due_date">Due Date</Label>
+                    <Label htmlFor="title" className="mobile-form-label">Title</Label>
                     <Input
-                      id="due_date"
-                      type="date"
-                      value={newTask.due_date}
-                      onChange={(e) => setNewTask({ ...newTask, due_date: e.target.value })}
+                      id="title"
+                      value={newTask.title}
+                      onChange={(e) => setNewTask({ ...newTask, title: e.target.value })}
+                      placeholder="Enter task title"
+                      className="mobile-form-field"
                     />
                   </div>
+                  <div>
+                    <Label htmlFor="description" className="mobile-form-label">Description</Label>
+                    <Textarea
+                      id="description"
+                      value={newTask.description}
+                      onChange={(e) => setNewTask({ ...newTask, description: e.target.value })}
+                      placeholder="Enter task description"
+                      className="min-h-[100px]"
+                    />
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <Label htmlFor="priority" className="mobile-form-label">Priority</Label>
+                      <Select value={newTask.priority} onValueChange={(value) => setNewTask({ ...newTask, priority: value as "low" | "medium" | "high" | "critical" })}>
+                        <SelectTrigger className="mobile-form-field">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent className="mobile-select-content">
+                          <SelectItem value="low" className="min-h-[44px]">Low</SelectItem>
+                          <SelectItem value="medium" className="min-h-[44px]">Medium</SelectItem>
+                          <SelectItem value="high" className="min-h-[44px]">High</SelectItem>
+                          <SelectItem value="critical" className="min-h-[44px]">Critical</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div>
+                      <Label htmlFor="due_date" className="mobile-form-label">Due Date</Label>
+                      <Input
+                        id="due_date"
+                        type="date"
+                        value={newTask.due_date}
+                        onChange={(e) => setNewTask({ ...newTask, due_date: e.target.value })}
+                        className="mobile-form-field"
+                      />
+                    </div>
+                  </div>
+                  <div className="flex items-center space-x-3 min-h-[44px]">
+                    <Checkbox
+                      id="recurring"
+                      checked={newTask.is_recurring}
+                      onCheckedChange={(checked) => setNewTask({ ...newTask, is_recurring: checked as boolean })}
+                      className="h-5 w-5"
+                    />
+                    <Label htmlFor="recurring" className="text-base">Recurring task</Label>
+                  </div>
+                  <div className="mobile-action-group pt-4">
+                    <Button variant="outline" onClick={() => setIsCreateDialogOpen(false)} className="min-h-[48px]">
+                      Cancel
+                    </Button>
+                    <Button onClick={handleCreateTask} className="min-h-[48px]">
+                      Create Task
+                    </Button>
+                  </div>
                 </div>
-                <div className="flex items-center space-x-2">
-                  <Checkbox
-                    id="recurring"
-                    checked={newTask.is_recurring}
-                    onCheckedChange={(checked) => setNewTask({ ...newTask, is_recurring: checked as boolean })}
-                  />
-                  <Label htmlFor="recurring">Recurring task</Label>
+              </DrawerContent>
+            </Drawer>
+          ) : (
+            <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
+              <DialogTrigger asChild>
+                <Button className="w-full sm:w-auto min-h-[44px]">
+                  <Plus className="h-4 w-4 mr-2" />
+                  Add Task
+                </Button>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Create New Task</DialogTitle>
+                </DialogHeader>
+                <div className="space-y-4">
+                  <div>
+                    <Label htmlFor="title">Title</Label>
+                    <Input
+                      id="title"
+                      value={newTask.title}
+                      onChange={(e) => setNewTask({ ...newTask, title: e.target.value })}
+                      placeholder="Enter task title"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="description">Description</Label>
+                    <Textarea
+                      id="description"
+                      value={newTask.description}
+                      onChange={(e) => setNewTask({ ...newTask, description: e.target.value })}
+                      placeholder="Enter task description"
+                    />
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <Label htmlFor="priority">Priority</Label>
+                      <Select value={newTask.priority} onValueChange={(value) => setNewTask({ ...newTask, priority: value as "low" | "medium" | "high" | "critical" })}>
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="low">Low</SelectItem>
+                          <SelectItem value="medium">Medium</SelectItem>
+                          <SelectItem value="high">High</SelectItem>
+                          <SelectItem value="critical">Critical</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div>
+                      <Label htmlFor="due_date">Due Date</Label>
+                      <Input
+                        id="due_date"
+                        type="date"
+                        value={newTask.due_date}
+                        onChange={(e) => setNewTask({ ...newTask, due_date: e.target.value })}
+                      />
+                    </div>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <Checkbox
+                      id="recurring"
+                      checked={newTask.is_recurring}
+                      onCheckedChange={(checked) => setNewTask({ ...newTask, is_recurring: checked as boolean })}
+                    />
+                    <Label htmlFor="recurring">Recurring task</Label>
+                  </div>
+                  <div className="flex justify-end space-x-2">
+                    <Button variant="outline" onClick={() => setIsCreateDialogOpen(false)}>
+                      Cancel
+                    </Button>
+                    <Button onClick={handleCreateTask}>
+                      Create Task
+                    </Button>
+                  </div>
                 </div>
-                <div className="flex justify-end space-x-2">
-                  <Button variant="outline" onClick={() => setIsCreateDialogOpen(false)}>
-                    Cancel
-                  </Button>
-                  <Button onClick={handleCreateTask}>
-                    Create Task
-                  </Button>
-                </div>
-              </div>
-            </DialogContent>
-          </Dialog>
+              </DialogContent>
+            </Dialog>
+          )}
         </div>
       </CardHeader>
       <CardContent>
