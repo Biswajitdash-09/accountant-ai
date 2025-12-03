@@ -131,7 +131,7 @@ const Accounts = () => {
                   <AccountDetailsModal
                     account={account}
                     trigger={
-                      <Button variant="outline" size="sm" className="w-full">
+                      <Button variant="outline" size="sm" className="w-full min-h-[44px]">
                         <Eye className="h-4 w-4 mr-2" />
                         Details
                       </Button>
@@ -140,7 +140,7 @@ const Accounts = () => {
                   <ImportStatementModal
                     account={account}
                     trigger={
-                      <Button variant="outline" size="sm" className="w-full">
+                      <Button variant="outline" size="sm" className="w-full min-h-[44px]">
                         <Upload className="h-4 w-4 mr-2" />
                         Import
                       </Button>
@@ -150,25 +150,25 @@ const Accounts = () => {
 
                 <AddTransactionModal 
                   trigger={
-                    <Button size="sm" className="w-full">
+                    <Button size="sm" className="w-full min-h-[44px]">
                       <Plus className="h-4 w-4 mr-2" />
                       Add Transaction
                     </Button>
                   }
                 />
 
-                <div className="flex justify-end space-x-2 pt-2 border-t">
+                <div className="flex justify-end gap-2 pt-2 border-t">
                   <EditAccountModal
                     account={account}
                     trigger={
-                      <Button variant="ghost" size="sm">
+                      <Button variant="ghost" size="sm" className="min-h-[44px] min-w-[44px]">
                         <Edit className="h-4 w-4" />
                       </Button>
                     }
                   />
                   <AlertDialog>
                     <AlertDialogTrigger asChild>
-                      <Button variant="ghost" size="sm" className="text-destructive hover:text-destructive">
+                      <Button variant="ghost" size="sm" className="text-destructive hover:text-destructive min-h-[44px] min-w-[44px]">
                         <Trash2 className="h-4 w-4" />
                       </Button>
                     </AlertDialogTrigger>

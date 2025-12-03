@@ -46,44 +46,46 @@ const Tax = () => {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-        <TabsList className="grid w-full grid-cols-2 sm:grid-cols-3 lg:grid-cols-9 gap-1">
-          <TabsTrigger value="dashboard" className="flex items-center gap-2">
-            <TrendingUp className="h-4 w-4" />
-            <span className="hidden sm:inline">Dashboard</span>
-          </TabsTrigger>
-          <TabsTrigger value="filing" className="flex items-center gap-2">
-            <Send className="h-4 w-4" />
-            <span className="hidden sm:inline">Filing</span>
-          </TabsTrigger>
-          <TabsTrigger value="deductions" className="flex items-center gap-2">
-            <FileText className="h-4 w-4" />
-            <span className="hidden sm:inline">Deductions</span>
-          </TabsTrigger>
-          <TabsTrigger value="calculator" className="flex items-center gap-2">
-            <Calculator className="h-4 w-4" />
-            <span className="hidden sm:inline">Calculator</span>
-          </TabsTrigger>
-          <TabsTrigger value="comparison" className="flex items-center gap-2">
-            <TrendingUp className="h-4 w-4" />
-            <span className="hidden sm:inline">Compare</span>
-          </TabsTrigger>
-          <TabsTrigger value="indirect" className="flex items-center gap-2">
-            <FileText className="h-4 w-4" />
-            <span className="hidden sm:inline">VAT/GST</span>
-          </TabsTrigger>
-          <TabsTrigger value="corporate" className="flex items-center gap-2">
-            <Building2 className="h-4 w-4" />
-            <span className="hidden sm:inline">Corporate</span>
-          </TabsTrigger>
-          <TabsTrigger value="calendar" className="flex items-center gap-2">
-            <Calendar className="h-4 w-4" />
-            <span className="hidden sm:inline">Calendar</span>
-          </TabsTrigger>
-          <TabsTrigger value="settings" className="flex items-center gap-2">
-            <Settings className="h-4 w-4" />
-            <span className="hidden sm:inline">Settings</span>
-          </TabsTrigger>
-        </TabsList>
+        <div className="mobile-tabs-scroll">
+          <TabsList className="inline-flex w-auto min-w-full md:grid md:w-full md:grid-cols-9 gap-1 p-1">
+            <TabsTrigger value="dashboard" className="flex items-center gap-2 min-h-[44px] whitespace-nowrap">
+              <TrendingUp className="h-4 w-4" />
+              <span className="hidden sm:inline">Dashboard</span>
+            </TabsTrigger>
+            <TabsTrigger value="filing" className="flex items-center gap-2 min-h-[44px] whitespace-nowrap">
+              <Send className="h-4 w-4" />
+              <span className="hidden sm:inline">Filing</span>
+            </TabsTrigger>
+            <TabsTrigger value="deductions" className="flex items-center gap-2 min-h-[44px] whitespace-nowrap">
+              <FileText className="h-4 w-4" />
+              <span className="hidden sm:inline">Deductions</span>
+            </TabsTrigger>
+            <TabsTrigger value="calculator" className="flex items-center gap-2 min-h-[44px] whitespace-nowrap">
+              <Calculator className="h-4 w-4" />
+              <span className="hidden sm:inline">Calculator</span>
+            </TabsTrigger>
+            <TabsTrigger value="comparison" className="flex items-center gap-2 min-h-[44px] whitespace-nowrap">
+              <TrendingUp className="h-4 w-4" />
+              <span className="hidden sm:inline">Compare</span>
+            </TabsTrigger>
+            <TabsTrigger value="indirect" className="flex items-center gap-2 min-h-[44px] whitespace-nowrap">
+              <FileText className="h-4 w-4" />
+              <span className="hidden sm:inline">VAT/GST</span>
+            </TabsTrigger>
+            <TabsTrigger value="corporate" className="flex items-center gap-2 min-h-[44px] whitespace-nowrap">
+              <Building2 className="h-4 w-4" />
+              <span className="hidden sm:inline">Corporate</span>
+            </TabsTrigger>
+            <TabsTrigger value="calendar" className="flex items-center gap-2 min-h-[44px] whitespace-nowrap">
+              <Calendar className="h-4 w-4" />
+              <span className="hidden sm:inline">Calendar</span>
+            </TabsTrigger>
+            <TabsTrigger value="settings" className="flex items-center gap-2 min-h-[44px] whitespace-nowrap">
+              <Settings className="h-4 w-4" />
+              <span className="hidden sm:inline">Settings</span>
+            </TabsTrigger>
+          </TabsList>
+        </div>
 
         <TabsContent value="dashboard" className="space-y-6">
           <TaxDashboard />

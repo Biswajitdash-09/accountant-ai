@@ -45,36 +45,38 @@ const Analytics = () => {
         <DemoAccountBadge />
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-3 sm:grid-cols-7">
-            <TabsTrigger value="overview" className="gap-2">
-              <PieChart className="h-4 w-4" />
-              <span className="hidden sm:inline">Overview</span>
-            </TabsTrigger>
-            <TabsTrigger value="comparison" className="gap-2">
-              <BarChart3 className="h-4 w-4" />
-              <span className="hidden sm:inline">Compare</span>
-            </TabsTrigger>
-            <TabsTrigger value="investments" className="gap-2">
-              <TrendingUp className="h-4 w-4" />
-              <span className="hidden sm:inline">Investments</span>
-            </TabsTrigger>
-            <TabsTrigger value="tax" className="gap-2">
-              <TrendingDown className="h-4 w-4" />
-              <span className="hidden sm:inline">Tax</span>
-            </TabsTrigger>
-            <TabsTrigger value="predictions" className="gap-2">
-              <Brain className="h-4 w-4" />
-              <span className="hidden sm:inline">Predictions</span>
-            </TabsTrigger>
-            <TabsTrigger value="anomalies" className="gap-2">
-              <Shield className="h-4 w-4" />
-              <span className="hidden sm:inline">Anomalies</span>
-            </TabsTrigger>
-            <TabsTrigger value="advanced" className="gap-2">
-              <Target className="h-4 w-4" />
-              <span className="hidden sm:inline">Advanced</span>
-            </TabsTrigger>
-          </TabsList>
+          <div className="mobile-tabs-scroll">
+            <TabsList className="inline-flex w-auto min-w-full md:grid md:w-full md:grid-cols-7 gap-1 p-1">
+              <TabsTrigger value="overview" className="gap-2 min-h-[44px] whitespace-nowrap">
+                <PieChart className="h-4 w-4" />
+                <span className="hidden sm:inline">Overview</span>
+              </TabsTrigger>
+              <TabsTrigger value="comparison" className="gap-2 min-h-[44px] whitespace-nowrap">
+                <BarChart3 className="h-4 w-4" />
+                <span className="hidden sm:inline">Compare</span>
+              </TabsTrigger>
+              <TabsTrigger value="investments" className="gap-2 min-h-[44px] whitespace-nowrap">
+                <TrendingUp className="h-4 w-4" />
+                <span className="hidden sm:inline">Investments</span>
+              </TabsTrigger>
+              <TabsTrigger value="tax" className="gap-2 min-h-[44px] whitespace-nowrap">
+                <TrendingDown className="h-4 w-4" />
+                <span className="hidden sm:inline">Tax</span>
+              </TabsTrigger>
+              <TabsTrigger value="predictions" className="gap-2 min-h-[44px] whitespace-nowrap">
+                <Brain className="h-4 w-4" />
+                <span className="hidden sm:inline">Predictions</span>
+              </TabsTrigger>
+              <TabsTrigger value="anomalies" className="gap-2 min-h-[44px] whitespace-nowrap">
+                <Shield className="h-4 w-4" />
+                <span className="hidden sm:inline">Anomalies</span>
+              </TabsTrigger>
+              <TabsTrigger value="advanced" className="gap-2 min-h-[44px] whitespace-nowrap">
+                <Target className="h-4 w-4" />
+                <span className="hidden sm:inline">Advanced</span>
+              </TabsTrigger>
+            </TabsList>
+          </div>
 
           <TabsContent value="overview" className="space-y-6">
             <AllSourcesOverview />

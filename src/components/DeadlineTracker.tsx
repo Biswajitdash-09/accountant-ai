@@ -7,15 +7,18 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerTrigger } from "@/components/ui/drawer";
 import { Label } from "@/components/ui/label";
 import { Plus, Edit, Trash2, Calendar, Clock, AlertTriangle } from "lucide-react";
 import { useDeadlines, Deadline } from "@/hooks/useDeadlines";
 import { format, differenceInDays } from "date-fns";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 export const DeadlineTracker = () => {
   const { deadlines, createDeadline, updateDeadline, deleteDeadline } = useDeadlines();
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [editingDeadline, setEditingDeadline] = useState<Deadline | null>(null);
+  const isMobile = useIsMobile();
   const [newDeadline, setNewDeadline] = useState({
     title: "",
     description: "",
@@ -93,10 +96,83 @@ export const DeadlineTracker = () => {
     return { color: 'text-green-600', text: `${daysUntil} days left` };
   };
 
+  const CreateDeadlineForm = () => (
+    <div className="space-y-4 p-4 md:p-0">
+      <div>
+        <Label htmlFor="title" className="mobile-form-label">Title</Label>
+        <Input
+          id="title"
+          value={newDeadline.title}
+          onChange={(e) => setNewDeadline({ ...newDeadline, title: e.target.value })}
+          placeholder="Enter deadline title"
+          className="mobile-form-field"
+        />
+      </div>
+      <div>
+        <Label htmlFor="description" className="mobile-form-label">Description</Label>
+        <Textarea
+          id="description"
+          value={newDeadline.description}
+          onChange={(e) => setNewDeadline({ ...newDeadline, description: e.target.value })}
+          placeholder="Enter deadline description"
+          className="min-h-[100px]"
+        />
+      </div>
+      <div className="grid grid-cols-2 gap-4">
+        <div>
+          <Label htmlFor="deadline_type" className="mobile-form-label">Type</Label>
+          <Select value={newDeadline.deadline_type} onValueChange={(value) => setNewDeadline({ ...newDeadline, deadline_type: value as "tax" | "financial" | "business" | "personal" })}>
+            <SelectTrigger className="mobile-form-field">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent className="mobile-select-content">
+              <SelectItem value="tax" className="min-h-[44px]">Tax</SelectItem>
+              <SelectItem value="financial" className="min-h-[44px]">Financial</SelectItem>
+              <SelectItem value="business" className="min-h-[44px]">Business</SelectItem>
+              <SelectItem value="personal" className="min-h-[44px]">Personal</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+        <div>
+          <Label htmlFor="priority" className="mobile-form-label">Priority</Label>
+          <Select value={newDeadline.priority} onValueChange={(value) => setNewDeadline({ ...newDeadline, priority: value as "low" | "medium" | "high" | "critical" })}>
+            <SelectTrigger className="mobile-form-field">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent className="mobile-select-content">
+              <SelectItem value="low" className="min-h-[44px]">Low</SelectItem>
+              <SelectItem value="medium" className="min-h-[44px]">Medium</SelectItem>
+              <SelectItem value="high" className="min-h-[44px]">High</SelectItem>
+              <SelectItem value="critical" className="min-h-[44px]">Critical</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
+      <div>
+        <Label htmlFor="deadline_date" className="mobile-form-label">Deadline Date</Label>
+        <Input
+          id="deadline_date"
+          type="date"
+          value={newDeadline.deadline_date}
+          onChange={(e) => setNewDeadline({ ...newDeadline, deadline_date: e.target.value })}
+          className="mobile-form-field"
+        />
+      </div>
+      <div className="mobile-action-group pt-4">
+        <Button variant="outline" onClick={() => setIsCreateDialogOpen(false)} className="min-h-[48px]">
+          Cancel
+        </Button>
+        <Button onClick={handleCreateDeadline} className="min-h-[48px]">
+          Create Deadline
+        </Button>
+      </div>
+    </div>
+  );
+
   return (
     <Card>
-      <CardHeader>
-        <div className="flex justify-between items-center">
+      <CardHeader className="pb-4">
+        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
           <div>
             <CardTitle className="flex items-center gap-2">
               <Calendar className="h-5 w-5" />
@@ -106,86 +182,37 @@ export const DeadlineTracker = () => {
               Keep track of important deadlines and never miss them
             </CardDescription>
           </div>
-          <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
-            <DialogTrigger asChild>
-              <Button>
-                <Plus className="h-4 w-4 mr-2" />
-                Add Deadline
-              </Button>
-            </DialogTrigger>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Create New Deadline</DialogTitle>
-              </DialogHeader>
-              <div className="space-y-4">
-                <div>
-                  <Label htmlFor="title">Title</Label>
-                  <Input
-                    id="title"
-                    value={newDeadline.title}
-                    onChange={(e) => setNewDeadline({ ...newDeadline, title: e.target.value })}
-                    placeholder="Enter deadline title"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="description">Description</Label>
-                  <Textarea
-                    id="description"
-                    value={newDeadline.description}
-                    onChange={(e) => setNewDeadline({ ...newDeadline, description: e.target.value })}
-                    placeholder="Enter deadline description"
-                  />
-                </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor="deadline_type">Type</Label>
-                    <Select value={newDeadline.deadline_type} onValueChange={(value) => setNewDeadline({ ...newDeadline, deadline_type: value as "tax" | "financial" | "business" | "personal" })}>
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="tax">Tax</SelectItem>
-                        <SelectItem value="financial">Financial</SelectItem>
-                        <SelectItem value="business">Business</SelectItem>
-                        <SelectItem value="personal">Personal</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div>
-                    <Label htmlFor="priority">Priority</Label>
-                    <Select value={newDeadline.priority} onValueChange={(value) => setNewDeadline({ ...newDeadline, priority: value as "low" | "medium" | "high" | "critical" })}>
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="low">Low</SelectItem>
-                        <SelectItem value="medium">Medium</SelectItem>
-                        <SelectItem value="high">High</SelectItem>
-                        <SelectItem value="critical">Critical</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-                <div>
-                  <Label htmlFor="deadline_date">Deadline Date</Label>
-                  <Input
-                    id="deadline_date"
-                    type="date"
-                    value={newDeadline.deadline_date}
-                    onChange={(e) => setNewDeadline({ ...newDeadline, deadline_date: e.target.value })}
-                  />
-                </div>
-                <div className="flex justify-end space-x-2">
-                  <Button variant="outline" onClick={() => setIsCreateDialogOpen(false)}>
-                    Cancel
-                  </Button>
-                  <Button onClick={handleCreateDeadline}>
-                    Create Deadline
-                  </Button>
-                </div>
-              </div>
-            </DialogContent>
-          </Dialog>
+          {isMobile ? (
+            <Drawer open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
+              <DrawerTrigger asChild>
+                <Button className="w-full sm:w-auto min-h-[44px]">
+                  <Plus className="h-4 w-4 mr-2" />
+                  Add Deadline
+                </Button>
+              </DrawerTrigger>
+              <DrawerContent className="mobile-drawer-content">
+                <DrawerHeader>
+                  <DrawerTitle>Create New Deadline</DrawerTitle>
+                </DrawerHeader>
+                <CreateDeadlineForm />
+              </DrawerContent>
+            </Drawer>
+          ) : (
+            <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
+              <DialogTrigger asChild>
+                <Button className="w-full sm:w-auto min-h-[44px]">
+                  <Plus className="h-4 w-4 mr-2" />
+                  Add Deadline
+                </Button>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Create New Deadline</DialogTitle>
+                </DialogHeader>
+                <CreateDeadlineForm />
+              </DialogContent>
+            </Dialog>
+          )}
         </div>
       </CardHeader>
       <CardContent>
@@ -224,11 +251,12 @@ export const DeadlineTracker = () => {
                       </span>
                     </div>
                   </div>
-                  <div className="flex items-center space-x-2">
+                  <div className="flex items-center gap-1 flex-shrink-0">
                     <Button
                       variant="ghost"
                       size="sm"
                       onClick={() => setEditingDeadline(deadline)}
+                      className="min-h-[44px] min-w-[44px]"
                     >
                       <Edit className="h-4 w-4" />
                     </Button>
@@ -236,6 +264,7 @@ export const DeadlineTracker = () => {
                       variant="ghost"
                       size="sm"
                       onClick={() => handleDeleteDeadline(deadline.id)}
+                      className="min-h-[44px] min-w-[44px]"
                     >
                       <Trash2 className="h-4 w-4" />
                     </Button>

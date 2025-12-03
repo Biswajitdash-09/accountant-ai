@@ -458,11 +458,67 @@
     @apply overflow-x-auto scrollbar-thin scrollbar-thumb-border scrollbar-track-background;
   }
 
+  /* Mobile Tabs Scroll Container */
+  .mobile-tabs-scroll {
+    @apply overflow-x-auto -mx-4 px-4 md:mx-0 md:px-0;
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+
+  .mobile-tabs-scroll::-webkit-scrollbar {
+    display: none;
+  }
+
+  .mobile-tabs-scroll > * {
+    scroll-snap-align: start;
+  }
+
+  /* Mobile Action Group */
+  .mobile-action-group {
+    @apply flex flex-col sm:flex-row gap-2 sm:gap-3;
+  }
+
+  .mobile-action-group > * {
+    @apply w-full sm:w-auto min-h-[44px];
+  }
+
+  /* Mobile Notification Card */
+  .mobile-notification {
+    @apply p-4 space-y-3 touch-feedback;
+  }
+
+  /* Mobile Select Dropdown */
+  .mobile-select-content {
+    @apply z-[100] max-h-[300px] overflow-y-auto;
+  }
+
   /* Mobile Modal Full Screen */
   @media (max-width: 768px) {
     .mobile-modal-fullscreen {
       @apply fixed inset-0 w-full h-full max-w-full max-h-full rounded-none;
     }
+  }
+
+  /* Mobile Dialog to Drawer */
+  .mobile-drawer-content {
+    @apply max-h-[90vh] overflow-y-auto;
+  }
+
+  /* Mobile Chat Input */
+  .mobile-chat-input {
+    @apply min-h-12 text-base rounded-xl pr-12;
+  }
+
+  /* Mobile Avatar Upload */
+  .mobile-avatar-upload {
+    @apply h-24 w-24 cursor-pointer hover:opacity-80 transition-opacity;
+  }
+
+  /* Mobile Switch Touch Target */
+  .mobile-switch {
+    @apply scale-110 origin-center;
   }
   .mobile-safe {
     padding-left: max(env(safe-area-inset-left), 0px);

@@ -138,7 +138,7 @@ const CurrencyConverter = () => {
       <CardContent className="space-y-4">
         {/* Amount Input */}
         <div className="space-y-2">
-          <label className="text-sm font-medium">Amount</label>
+          <label className="text-sm font-medium mobile-form-label">Amount</label>
           <Input
             type="number"
             value={amount}
@@ -146,20 +146,22 @@ const CurrencyConverter = () => {
             placeholder="Enter amount"
             min="0"
             step="0.01"
+            className="mobile-form-field"
+            inputMode="decimal"
           />
         </div>
 
         {/* Currency Selection */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="space-y-2">
-            <label className="text-sm font-medium">From</label>
+            <label className="text-sm font-medium mobile-form-label">From</label>
             <Select value={fromCurrency} onValueChange={setFromCurrency}>
-              <SelectTrigger>
+              <SelectTrigger className="mobile-form-field">
                 <SelectValue placeholder="Select currency" />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent className="mobile-select-content">
                 {popularCurrencies.map((currency) => (
-                  <SelectItem key={currency.id} value={currency.id}>
+                  <SelectItem key={currency.id} value={currency.id} className="min-h-[44px]">
                     <div className="flex items-center gap-2">
                       <span className="font-medium">{currency.code}</span>
                       <span className="text-sm text-muted-foreground">
@@ -176,14 +178,14 @@ const CurrencyConverter = () => {
           </div>
 
           <div className="space-y-2">
-            <label className="text-sm font-medium">To</label>
+            <label className="text-sm font-medium mobile-form-label">To</label>
             <Select value={toCurrency} onValueChange={setToCurrency}>
-              <SelectTrigger>
+              <SelectTrigger className="mobile-form-field">
                 <SelectValue placeholder="Select currency" />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent className="mobile-select-content">
                 {popularCurrencies.map((currency) => (
-                  <SelectItem key={currency.id} value={currency.id}>
+                  <SelectItem key={currency.id} value={currency.id} className="min-h-[44px]">
                     <div className="flex items-center gap-2">
                       <span className="font-medium">{currency.code}</span>
                       <span className="text-sm text-muted-foreground">
@@ -204,9 +206,8 @@ const CurrencyConverter = () => {
         <div className="flex justify-center">
           <Button
             variant="outline"
-            size="sm"
             onClick={handleSwapCurrencies}
-            className="gap-2"
+            className="gap-2 min-h-[44px] min-w-[44px]"
             disabled={!fromCurrency || !toCurrency}
           >
             <ArrowUpDown className="h-4 w-4" />
@@ -215,7 +216,7 @@ const CurrencyConverter = () => {
         </div>
 
         {/* Convert Button */}
-        <Button onClick={handleConvert} className="w-full" disabled={!fromCurrency || !toCurrency}>
+        <Button onClick={handleConvert} className="w-full min-h-[48px] text-base" disabled={!fromCurrency || !toCurrency}>
           Convert
         </Button>
 
