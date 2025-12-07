@@ -139,6 +139,19 @@ async function createTransaction(userId: string, args: {
 }): Promise<VoiceActionResult> {
   const transactionDate = args.date || new Date().toISOString().split('T')[0];
   
+  // Get default currency
+  const { data: currencies } = await supabase
+    .from('currencies')
+    .select('id')
+    .eq('is_base', true)
+    .limit(1);
+  
+  const currencyId = currencies?.[0]?.id;
+  
+  if (!currencyId) {
+    return { success: false, error: 'No default currency found' };
+  }
+  
   const { data, error } = await supabase
     .from('transactions')
     .insert({
@@ -147,7 +160,8 @@ async function createTransaction(userId: string, args: {
       amount: args.amount,
       category: args.category,
       description: args.description || `${args.category} transaction`,
-      transaction_date: transactionDate
+      date: transactionDate,
+      currency_id: currencyId
     })
     .select()
     .single();

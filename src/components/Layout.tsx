@@ -12,6 +12,7 @@ import { GlobalSearch } from "@/components/advanced/GlobalSearch";
 import { useGlobalSearch } from "@/hooks/useGlobalSearch";
 import PWAEnhancements from "@/components/PWAEnhancements";
 import { FloatingArnoldButton } from "@/components/ai/FloatingArnoldButton";
+import { FloatingVoiceButton } from "@/components/voice/FloatingVoiceButton";
 
 interface LayoutProps {
   children: ReactNode;
@@ -159,6 +160,9 @@ const Layout = ({ children }: LayoutProps) => {
         
         {/* Floating Arnold Button */}
         <FloatingArnoldButton />
+        
+        {/* Floating Voice Button */}
+        <FloatingVoiceButton className="bottom-8 right-24" />
       </div>
     </div>
   );

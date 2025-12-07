@@ -1,11 +1,20 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Plus, X, DollarSign, TrendingDown, FileText, Receipt } from 'lucide-react';
+import { Plus, X, DollarSign, TrendingDown, FileText, Receipt, Mic } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { Drawer, DrawerContent, DrawerTitle } from '@/components/ui/drawer';
+import { VoiceAgent } from '@/components/voice/VoiceAgent';
+import { VisuallyHidden } from '@radix-ui/react-visually-hidden';
 
 const quickActions = [
+  {
+    icon: Mic,
+    label: 'Voice Agent',
+    color: 'bg-primary',
+    action: 'voice',
+  },
   {
     icon: TrendingDown,
     label: 'Add Expense',
@@ -34,13 +43,18 @@ const quickActions = [
 
 export const MobileQuickActions = () => {
   const [isOpen, setIsOpen] = useState(false);
+  const [isVoiceOpen, setIsVoiceOpen] = useState(false);
   const navigate = useNavigate();
   const isMobile = useIsMobile();
 
   if (!isMobile) return null;
 
-  const handleAction = (path: string) => {
-    navigate(path);
+  const handleAction = (action: string) => {
+    if (action === 'voice') {
+      setIsVoiceOpen(true);
+    } else {
+      navigate(action);
+    }
     setIsOpen(false);
   };
 
@@ -103,6 +117,16 @@ export const MobileQuickActions = () => {
           </motion.div>
         </Button>
       </div>
+
+      {/* Voice Agent Drawer */}
+      <Drawer open={isVoiceOpen} onOpenChange={setIsVoiceOpen}>
+        <DrawerContent className="h-[90vh]">
+          <VisuallyHidden>
+            <DrawerTitle>Voice Agent</DrawerTitle>
+          </VisuallyHidden>
+          <VoiceAgent onClose={() => setIsVoiceOpen(false)} className="h-full border-0" />
+        </DrawerContent>
+      </Drawer>
     </>
   );
 };
