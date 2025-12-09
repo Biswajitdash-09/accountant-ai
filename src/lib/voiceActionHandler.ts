@@ -146,23 +146,33 @@ async function createTransaction(userId: string, args: {
     .eq('is_base', true)
     .limit(1);
   
-  const currencyId = currencies?.[0]?.id;
+  const defaultCurrencyId = currencies?.[0]?.id;
   
-  if (!currencyId) {
+  if (!defaultCurrencyId) {
     return { success: false, error: 'No default currency found' };
   }
   
+  const transactionData: {
+    user_id: string;
+    type: string;
+    amount: number;
+    category: string;
+    description: string;
+    date: string;
+    currency_id: string;
+  } = {
+    user_id: userId,
+    type: args.type || 'expense',
+    amount: Number(args.amount),
+    category: args.category,
+    description: args.description || `${args.category} transaction`,
+    date: transactionDate,
+    currency_id: defaultCurrencyId
+  };
+  
   const { data, error } = await supabase
     .from('transactions')
-    .insert({
-      user_id: userId,
-      type: args.type,
-      amount: args.amount,
-      category: args.category,
-      description: args.description || `${args.category} transaction`,
-      date: transactionDate,
-      currency_id: currencyId
-    })
+    .insert(transactionData)
     .select()
     .single();
 
