@@ -1,7 +1,7 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { AudioRecorder, AudioQueue, encodeAudioForAPI, decodeAudioFromAPI } from '@/utils/VoiceAgentAudio';
+import { AudioQueue, decodeAudioFromAPI } from '@/utils/VoiceAgentAudio';
 import { executeVoiceAction } from '@/lib/voiceActionHandler';
 
 export type VoiceAgentStatus = 'idle' | 'connecting' | 'listening' | 'processing' | 'speaking' | 'error';
@@ -9,10 +9,12 @@ export type InputMode = 'push-to-talk' | 'continuous';
 
 export interface VoiceMessage {
   id: string;
-  role: 'user' | 'assistant';
+  role: 'user' | 'assistant' | 'system';
   content: string;
   timestamp: Date;
   audioPlayed?: boolean;
+  isToolExecution?: boolean;
+  toolName?: string;
 }
 
 export interface VoiceAgentOptions {
@@ -24,6 +26,11 @@ export interface VoiceAgentOptions {
   onToolCall?: (toolName: string, args: any, result: any) => void;
 }
 
+// Connection configuration
+const CONNECTION_TIMEOUT_MS = 30000;
+const MAX_RECONNECT_ATTEMPTS = 3;
+const RECONNECT_BASE_DELAY_MS = 1000;
+
 export const useVoiceAgent = (options: VoiceAgentOptions = {}) => {
   const { toast } = useToast();
   const [status, setStatus] = useState<VoiceAgentStatus>('idle');
@@ -31,46 +38,96 @@ export const useVoiceAgent = (options: VoiceAgentOptions = {}) => {
   const [messages, setMessages] = useState<VoiceMessage[]>([]);
   const [currentTranscript, setCurrentTranscript] = useState('');
   const [isMuted, setIsMuted] = useState(false);
+  const [connectionQuality, setConnectionQuality] = useState<'good' | 'poor' | 'disconnected'>('disconnected');
+  const [micPermission, setMicPermission] = useState<'granted' | 'denied' | 'prompt'>('prompt');
+  const [executingTool, setExecutingTool] = useState<string | null>(null);
+  const [isPushToTalkActive, setIsPushToTalkActive] = useState(false);
 
   const pcRef = useRef<RTCPeerConnection | null>(null);
   const dcRef = useRef<RTCDataChannel | null>(null);
   const audioElRef = useRef<HTMLAudioElement | null>(null);
-  const recorderRef = useRef<AudioRecorder | null>(null);
   const audioContextRef = useRef<AudioContext | null>(null);
   const audioQueueRef = useRef<AudioQueue | null>(null);
   const sessionCreatedRef = useRef(false);
   const pendingToolCallsRef = useRef<Map<string, any>>(new Map());
+  const connectionTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const reconnectAttemptsRef = useRef(0);
+  const mediaStreamRef = useRef<MediaStream | null>(null);
+  const isReconnectingRef = useRef(false);
 
   const updateStatus = useCallback((newStatus: VoiceAgentStatus) => {
     setStatus(newStatus);
     options.onStatusChange?.(newStatus);
   }, [options]);
 
-  const addMessage = useCallback((role: 'user' | 'assistant', content: string) => {
+  const addMessage = useCallback((role: 'user' | 'assistant' | 'system', content: string, extra?: Partial<VoiceMessage>) => {
     const message: VoiceMessage = {
       id: Date.now().toString(),
       role,
       content,
-      timestamp: new Date()
+      timestamp: new Date(),
+      ...extra
     };
     setMessages(prev => [...prev, message]);
     options.onMessage?.(message);
     return message;
   }, [options]);
 
+  // Check microphone permission
+  const checkMicrophonePermission = useCallback(async (): Promise<boolean> => {
+    try {
+      const result = await navigator.permissions.query({ name: 'microphone' as PermissionName });
+      setMicPermission(result.state as 'granted' | 'denied' | 'prompt');
+      
+      if (result.state === 'denied') {
+        toast({
+          title: 'Microphone Access Required',
+          description: 'Please enable microphone access in your browser settings to use voice features.',
+          variant: 'destructive'
+        });
+        return false;
+      }
+      return true;
+    } catch {
+      // Fallback for browsers that don't support permissions API
+      return true;
+    }
+  }, [toast]);
+
+  // Request microphone access
+  const requestMicrophoneAccess = useCallback(async (): Promise<MediaStream | null> => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ 
+        audio: {
+          echoCancellation: true,
+          noiseSuppression: true,
+          autoGainControl: true
+        }
+      });
+      setMicPermission('granted');
+      return stream;
+    } catch (error) {
+      setMicPermission('denied');
+      toast({
+        title: 'Microphone Access Denied',
+        description: 'Voice features require microphone access. Please allow access and try again.',
+        variant: 'destructive'
+      });
+      return null;
+    }
+  }, [toast]);
+
   const handleDataChannelMessage = useCallback(async (event: MessageEvent) => {
     try {
       const data = JSON.parse(event.data);
-      console.log('Voice Agent received:', data.type);
 
       switch (data.type) {
         case 'session.created':
-          console.log('Session created, sending session.update');
           sessionCreatedRef.current = true;
+          setConnectionQuality('good');
           break;
 
         case 'session.updated':
-          console.log('Session updated successfully');
           updateStatus('listening');
           break;
 
@@ -125,6 +182,12 @@ export const useVoiceAgent = (options: VoiceAgentOptions = {}) => {
               name: data.name || '',
               arguments: ''
             });
+            // Show tool execution indicator
+            setExecutingTool(data.name || 'Processing');
+            addMessage('system', `Executing: ${data.name || 'tool'}...`, { 
+              isToolExecution: true, 
+              toolName: data.name 
+            });
           }
           const pending = pendingToolCallsRef.current.get(callId);
           pending.arguments += data.delta || '';
@@ -140,10 +203,16 @@ export const useVoiceAgent = (options: VoiceAgentOptions = {}) => {
           
           try {
             const args = JSON.parse(toolCall.arguments || data.arguments);
-            console.log(`Executing tool: ${data.name}`, args);
             
             const result = await executeVoiceAction(data.name, args);
             options.onToolCall?.(data.name, args, result);
+
+            // Update tool execution message
+            setMessages(prev => prev.map(msg => 
+              msg.isToolExecution && msg.toolName === data.name
+                ? { ...msg, content: result.success ? `✓ ${result.message || 'Completed'}` : `✗ ${result.error || 'Failed'}` }
+                : msg
+            ));
 
             // Send tool result back to the model
             if (dcRef.current?.readyState === 'open') {
@@ -160,9 +229,15 @@ export const useVoiceAgent = (options: VoiceAgentOptions = {}) => {
               dcRef.current.send(JSON.stringify({ type: 'response.create' }));
             }
           } catch (error) {
-            console.error('Tool execution error:', error);
+            // Update tool execution message with error
+            setMessages(prev => prev.map(msg => 
+              msg.isToolExecution && msg.toolName === data.name
+                ? { ...msg, content: `✗ Error executing ${data.name}` }
+                : msg
+            ));
           }
           
+          setExecutingTool(null);
           pendingToolCallsRef.current.delete(toolCallId);
           break;
 
@@ -173,23 +248,83 @@ export const useVoiceAgent = (options: VoiceAgentOptions = {}) => {
           break;
 
         case 'error':
-          console.error('Voice Agent error:', data.error);
-          toast({
-            title: 'Voice Error',
-            description: data.error?.message || 'An error occurred',
-            variant: 'destructive'
-          });
+          const errorMsg = data.error?.message || 'An error occurred';
+          
+          // Handle rate limiting
+          if (data.error?.code === 'rate_limit_exceeded') {
+            toast({
+              title: 'Rate Limit Reached',
+              description: 'Please wait a moment before speaking again.',
+              variant: 'destructive'
+            });
+          } else {
+            toast({
+              title: 'Voice Error',
+              description: errorMsg,
+              variant: 'destructive'
+            });
+          }
           updateStatus('error');
           break;
       }
     } catch (error) {
-      console.error('Error parsing data channel message:', error);
+      // Silent catch for parsing errors
     }
   }, [updateStatus, addMessage, options, toast]);
 
-  const connect = useCallback(async () => {
+  const cleanupConnection = useCallback(() => {
+    // Clear connection timeout
+    if (connectionTimeoutRef.current) {
+      clearTimeout(connectionTimeoutRef.current);
+      connectionTimeoutRef.current = null;
+    }
+
+    // Stop media stream
+    if (mediaStreamRef.current) {
+      mediaStreamRef.current.getTracks().forEach(track => track.stop());
+      mediaStreamRef.current = null;
+    }
+
+    dcRef.current?.close();
+    pcRef.current?.close();
+    audioContextRef.current?.close();
+    
+    dcRef.current = null;
+    pcRef.current = null;
+    audioContextRef.current = null;
+    audioQueueRef.current = null;
+    sessionCreatedRef.current = false;
+    
+    setConnectionQuality('disconnected');
+  }, []);
+
+  const connect = useCallback(async (isReconnect = false) => {
     try {
+      // Check microphone permission first
+      const hasPermission = await checkMicrophonePermission();
+      if (!hasPermission && micPermission === 'denied') {
+        updateStatus('error');
+        return;
+      }
+
       updateStatus('connecting');
+      
+      if (!isReconnect) {
+        reconnectAttemptsRef.current = 0;
+      }
+
+      // Set connection timeout
+      connectionTimeoutRef.current = setTimeout(() => {
+        if (status === 'connecting') {
+          toast({
+            title: 'Connection Timeout',
+            description: 'Unable to connect. Please check your internet connection and try again.',
+            variant: 'destructive'
+          });
+          cleanupConnection();
+          updateStatus('error');
+        }
+      }, CONNECTION_TIMEOUT_MS);
 
       // Get ephemeral token from edge function
       const { data: sessionData, error: sessionError } = await supabase.functions.invoke(
@@ -205,6 +340,15 @@ export const useVoiceAgent = (options: VoiceAgentOptions = {}) => {
 
       const EPHEMERAL_KEY = sessionData.client_secret.value;
 
+      // Request microphone access
+      const mediaStream = await requestMicrophoneAccess();
+      if (!mediaStream) {
+        cleanupConnection();
+        updateStatus('error');
+        return;
+      }
+      mediaStreamRef.current = mediaStream;
+
       // Initialize audio context
       audioContextRef.current = new AudioContext({ sampleRate: 24000 });
       audioQueueRef.current = new AudioQueue(audioContextRef.current, {
@@ -216,8 +360,26 @@ export const useVoiceAgent = (options: VoiceAgentOptions = {}) => {
         }
       });
 
-      // Create peer connection
-      pcRef.current = new RTCPeerConnection();
+      // Create peer connection with ICE handling
+      pcRef.current = new RTCPeerConnection({
+        iceServers: [{ urls: 'stun:stun.l.google.com:19302' }]
+      });
+
+      // Monitor connection state
+      pcRef.current.onconnectionstatechange = () => {
+        const state = pcRef.current?.connectionState;
+        
+        if (state === 'disconnected' || state === 'failed') {
+          setConnectionQuality('poor');
+          
+          if (state === 'failed' && !isReconnectingRef.current) {
+            handleReconnect();
+          }
+        } else if (state === 'connected') {
+          setConnectionQuality('good');
+          reconnectAttemptsRef.current = 0;
+        }
+      };
 
       // Set up audio element for remote audio
       audioElRef.current = document.createElement('audio');
@@ -229,14 +391,17 @@ export const useVoiceAgent = (options: VoiceAgentOptions = {}) => {
       };
 
       // Add local audio track
-      const mediaStream = await navigator.mediaDevices.getUserMedia({ audio: true });
       pcRef.current.addTrack(mediaStream.getTracks()[0]);
 
       // Set up data channel for events
       dcRef.current = pcRef.current.createDataChannel('oai-events');
       dcRef.current.addEventListener('message', handleDataChannelMessage);
       dcRef.current.addEventListener('open', () => {
-        console.log('Data channel opened');
+        // Clear connection timeout on successful connection
+        if (connectionTimeoutRef.current) {
+          clearTimeout(connectionTimeoutRef.current);
+          connectionTimeoutRef.current = null;
+        }
       });
 
       // Create and set local description
@@ -257,7 +422,8 @@ export const useVoiceAgent = (options: VoiceAgentOptions = {}) => {
       });
 
       if (!sdpResponse.ok) {
-        throw new Error('Failed to connect to OpenAI Realtime API');
+        const errorText = await sdpResponse.text();
+        throw new Error(`API connection failed: ${sdpResponse.status}`);
       }
 
       const answer: RTCSessionDescriptionInit = {
@@ -269,6 +435,7 @@ export const useVoiceAgent = (options: VoiceAgentOptions = {}) => {
       
       setIsConnected(true);
       updateStatus('listening');
+      isReconnectingRef.current = false;
       
       toast({
         title: 'Voice Agent Connected',
@@ -276,35 +443,50 @@ export const useVoiceAgent = (options: VoiceAgentOptions = {}) => {
       });
 
     } catch (error) {
-      console.error('Connection error:', error);
+      cleanupConnection();
       updateStatus('error');
-      toast({
-        title: 'Connection Failed',
-        description: error instanceof Error ? error.message : 'Failed to connect',
-        variant: 'destructive'
-      });
+      
+      const errorMessage = error instanceof Error ? error.message : 'Failed to connect';
+      
+      // Attempt reconnection for recoverable errors
+      if (!isReconnect && reconnectAttemptsRef.current < MAX_RECONNECT_ATTEMPTS) {
+        handleReconnect();
+      } else {
+        toast({
+          title: 'Connection Failed',
+          description: errorMessage,
+          variant: 'destructive'
+        });
+      }
     }
-  }, [options.voice, updateStatus, handleDataChannelMessage, toast, isConnected]);
+  }, [options.voice, updateStatus, handleDataChannelMessage, toast, isConnected, checkMicrophonePermission, requestMicrophoneAccess, cleanupConnection, micPermission, status]);
+
+  const handleReconnect = useCallback(() => {
+    if (isReconnectingRef.current || reconnectAttemptsRef.current >= MAX_RECONNECT_ATTEMPTS) {
+      return;
+    }
+
+    isReconnectingRef.current = true;
+    reconnectAttemptsRef.current++;
+
+    const delay = RECONNECT_BASE_DELAY_MS * Math.pow(2, reconnectAttemptsRef.current - 1);
+    
+    addMessage('system', `Connection lost. Reconnecting (attempt ${reconnectAttemptsRef.current}/${MAX_RECONNECT_ATTEMPTS})...`);
+
+    setTimeout(() => {
+      cleanupConnection();
+      connect(true);
+    }, delay);
+  }, [addMessage, cleanupConnection, connect]);
 
   const disconnect = useCallback(() => {
-    recorderRef.current?.stop();
-    dcRef.current?.close();
-    pcRef.current?.close();
-    audioContextRef.current?.close();
-    
-    recorderRef.current = null;
-    dcRef.current = null;
-    pcRef.current = null;
-    audioContextRef.current = null;
-    audioQueueRef.current = null;
-    sessionCreatedRef.current = false;
-    
+    cleanupConnection();
     setIsConnected(false);
     updateStatus('idle');
     setCurrentTranscript('');
-    
-    console.log('Voice Agent disconnected');
-  }, [updateStatus]);
+    isReconnectingRef.current = false;
+    reconnectAttemptsRef.current = 0;
+  }, [updateStatus, cleanupConnection]);
 
   const sendTextMessage = useCallback((text: string) => {
     if (!dcRef.current || dcRef.current.readyState !== 'open') {
@@ -332,26 +514,61 @@ export const useVoiceAgent = (options: VoiceAgentOptions = {}) => {
   }, [addMessage, toast, updateStatus]);
 
   const toggleMute = useCallback(() => {
-    if (recorderRef.current) {
-      if (isMuted) {
-        recorderRef.current.resume();
-      } else {
-        recorderRef.current.pause();
+    if (mediaStreamRef.current) {
+      const audioTrack = mediaStreamRef.current.getAudioTracks()[0];
+      if (audioTrack) {
+        audioTrack.enabled = isMuted;
+        setIsMuted(!isMuted);
       }
     }
-    setIsMuted(!isMuted);
   }, [isMuted]);
+
+  // Push-to-talk handlers
+  const startPushToTalk = useCallback(() => {
+    if (options.inputMode === 'push-to-talk' && mediaStreamRef.current) {
+      const audioTrack = mediaStreamRef.current.getAudioTracks()[0];
+      if (audioTrack) {
+        audioTrack.enabled = true;
+        setIsPushToTalkActive(true);
+      }
+    }
+  }, [options.inputMode]);
+
+  const stopPushToTalk = useCallback(() => {
+    if (options.inputMode === 'push-to-talk' && mediaStreamRef.current) {
+      const audioTrack = mediaStreamRef.current.getAudioTracks()[0];
+      if (audioTrack) {
+        audioTrack.enabled = false;
+        setIsPushToTalkActive(false);
+      }
+    }
+  }, [options.inputMode]);
 
   const clearMessages = useCallback(() => {
     setMessages([]);
   }, []);
 
+  const retryConnection = useCallback(() => {
+    reconnectAttemptsRef.current = 0;
+    connect();
+  }, [connect]);
+
   // Cleanup on unmount
   useEffect(() => {
     return () => {
-      disconnect();
+      cleanupConnection();
     };
-  }, [disconnect]);
+  }, [cleanupConnection]);
+
+  // Initialize push-to-talk mode
+  useEffect(() => {
+    if (isConnected && options.inputMode === 'push-to-talk' && mediaStreamRef.current) {
+      const audioTrack = mediaStreamRef.current.getAudioTracks()[0];
+      if (audioTrack) {
+        audioTrack.enabled = false;
+      }
+    }
+  }, [isConnected, options.inputMode]);
 
   return {
     status,
@@ -359,10 +576,18 @@ export const useVoiceAgent = (options: VoiceAgentOptions = {}) => {
     messages,
     currentTranscript,
     isMuted,
+    connectionQuality,
+    micPermission,
+    executingTool,
+    isPushToTalkActive,
     connect,
     disconnect,
     sendTextMessage,
     toggleMute,
-    clearMessages
+    startPushToTalk,
+    stopPushToTalk,
+    clearMessages,
+    retryConnection,
+    requestMicrophoneAccess
   };
 };

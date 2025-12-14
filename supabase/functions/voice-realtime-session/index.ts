@@ -5,6 +5,28 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+// Rate limiting configuration
+const RATE_LIMIT_WINDOW_MS = 60000; // 1 minute
+const MAX_REQUESTS_PER_WINDOW = 10;
+const requestCounts = new Map<string, { count: number; resetAt: number }>();
+
+function isRateLimited(userId: string): boolean {
+  const now = Date.now();
+  const userLimit = requestCounts.get(userId);
+  
+  if (!userLimit || now > userLimit.resetAt) {
+    requestCounts.set(userId, { count: 1, resetAt: now + RATE_LIMIT_WINDOW_MS });
+    return false;
+  }
+  
+  if (userLimit.count >= MAX_REQUESTS_PER_WINDOW) {
+    return true;
+  }
+  
+  userLimit.count++;
+  return false;
+}
+
 serve(async (req) => {
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
@@ -14,10 +36,38 @@ serve(async (req) => {
   try {
     const OPENAI_API_KEY = Deno.env.get('OPENAI_API_KEY');
     if (!OPENAI_API_KEY) {
-      throw new Error('OPENAI_API_KEY is not set');
+      console.error('OPENAI_API_KEY is not configured');
+      throw new Error('Voice service is not configured');
+    }
+
+    // Extract user ID from authorization header for rate limiting
+    const authHeader = req.headers.get('authorization');
+    const userId = authHeader?.split(' ')[1]?.substring(0, 20) || 'anonymous';
+    
+    // Check rate limit
+    if (isRateLimited(userId)) {
+      console.warn(`Rate limit exceeded for user: ${userId}`);
+      return new Response(
+        JSON.stringify({ 
+          error: 'Rate limit exceeded. Please wait a moment before trying again.',
+          code: 'RATE_LIMIT_EXCEEDED'
+        }), 
+        {
+          status: 429,
+          headers: { 
+            ...corsHeaders, 
+            'Content-Type': 'application/json',
+            'Retry-After': '60'
+          },
+        }
+      );
     }
 
     const { voice = 'alloy', instructions } = await req.json().catch(() => ({}));
+
+    // Validate voice parameter
+    const validVoices = ['alloy', 'ash', 'ballad', 'coral', 'echo', 'sage', 'shimmer', 'verse'];
+    const selectedVoice = validVoices.includes(voice) ? voice : 'alloy';
 
     // Define tools for Arnold AI actions
     const tools = [
@@ -239,9 +289,13 @@ When users ask about their finances:
 3. Offer actionable recommendations
 4. Ask clarifying questions if needed
 
-Always confirm before creating transactions or making changes. Be conversational but efficient.`;
+Always confirm before creating transactions or making changes. Be conversational but efficient.
+
+If a tool execution fails, explain the error in simple terms and suggest alternatives.`;
 
     // Request an ephemeral token from OpenAI
+    console.log(`Creating voice session with voice: ${selectedVoice}`);
+    
     const response = await fetch("https://api.openai.com/v1/realtime/sessions", {
       method: "POST",
       headers: {
@@ -250,7 +304,7 @@ Always confirm before creating transactions or making changes. Be conversational
       },
       body: JSON.stringify({
         model: "gpt-4o-realtime-preview-2024-12-17",
-        voice: voice,
+        voice: selectedVoice,
         instructions: systemPrompt,
         tools: tools,
         tool_choice: "auto",
@@ -272,21 +326,42 @@ Always confirm before creating transactions or making changes. Be conversational
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error("OpenAI session creation failed:", response.status, errorText);
+      console.error(`OpenAI session creation failed: ${response.status}`, errorText);
+      
+      // Handle specific OpenAI errors
+      if (response.status === 429) {
+        return new Response(
+          JSON.stringify({ 
+            error: 'Voice service is busy. Please try again in a moment.',
+            code: 'SERVICE_BUSY'
+          }),
+          {
+            status: 429,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          }
+        );
+      }
+      
       throw new Error(`Failed to create session: ${response.status}`);
     }
 
     const data = await response.json();
-    console.log("Voice session created successfully");
+    console.log('Voice session created successfully');
 
     return new Response(JSON.stringify(data), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
   } catch (error) {
-    console.error("Error creating voice session:", error);
-    return new Response(JSON.stringify({ error: error.message }), {
-      status: 500,
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-    });
+    console.error('Error creating voice session:', error);
+    return new Response(
+      JSON.stringify({ 
+        error: error instanceof Error ? error.message : 'Failed to create voice session',
+        code: 'SESSION_ERROR'
+      }), 
+      {
+        status: 500,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      }
+    );
   }
 });
