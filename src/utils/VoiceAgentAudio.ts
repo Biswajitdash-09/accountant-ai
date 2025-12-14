@@ -1,114 +1,14 @@
 // Audio utilities for Voice Agent
 
-export class AudioRecorder {
-  private stream: MediaStream | null = null;
-  private audioContext: AudioContext | null = null;
-  private processor: ScriptProcessorNode | null = null;
-  private source: MediaStreamAudioSourceNode | null = null;
-  private isRecording = false;
-
-  constructor(private onAudioData: (audioData: Float32Array) => void) {}
-
-  async start(): Promise<void> {
-    try {
-      this.stream = await navigator.mediaDevices.getUserMedia({
-        audio: {
-          sampleRate: 24000,
-          channelCount: 1,
-          echoCancellation: true,
-          noiseSuppression: true,
-          autoGainControl: true
-        }
-      });
-
-      this.audioContext = new AudioContext({
-        sampleRate: 24000,
-      });
-
-      this.source = this.audioContext.createMediaStreamSource(this.stream);
-      this.processor = this.audioContext.createScriptProcessor(4096, 1, 1);
-
-      this.processor.onaudioprocess = (e) => {
-        if (this.isRecording) {
-          const inputData = e.inputBuffer.getChannelData(0);
-          this.onAudioData(new Float32Array(inputData));
-        }
-      };
-
-      this.source.connect(this.processor);
-      this.processor.connect(this.audioContext.destination);
-      this.isRecording = true;
-      
-      console.log('AudioRecorder started');
-    } catch (error) {
-      console.error('Error accessing microphone:', error);
-      throw error;
-    }
-  }
-
-  pause(): void {
-    this.isRecording = false;
-  }
-
-  resume(): void {
-    this.isRecording = true;
-  }
-
-  stop(): void {
-    this.isRecording = false;
-    
-    if (this.source) {
-      this.source.disconnect();
-      this.source = null;
-    }
-    if (this.processor) {
-      this.processor.disconnect();
-      this.processor = null;
-    }
-    if (this.stream) {
-      this.stream.getTracks().forEach(track => track.stop());
-      this.stream = null;
-    }
-    if (this.audioContext) {
-      this.audioContext.close();
-      this.audioContext = null;
-    }
-    
-    console.log('AudioRecorder stopped');
-  }
-
-  get recording(): boolean {
-    return this.isRecording;
-  }
-}
-
-// Encode Float32Array audio to base64 PCM16
-export const encodeAudioForAPI = (float32Array: Float32Array): string => {
-  const int16Array = new Int16Array(float32Array.length);
-  for (let i = 0; i < float32Array.length; i++) {
-    const s = Math.max(-1, Math.min(1, float32Array[i]));
-    int16Array[i] = s < 0 ? s * 0x8000 : s * 0x7FFF;
-  }
-
-  const uint8Array = new Uint8Array(int16Array.buffer);
-  let binary = '';
-  const chunkSize = 0x8000;
-
-  for (let i = 0; i < uint8Array.length; i += chunkSize) {
-    const chunk = uint8Array.subarray(i, Math.min(i + chunkSize, uint8Array.length));
-    binary += String.fromCharCode.apply(null, Array.from(chunk));
-  }
-
-  return btoa(binary);
-};
-
-// Audio Queue for sequential playback
+// Audio Queue for sequential playback with error recovery
 export class AudioQueue {
   private queue: Uint8Array[] = [];
   private isPlaying = false;
   private audioContext: AudioContext;
   private onPlaybackStart?: () => void;
   private onPlaybackEnd?: () => void;
+  private consecutiveErrors = 0;
+  private maxConsecutiveErrors = 3;
 
   constructor(
     audioContext: AudioContext,
@@ -132,6 +32,16 @@ export class AudioQueue {
   private async playNext(): Promise<void> {
     if (this.queue.length === 0) {
       this.isPlaying = false;
+      this.consecutiveErrors = 0;
+      this.onPlaybackEnd?.();
+      return;
+    }
+
+    // Check for too many consecutive errors
+    if (this.consecutiveErrors >= this.maxConsecutiveErrors) {
+      this.clear();
+      this.isPlaying = false;
+      this.consecutiveErrors = 0;
       this.onPlaybackEnd?.();
       return;
     }
@@ -144,6 +54,11 @@ export class AudioQueue {
     const audioData = this.queue.shift()!;
 
     try {
+      // Ensure audio context is running
+      if (this.audioContext.state === 'suspended') {
+        await this.audioContext.resume();
+      }
+
       const wavData = createWavFromPCM(audioData);
       const arrayBuffer = wavData.buffer.slice(0) as ArrayBuffer;
       const audioBuffer = await this.audioContext.decodeAudioData(arrayBuffer);
@@ -152,28 +67,46 @@ export class AudioQueue {
       source.buffer = audioBuffer;
       source.connect(this.audioContext.destination);
 
-      source.onended = () => this.playNext();
+      source.onended = () => {
+        this.consecutiveErrors = 0;
+        this.playNext();
+      };
+      
       source.start(0);
     } catch (error) {
-      console.error('Error playing audio:', error);
-      this.playNext(); // Continue with next segment even if current fails
+      this.consecutiveErrors++;
+      // Continue with next segment even if current fails
+      this.playNext();
     }
   }
 
   clear(): void {
     this.queue = [];
+    this.consecutiveErrors = 0;
   }
 
   get playing(): boolean {
     return this.isPlaying;
   }
+
+  get queueLength(): number {
+    return this.queue.length;
+  }
 }
 
 // Create WAV from PCM16 data
 export const createWavFromPCM = (pcmData: Uint8Array): Uint8Array => {
+  // Handle empty or invalid data
+  if (!pcmData || pcmData.length === 0) {
+    return new Uint8Array(44); // Return empty WAV header
+  }
+
+  // Ensure even number of bytes for 16-bit samples
+  const adjustedLength = pcmData.length - (pcmData.length % 2);
+  
   // Convert bytes to 16-bit samples (little-endian)
-  const int16Data = new Int16Array(pcmData.length / 2);
-  for (let i = 0; i < pcmData.length; i += 2) {
+  const int16Data = new Int16Array(adjustedLength / 2);
+  for (let i = 0; i < adjustedLength; i += 2) {
     int16Data[i / 2] = (pcmData[i + 1] << 8) | pcmData[i];
   }
 
@@ -222,12 +155,40 @@ export const createWavFromPCM = (pcmData: Uint8Array): Uint8Array => {
   return wavArray;
 };
 
-// Decode base64 audio from API response
+// Decode base64 audio from API response with validation
 export const decodeAudioFromAPI = (base64Audio: string): Uint8Array => {
-  const binaryString = atob(base64Audio);
-  const bytes = new Uint8Array(binaryString.length);
-  for (let i = 0; i < binaryString.length; i++) {
-    bytes[i] = binaryString.charCodeAt(i);
+  if (!base64Audio || typeof base64Audio !== 'string') {
+    return new Uint8Array(0);
   }
-  return bytes;
+
+  try {
+    const binaryString = atob(base64Audio);
+    const bytes = new Uint8Array(binaryString.length);
+    for (let i = 0; i < binaryString.length; i++) {
+      bytes[i] = binaryString.charCodeAt(i);
+    }
+    return bytes;
+  } catch (error) {
+    return new Uint8Array(0);
+  }
+};
+
+// Encode Float32Array audio to base64 PCM16 (kept for potential future use)
+export const encodeAudioForAPI = (float32Array: Float32Array): string => {
+  const int16Array = new Int16Array(float32Array.length);
+  for (let i = 0; i < float32Array.length; i++) {
+    const s = Math.max(-1, Math.min(1, float32Array[i]));
+    int16Array[i] = s < 0 ? s * 0x8000 : s * 0x7FFF;
+  }
+
+  const uint8Array = new Uint8Array(int16Array.buffer);
+  let binary = '';
+  const chunkSize = 0x8000;
+
+  for (let i = 0; i < uint8Array.length; i += chunkSize) {
+    const chunk = uint8Array.subarray(i, Math.min(i + chunkSize, uint8Array.length));
+    binary += String.fromCharCode.apply(null, Array.from(chunk));
+  }
+
+  return btoa(binary);
 };
