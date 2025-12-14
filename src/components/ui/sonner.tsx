@@ -1,11 +1,40 @@
 
-import { useTheme } from "@/hooks/useTheme"
-import { Toaster as Sonner, toast } from "sonner"
+import * as React from "react";
+import { Toaster as Sonner, toast } from "sonner";
 
-type ToasterProps = React.ComponentProps<typeof Sonner>
+type ToasterProps = React.ComponentProps<typeof Sonner>;
+
+// Safe hook to get theme that won't crash if context isn't ready
+const useSafeTheme = (): "light" | "dark" | "system" => {
+  const [theme, setTheme] = React.useState<"light" | "dark" | "system">("system");
+  
+  React.useEffect(() => {
+    // Try to get theme from localStorage first
+    const storedTheme = localStorage.getItem("accountant-ai-theme") as "light" | "dark" | "system" | null;
+    if (storedTheme) {
+      setTheme(storedTheme);
+    } else {
+      // Fall back to system preference
+      const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+      setTheme(prefersDark ? "dark" : "light");
+    }
+
+    // Listen for changes to the theme in localStorage
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === "accountant-ai-theme" && e.newValue) {
+        setTheme(e.newValue as "light" | "dark" | "system");
+      }
+    };
+
+    window.addEventListener("storage", handleStorageChange);
+    return () => window.removeEventListener("storage", handleStorageChange);
+  }, []);
+
+  return theme;
+};
 
 const Toaster = ({ ...props }: ToasterProps) => {
-  const { theme = "system" } = useTheme()
+  const theme = useSafeTheme();
 
   return (
     <Sonner
@@ -24,7 +53,7 @@ const Toaster = ({ ...props }: ToasterProps) => {
       }}
       {...props}
     />
-  )
-}
+  );
+};
 
-export { Toaster, toast }
+export { Toaster, toast };
