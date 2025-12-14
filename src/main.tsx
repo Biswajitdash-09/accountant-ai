@@ -5,7 +5,6 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { CurrencyProvider } from "@/contexts/CurrencyContext";
-import { Toaster } from "@/components/ui/toaster";
 import { ErrorBoundary } from "@/components/ui/error-boundary";
 import App from "./App.tsx";
 import "./index.css";
@@ -40,7 +39,6 @@ createRoot(rootElement).render(
           </ThemeProvider>
         </BrowserRouter>
       </QueryClientProvider>
-      <Toaster />
     </ErrorBoundary>
   </StrictMode>
 );
