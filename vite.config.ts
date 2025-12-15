@@ -18,9 +18,13 @@ export default defineConfig(({ mode }) => ({
     alias: {
       "@": path.resolve(__dirname, "./src"),
     },
+    // Prevent multiple React copies (fixes "dispatcher is null" / useState null errors)
+    dedupe: ["react", "react-dom", "react/jsx-runtime", "react/jsx-dev-runtime"],
+  },
+  optimizeDeps: {
+    include: ["react", "react-dom", "react-router-dom"],
   },
   build: {
-    cssCodeSplit: true,
     rollupOptions: {
       output: {
         manualChunks: {
