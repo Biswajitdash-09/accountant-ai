@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Download, Bell, WifiOff, X, Share, Plus, Smartphone } from 'lucide-react';
 import { toast } from 'sonner';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { cn } from '@/lib/utils';
 
 interface BeforeInstallPromptEvent extends Event {
   readonly platforms: string[];
@@ -106,7 +106,6 @@ const PWAEnhancements = () => {
 
     if (permission === 'granted') {
       toast.success('Notifications enabled!');
-      // Register for push notifications
       if ('serviceWorker' in navigator && 'PushManager' in window) {
         try {
           const registration = await navigator.serviceWorker.ready;
@@ -127,17 +126,17 @@ const PWAEnhancements = () => {
   const handleDismiss = () => {
     setIsDismissed(true);
     localStorage.setItem('pwa-dismissed', 'true');
-    toast.success('You can install the app from Profile settings anytime');
+    toast.success('Install from Profile settings anytime');
   };
 
-  // Don't show if already installed, dismissed, or nothing to show
+  // Don't show if already installed or dismissed
   if (isStandalone || isDismissed) {
     return (
       <>
-        {/* Connection Status Indicator */}
+        {/* Offline Indicator */}
         {!isOnline && (
-          <div className="fixed top-4 right-4 z-[60]">
-            <div className="flex items-center gap-2 bg-destructive text-destructive-foreground px-3 py-1 rounded-full text-sm shadow-lg">
+          <div className="fixed top-16 left-1/2 -translate-x-1/2 z-[60]">
+            <div className="flex items-center gap-2 bg-destructive text-destructive-foreground px-3 py-1.5 rounded-full text-xs font-medium shadow-lg">
               <WifiOff className="h-3 w-3" />
               Offline
             </div>
@@ -154,9 +153,77 @@ const PWAEnhancements = () => {
     return null;
   }
 
+  // Mobile: Compact inline banner
+  if (isMobile) {
+    return (
+      <>
+        {/* Offline Indicator */}
+        {!isOnline && (
+          <div className="fixed top-16 left-1/2 -translate-x-1/2 z-[60]">
+            <div className="flex items-center gap-2 bg-destructive text-destructive-foreground px-3 py-1.5 rounded-full text-xs font-medium shadow-lg">
+              <WifiOff className="h-3 w-3" />
+              Offline
+            </div>
+          </div>
+        )}
+
+        {/* Compact Mobile Banner */}
+        <div className="mx-4 mt-3">
+          <div className={cn(
+            "flex items-center gap-3 p-3 rounded-xl",
+            "bg-primary/5 border border-primary/20"
+          )}>
+            <Smartphone className="h-5 w-5 text-primary shrink-0" />
+            
+            <div className="flex-1 min-w-0">
+              {isInstallable ? (
+                <p className="text-xs font-medium text-foreground">
+                  Install app for best experience
+                </p>
+              ) : isIOS ? (
+                <p className="text-xs text-muted-foreground">
+                  <Share className="h-3 w-3 inline mr-1" />
+                  Share → Add to Home Screen
+                </p>
+              ) : showNotificationPrompt ? (
+                <p className="text-xs font-medium text-foreground">
+                  Enable notifications
+                </p>
+              ) : null}
+            </div>
+
+            <div className="flex items-center gap-1 shrink-0">
+              {isInstallable && (
+                <Button onClick={handleInstall} size="sm" className="h-8 text-xs px-3">
+                  <Download className="h-3 w-3 mr-1" />
+                  Install
+                </Button>
+              )}
+              {!isInstallable && showNotificationPrompt && (
+                <Button onClick={handleNotificationPermission} size="sm" variant="outline" className="h-8 text-xs px-3">
+                  <Bell className="h-3 w-3 mr-1" />
+                  Enable
+                </Button>
+              )}
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                className="h-8 w-8"
+                onClick={handleDismiss}
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+        </div>
+      </>
+    );
+  }
+
+  // Desktop: Standard card layout
   return (
     <>
-      {/* Connection Status Indicator */}
+      {/* Offline Indicator */}
       {!isOnline && (
         <div className="fixed top-4 right-4 z-[60]">
           <div className="flex items-center gap-2 bg-destructive text-destructive-foreground px-3 py-1 rounded-full text-sm shadow-lg">
@@ -166,95 +233,41 @@ const PWAEnhancements = () => {
         </div>
       )}
 
-      {/* PWA Features Card */}
-      <Card className={isMobile ? "mb-3 shadow-soft" : "mb-6"}>
-        <CardHeader className={isMobile ? "pb-3" : ""}>
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <Smartphone className="h-5 w-5 text-primary" />
-              <CardTitle className="text-base">Install App</CardTitle>
+      {/* Desktop Banner */}
+      <div className="mb-4 p-4 rounded-lg bg-accent/50 border border-border">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <Smartphone className="h-5 w-5 text-primary" />
+            <div>
+              <h4 className="font-medium text-sm">Install Accountant AI</h4>
+              <p className="text-xs text-muted-foreground">Get quick access from your home screen</p>
             </div>
-            <Button 
-              variant="ghost" 
-              size="icon" 
-              className="h-8 w-8 -mr-2"
-              onClick={handleDismiss}
-            >
-              <X className="h-4 w-4" />
-            </Button>
           </div>
-          {!isMobile && (
-            <CardDescription>
-              Get the best experience with our mobile app features
-            </CardDescription>
-          )}
-        </CardHeader>
-        <CardContent className={isMobile ? "space-y-3 pt-0" : "space-y-3"}>
-          {/* Android/Chrome Install */}
-          {isInstallable && (
-            <div className={isMobile 
-              ? "flex items-center justify-between gap-3" 
-              : "flex items-center justify-between p-3 bg-accent rounded-lg"
-            }>
-              <div className="flex-1 min-w-0">
-                <h4 className="font-medium text-sm">Install App</h4>
-                {!isMobile && (
-                  <p className="text-sm text-muted-foreground">
-                    Add Accountant AI to your home screen for quick access
-                  </p>
-                )}
-              </div>
-              <Button onClick={handleInstall} size="sm" className="shrink-0">
+          
+          <div className="flex items-center gap-2">
+            {isInstallable && (
+              <Button onClick={handleInstall} size="sm">
                 <Download className="h-4 w-4 mr-2" />
                 Install
               </Button>
-            </div>
-          )}
-
-          {/* iOS Install Instructions */}
-          {isIOS && !isInstallable && (
-            <div className={isMobile 
-              ? "space-y-2" 
-              : "p-3 bg-accent rounded-lg space-y-2"
-            }>
-              <h4 className="font-medium text-sm">Install on iOS</h4>
-              <div className="flex items-start gap-3 text-sm text-muted-foreground">
-                <div className="flex flex-col gap-2">
-                  <div className="flex items-center gap-2">
-                    <Share className="h-4 w-4 text-primary" />
-                    <span>1. Tap the Share button</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Plus className="h-4 w-4 text-primary" />
-                    <span>2. Select "Add to Home Screen"</span>
-                  </div>
-                </div>
+            )}
+            {isIOS && !isInstallable && (
+              <div className="text-xs text-muted-foreground flex items-center gap-2">
+                <Share className="h-4 w-4" /> Share → Add to Home Screen
               </div>
-            </div>
-          )}
-
-          {/* Notifications */}
-          {showNotificationPrompt && (
-            <div className={isMobile 
-              ? "flex items-center justify-between gap-3" 
-              : "flex items-center justify-between p-3 bg-accent rounded-lg"
-            }>
-              <div className="flex-1 min-w-0">
-                <h4 className="font-medium text-sm">Enable Notifications</h4>
-                {!isMobile && (
-                  <p className="text-sm text-muted-foreground">
-                    Get alerts for payment due dates, budget limits, and more
-                  </p>
-                )}
-              </div>
-              <Button onClick={handleNotificationPermission} size="sm" variant="outline" className="shrink-0">
+            )}
+            {showNotificationPrompt && (
+              <Button onClick={handleNotificationPermission} size="sm" variant="outline">
                 <Bell className="h-4 w-4 mr-2" />
-                Enable
+                Enable Notifications
               </Button>
-            </div>
-          )}
-        </CardContent>
-      </Card>
+            )}
+            <Button variant="ghost" size="icon" onClick={handleDismiss}>
+              <X className="h-4 w-4" />
+            </Button>
+          </div>
+        </div>
+      </div>
     </>
   );
 };

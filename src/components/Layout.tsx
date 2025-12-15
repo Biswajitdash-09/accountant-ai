@@ -1,9 +1,9 @@
-
 import { useState, useEffect, ReactNode } from "react";
 import Sidebar from "./Sidebar";
 import Header from "./Header";
 import MobileHeader from "./mobile/MobileHeader";
 import MobileBottomNav from "./mobile/MobileBottomNav";
+import { MobileQuickActions } from "./mobile/MobileQuickActions";
 import { NavigationBreadcrumbs } from "./Navigation/Breadcrumbs";
 import { useIsMobile } from "@/hooks/use-mobile-enhanced";
 import { cn } from "@/lib/utils";
@@ -77,29 +77,25 @@ const Layout = ({ children }: LayoutProps) => {
         />
         
         {/* Main Content with Bottom Navigation Space */}
-        <main className="min-h-[calc(100vh-5rem)] pb-36 mobile-scroll bg-background">
-          {/* PWA Enhancements */}
-          <div className="px-5 pt-3">
-            <PWAEnhancements />
-          </div>
+        <main className="min-h-[calc(100vh-3.5rem)] pb-24 mobile-scroll bg-background">
+          {/* PWA Enhancements - Compact on mobile */}
+          <PWAEnhancements />
           
           {/* Demo Badge */}
-          <div className="px-5 pt-4">
+          <div className="px-4 pt-3">
             <DemoAccountBadge showExitButton />
           </div>
           
-          {/* Breadcrumbs - Hidden on mobile by default */}
-          <div className="px-5 hidden sm:block pt-2">
-            <NavigationBreadcrumbs />
-          </div>
-          
           {/* Page Content */}
-          <div className="px-5 pb-10 pt-4">
+          <div className="px-4 pb-6 pt-3">
             <div className="max-w-screen-xl mx-auto w-full">
               {children}
             </div>
           </div>
         </main>
+
+        {/* Mobile Quick Actions FAB */}
+        <MobileQuickActions />
 
         {/* Mobile Bottom Navigation */}
         <MobileBottomNav />
