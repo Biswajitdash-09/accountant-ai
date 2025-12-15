@@ -232,8 +232,26 @@
     
     <!-- PWA Installation Script -->
     <script>
+      // IMPORTANT: Disable/cleanup Service Worker during Vite dev (prevents stale cached JS causing React hook dispatcher errors)
       if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
+          const isViteDev = !!document.querySelector('script[src="/@vite/client"]');
+
+          if (isViteDev) {
+            // Unregister any existing SW and clear caches so dev always uses fresh modules
+            navigator.serviceWorker.getRegistrations()
+              .then((regs) => Promise.all(regs.map((r) => r.unregister())))
+              .catch(() => {});
+
+            if (window.caches && caches.keys) {
+              caches.keys()
+                .then((keys) => Promise.all(keys.map((k) => caches.delete(k))))
+                .catch(() => {});
+            }
+
+            return;
+          }
+
           navigator.serviceWorker.register('/sw.js')
             .then(registration => console.log('SW registered'))
             .catch(error => console.log('SW registration failed'));
