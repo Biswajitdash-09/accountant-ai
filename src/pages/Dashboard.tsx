@@ -1,10 +1,11 @@
-
 import React, { useEffect, useState, memo } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useSearchParams, useNavigate } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
-import { DollarSign, TrendingUp, TrendingDown, PieChart, CheckSquare, Calendar, Bell, Bitcoin, PlayCircle } from "lucide-react";
+import { Drawer, DrawerContent, DrawerTitle } from "@/components/ui/drawer";
+import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
+import { DollarSign, TrendingUp, TrendingDown, PieChart, CheckSquare, Calendar, Bell, Bitcoin, PlayCircle, Phone } from "lucide-react";
 import { MetricCard } from "@/components/dashboard/MetricCard";
 import IncomeExpenseChart from "@/components/dashboard/IncomeExpenseChart";
 import ExpenseChart from "@/components/dashboard/ExpenseChart";
@@ -22,6 +23,7 @@ import CurrencyConverter from "@/components/CurrencyConverter";
 import CurrencySwitcher from "@/components/CurrencySwitcher";
 import DemoTutorial from "@/components/DemoTutorial";
 import { PullToRefresh } from "@/components/mobile/TouchGestures";
+import { VoiceAgent } from "@/components/voice/VoiceAgent";
 import { useCurrencyFormatter } from "@/hooks/useCurrencyFormatter";
 import { useCurrency } from "@/contexts/CurrencyContext";
 import { useNotificationService } from "@/hooks/useNotificationService";
@@ -30,13 +32,17 @@ import { getDemoData } from "@/utils/demoData";
 import DemoAccountBadge from "@/components/DemoAccountBadge";
 import { DashboardSkeleton } from "@/components/ui/smart-skeleton";
 import { OfflineIndicator } from "@/components/mobile/OfflineIndicator";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { toast } from "sonner";
 
 const Dashboard = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const [activeTab, setActiveTab] = useState(searchParams.get('tab') || 'overview');
   const [showTutorial, setShowTutorial] = useState(false);
+  const [showVoiceAgent, setShowVoiceAgent] = useState(false);
   const [isContextReady, setIsContextReady] = useState(false);
+  const navigate = useNavigate();
+  const isMobile = useIsMobile();
 
   // Check if contexts are ready before using hooks
   useEffect(() => {
@@ -180,6 +186,15 @@ const Dashboard = () => {
             
             <div className="flex items-center gap-2 flex-wrap">
               <CurrencySwitcher />
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => isMobile ? setShowVoiceAgent(true) : navigate('/assistant?tab=voice-agent')}
+                className="flex items-center gap-2 min-h-[44px] min-w-[44px] touch-manipulation bg-primary/10 hover:bg-primary/20 border-primary/30"
+              >
+                <Phone className="h-4 w-4 text-primary" />
+                <span className="hidden sm:inline">Voice Agent</span>
+              </Button>
               <AdvancedExportDialog />
               <Button
                 variant="outline"
@@ -199,6 +214,16 @@ const Dashboard = () => {
           isOpen={showTutorial} 
           onClose={() => setShowTutorial(false)} 
         />
+
+        {/* Voice Agent Drawer for Mobile */}
+        <Drawer open={showVoiceAgent} onOpenChange={setShowVoiceAgent}>
+          <DrawerContent className="h-[90vh]">
+            <VisuallyHidden>
+              <DrawerTitle>Voice Agent</DrawerTitle>
+            </VisuallyHidden>
+            <VoiceAgent onClose={() => setShowVoiceAgent(false)} className="h-full border-0" />
+          </DrawerContent>
+        </Drawer>
 
           <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
             <TabsList className="grid w-full grid-cols-2 sm:grid-cols-5 h-auto gap-1">
