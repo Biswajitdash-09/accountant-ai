@@ -392,14 +392,14 @@ const AIChatbot = () => {
   };
 
   return (
-    <div className="h-full flex gap-4">
+    <div className="h-[calc(100vh-12rem)] min-h-[400px] flex gap-4">
       {/* Document History Sidebar - Desktop */}
-      <div className="hidden lg:block w-80 shrink-0">
+      <div className="hidden lg:block w-80 shrink-0 h-full overflow-hidden">
         <DocumentHistory onSelectDocument={handleSelectFromHistory} />
       </div>
 
       {/* Main Chat Area */}
-      <Card className="flex-1 flex flex-col h-full relative">
+      <Card className="flex-1 flex flex-col min-h-0 overflow-hidden relative">
         <DragDropOverlay isDragging={isDragActive} />
         
         <CardHeader className="border-b p-3 sm:p-6">
@@ -459,14 +459,15 @@ const AIChatbot = () => {
         </CardHeader>
 
         <CardContent 
-          className="flex-1 p-0 overflow-hidden relative"
+          className="flex-1 min-h-0 p-0 overflow-hidden relative"
           ref={chatContainerRef}
           onDragEnter={handleDragEnter}
           onDragOver={handleDragOver}
           onDragLeave={handleDragLeave}
           onDrop={handleDrop}
         >
-          <ScrollArea className="h-full px-3 sm:px-4 py-4 sm:py-6" ref={scrollAreaRef}>
+          <ScrollArea className="h-full" ref={scrollAreaRef}>
+            <div className="px-3 sm:px-4 py-4 sm:py-6">
             {messages.length === 0 ? (
               <div className="flex flex-col items-center justify-center h-full text-center space-y-4 sm:space-y-6 px-2">
                 <div className="space-y-2">
@@ -545,6 +546,7 @@ const AIChatbot = () => {
                 ))}
               </AnimatePresence>
             )}
+            </div>
           </ScrollArea>
         </CardContent>
 

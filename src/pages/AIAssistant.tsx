@@ -45,7 +45,8 @@ const AIAssistantPage = () => {
 
       {/* AI Features Tabs */}
       <Tabs defaultValue="chatbot" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-4 lg:grid-cols-11 max-w-7xl mx-auto h-auto p-1 gap-1">
+        <div className="overflow-x-auto mobile-tabs-scroll -mx-4 px-4">
+          <TabsList className="inline-flex w-max min-w-full h-auto p-1 gap-1">
           <TabsTrigger 
             value="chatbot" 
             className="gap-1 text-xs py-2 px-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
@@ -123,14 +124,15 @@ const AIAssistantPage = () => {
             <CreditCard className="h-4 w-4" />
             <span className="hidden sm:inline">Buy Credits</span>
           </TabsTrigger>
-        </TabsList>
+          </TabsList>
+        </div>
 
         <TabsContent value="chatbot" className="space-y-0">
           <AIChatbot />
         </TabsContent>
 
         <TabsContent value="voice-agent" className="space-y-0">
-          <div className="h-[600px]">
+          <div className="h-[calc(100vh-16rem)] min-h-[400px] max-h-[800px]">
             <VoiceAgent className="h-full" />
           </div>
         </TabsContent>
