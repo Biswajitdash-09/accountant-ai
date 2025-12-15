@@ -17,6 +17,11 @@ export default defineConfig(({ mode }) => ({
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
+      // Force a single React instance across the whole app (prevents dispatcher=null hook crashes)
+      react: path.resolve(__dirname, "node_modules/react"),
+      "react-dom": path.resolve(__dirname, "node_modules/react-dom"),
+      "react/jsx-runtime": path.resolve(__dirname, "node_modules/react/jsx-runtime"),
+      "react/jsx-dev-runtime": path.resolve(__dirname, "node_modules/react/jsx-dev-runtime"),
     },
     // Prevent multiple React copies (fixes "dispatcher is null" / useState null errors)
     dedupe: ["react", "react-dom", "react/jsx-runtime", "react/jsx-dev-runtime"],

@@ -1,8 +1,9 @@
-const CACHE_NAME = 'accountant-ai-v3.0';
-const STATIC_CACHE = 'accountant-ai-static-v3.0';
-const DYNAMIC_CACHE = 'accountant-ai-dynamic-v3.0';
-const IMAGE_CACHE = 'accountant-ai-images-v3.0';
-const API_CACHE = 'accountant-ai-api-v3.0';
+const CACHE_VERSION = 'v3.1';
+const CACHE_NAME = `accountant-ai-${CACHE_VERSION}`;
+const STATIC_CACHE = `accountant-ai-static-${CACHE_VERSION}`;
+const DYNAMIC_CACHE = `accountant-ai-dynamic-${CACHE_VERSION}`;
+const IMAGE_CACHE = `accountant-ai-images-${CACHE_VERSION}`;
+const API_CACHE = `accountant-ai-api-${CACHE_VERSION}`;
 
 const STATIC_ASSETS = [
   '/',
@@ -58,17 +59,57 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
+  // IMPORTANT: Never cache Vite dev modules / HMR endpoints.
+  // Caching these can serve mismatched module graphs and cause React hook dispatcher errors
+  // like: "Cannot read properties of null (reading 'useState')".
+  const isViteDevAsset =
+    url.pathname.startsWith('/@vite/') ||
+    url.pathname.startsWith('/@react-refresh') ||
+    url.pathname.startsWith('/src/') ||
+    url.pathname.startsWith('/node_modules/') ||
+    url.pathname.includes('/node_modules/.vite/') ||
+    url.pathname.includes('/.vite/deps/');
+
+  if (isViteDevAsset) {
+    event.respondWith(fetch(request));
+    return;
+  }
+
+  // Navigations (SPA routes) - network first, fallback to cached shell
+  if (request.mode === 'navigate' || request.destination === 'document') {
+    event.respondWith(
+      fetch(request)
+        .then((response) => {
+          if (response && response.ok) {
+            const responseClone = response.clone();
+            caches.open(STATIC_CACHE).then((cache) => {
+              // Cache the app shell (index) for offline fallback
+              cache.put('/', responseClone);
+            });
+          }
+          return response;
+        })
+        .catch(() => caches.match('/'))
+    );
+    return;
+  }
+
   // Image caching - stale-while-revalidate
-  if (request.destination === 'image' || /\.(jpg|jpeg|png|gif|webp|svg|ico)$/i.test(url.pathname)) {
+  if (
+    request.destination === 'image' ||
+    /\.(jpg|jpeg|png|gif|webp|svg|ico)$/i.test(url.pathname)
+  ) {
     event.respondWith(
       caches.open(IMAGE_CACHE).then((cache) => {
         return cache.match(request).then((cached) => {
-          const fetchPromise = fetch(request).then((response) => {
-            if (response.ok) {
-              cache.put(request, response.clone());
-            }
-            return response;
-          }).catch(() => cached);
+          const fetchPromise = fetch(request)
+            .then((response) => {
+              if (response.ok) {
+                cache.put(request, response.clone());
+              }
+              return response;
+            })
+            .catch(() => cached);
 
           return cached || fetchPromise;
         });
@@ -92,7 +133,7 @@ self.addEventListener('fetch', (event) => {
               const modifiedResponse = new Response(responseClone.body, {
                 status: responseClone.status,
                 statusText: responseClone.statusText,
-                headers: headers
+                headers: headers,
               });
               cache.put(request, modifiedResponse);
             });
@@ -113,13 +154,10 @@ self.addEventListener('fetch', (event) => {
               }
               return cached;
             }
-            return new Response(
-              JSON.stringify({ error: 'Offline - data not available' }),
-              { 
-                headers: { 'Content-Type': 'application/json' },
-                status: 503
-              }
-            );
+            return new Response(JSON.stringify({ error: 'Offline - data not available' }), {
+              headers: { 'Content-Type': 'application/json' },
+              status: 503,
+            });
           });
         })
     );
@@ -128,29 +166,23 @@ self.addEventListener('fetch', (event) => {
 
   // Static assets - cache first
   event.respondWith(
-    caches.match(request)
-      .then((cached) => {
-        if (cached) {
-          return cached;
-        }
+    caches.match(request).then((cached) => {
+      if (cached) {
+        return cached;
+      }
 
-        return fetch(request)
-          .then((response) => {
-            if (response.ok) {
-              const responseClone = response.clone();
-              caches.open(STATIC_CACHE).then((cache) => {
-                cache.put(request, responseClone);
-              });
-            }
-            return response;
-          })
-          .catch(() => {
-            if (request.mode === 'navigate') {
-              return caches.match('/');
-            }
-            return new Response('Offline', { status: 503 });
-          });
-      })
+      return fetch(request)
+        .then((response) => {
+          if (response.ok) {
+            const responseClone = response.clone();
+            caches.open(STATIC_CACHE).then((cache) => {
+              cache.put(request, responseClone);
+            });
+          }
+          return response;
+        })
+        .catch(() => new Response('Offline', { status: 503 }));
+    })
   );
 });
 
