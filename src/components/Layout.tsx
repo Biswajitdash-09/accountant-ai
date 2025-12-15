@@ -77,17 +77,17 @@ const Layout = ({ children }: LayoutProps) => {
         />
         
         {/* Main Content with Bottom Navigation Space */}
-        <main className="min-h-[calc(100vh-3.5rem)] pb-24 mobile-scroll bg-background">
+        <main className="min-h-[calc(100vh-3.5rem)] pb-20 mobile-scroll bg-background">
           {/* PWA Enhancements - Compact on mobile */}
           <PWAEnhancements />
           
           {/* Demo Badge */}
-          <div className="px-4 pt-3">
+          <div className="px-3 pt-2">
             <DemoAccountBadge showExitButton />
           </div>
           
           {/* Page Content */}
-          <div className="px-4 pb-6 pt-3">
+          <div className="px-3 pb-4 pt-1">
             <div className="max-w-screen-xl mx-auto w-full">
               {children}
             </div>

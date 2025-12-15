@@ -72,7 +72,7 @@ export const MobileQuickActions = () => {
         )}
       </AnimatePresence>
 
-      <div className="fixed bottom-24 right-4 z-50">
+      <div className="fixed bottom-20 right-4 z-50">
         <AnimatePresence>
           {isOpen && (
             <motion.div
@@ -104,14 +104,15 @@ export const MobileQuickActions = () => {
 
         <Button
           onClick={() => setIsOpen(!isOpen)}
-          size="lg"
+          size="icon"
           className={`h-14 w-14 rounded-full shadow-lg ${
-            isOpen ? 'bg-destructive' : 'bg-primary'
+            isOpen ? 'bg-destructive hover:bg-destructive/90' : 'bg-primary hover:bg-primary/90'
           }`}
         >
           <motion.div
             animate={{ rotate: isOpen ? 45 : 0 }}
             transition={{ duration: 0.2 }}
+            className="flex items-center justify-center"
           >
             {isOpen ? <X className="h-6 w-6" /> : <Plus className="h-6 w-6" />}
           </motion.div>
