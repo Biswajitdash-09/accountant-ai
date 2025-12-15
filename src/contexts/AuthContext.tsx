@@ -1,7 +1,6 @@
-import React, { createContext, useContext, useEffect, useState, ReactNode, useMemo } from "react";
+import * as React from "react";
 import { User, Session } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
-import { useToast } from "@/hooks/use-toast";
 
 interface AuthContextProps {
   user: User | null;
@@ -10,32 +9,24 @@ interface AuthContextProps {
   signOut: () => Promise<void>;
 }
 
-const AuthContext = createContext<AuthContextProps>({
+const AuthContext = React.createContext<AuthContextProps>({
   user: null,
   session: null,
   loading: true,
   signOut: async () => {},
 });
 
-export const useAuth = () => useContext(AuthContext);
+export const useAuth = () => {
+  const context = React.useContext(AuthContext);
+  return context;
+};
 
-export const AuthProvider = ({ children }: { children: ReactNode }) => {
-  const [user, setUser] = useState<User | null>(null);
-  const [session, setSession] = useState<Session | null>(null);
-  const [loading, setLoading] = useState(true);
-  
-  // Safely get toast with fallback
-  let toastFn = (props: any) => {};
-  try {
-    const toastHook = useToast();
-    toastFn = toastHook.toast;
-  } catch (error) {
-    console.warn("[AuthProvider] Toast not available:", error);
-  }
-  
-  const toast = toastFn;
+export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
+  const [user, setUser] = React.useState<User | null>(null);
+  const [session, setSession] = React.useState<Session | null>(null);
+  const [loading, setLoading] = React.useState(true);
 
-  useEffect(() => {
+  React.useEffect(() => {
     console.log('Setting up auth state listener...');
     
     // Set up auth state listener FIRST
@@ -49,13 +40,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         
         // Handle different auth events
         if (event === 'SIGNED_IN') {
-          if (toast) {
-            toast({
-              title: "Welcome!",
-              description: "You have been signed in successfully.",
-            });
-          }
-          
           // Clear any demo mode when user signs in
           localStorage.removeItem('isGuest');
           
@@ -68,13 +52,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         }
         
         if (event === 'SIGNED_OUT') {
-          if (toast) {
-            toast({
-              title: "Signed out",
-              description: "You have been signed out successfully.",
-            });
-          }
-          
           // Clear all data and redirect to landing page
           setTimeout(() => {
             window.location.href = '/';
@@ -103,9 +80,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       console.log('Cleaning up auth subscription');
       subscription.unsubscribe();
     };
-  }, [toast]);
+  }, []);
 
-  const signOut = async () => {
+  const signOut = React.useCallback(async () => {
     try {
       setLoading(true);
       const { error } = await supabase.auth.signOut();
@@ -115,25 +92,18 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       }
     } catch (error) {
       console.error("Error signing out:", error);
-      if (toast) {
-        toast({
-          title: "Error",
-          description: "Something went wrong. Please try again.",
-          variant: "destructive",
-        });
-      }
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   // Memoize context value to prevent unnecessary re-renders
-  const contextValue = useMemo(() => ({
+  const contextValue = React.useMemo(() => ({
     user,
     session,
     loading,
     signOut
-  }), [user, session, loading]);
+  }), [user, session, loading, signOut]);
 
   return (
     <AuthContext.Provider value={contextValue}>
