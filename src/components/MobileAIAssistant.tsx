@@ -15,9 +15,11 @@ import {
   DollarSign,
   Calendar,
   Target,
-  Lightbulb
+  Lightbulb,
+  Phone
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { VoiceAgent } from "@/components/voice/VoiceAgent";
 
 const MobileAIAssistant = () => {
   const [message, setMessage] = useState("");
@@ -109,20 +111,27 @@ const MobileAIAssistant = () => {
       </div>
 
       {/* Tabs */}
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-2 mx-4 mt-6 mb-0 h-14 p-1 gap-2 bg-muted/30 rounded-2xl shadow-soft">
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full flex-1 flex flex-col min-h-0">
+        <TabsList className="grid w-full grid-cols-3 mx-4 mt-6 mb-0 h-14 p-1 gap-1 bg-muted/30 rounded-2xl shadow-soft shrink-0">
           <TabsTrigger 
             value="assistant" 
-            className="text-base font-semibold min-h-[52px] rounded-xl data-[state=active]:bg-background data-[state=active]:shadow-medium transition-all duration-300"
+            className="text-sm font-semibold min-h-[48px] rounded-xl data-[state=active]:bg-background data-[state=active]:shadow-medium transition-all duration-300"
           >
-            <MessageCircle className="h-5 w-5 mr-2" />
-            <span className="truncate">Assistant</span>
+            <MessageCircle className="h-4 w-4 mr-1.5" />
+            <span className="truncate">Chat</span>
+          </TabsTrigger>
+          <TabsTrigger 
+            value="voice" 
+            className="text-sm font-semibold min-h-[48px] rounded-xl data-[state=active]:bg-background data-[state=active]:shadow-medium transition-all duration-300"
+          >
+            <Phone className="h-4 w-4 mr-1.5" />
+            <span className="truncate">Voice</span>
           </TabsTrigger>
           <TabsTrigger 
             value="insights" 
-            className="text-base font-semibold min-h-[52px] rounded-xl data-[state=active]:bg-background data-[state=active]:shadow-medium transition-all duration-300"
+            className="text-sm font-semibold min-h-[48px] rounded-xl data-[state=active]:bg-background data-[state=active]:shadow-medium transition-all duration-300"
           >
-            <Lightbulb className="h-5 w-5 mr-2" />
+            <Lightbulb className="h-4 w-4 mr-1.5" />
             <span className="truncate">Insights</span>
           </TabsTrigger>
         </TabsList>
@@ -238,6 +247,13 @@ const MobileAIAssistant = () => {
               </div>
             </CardContent>
           </Card>
+        </TabsContent>
+
+        {/* Voice Agent View */}
+        <TabsContent value="voice" className="px-4 pb-4 flex-1 min-h-0">
+          <div className="h-[calc(100vh-16rem)] min-h-[400px]">
+            <VoiceAgent className="h-full" />
+          </div>
         </TabsContent>
 
         {/* Insights View */}

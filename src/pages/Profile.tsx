@@ -14,11 +14,13 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useAuth } from "@/contexts/AuthContext";
 import { useUserPreferences } from "@/hooks/useUserPreferences";
 import { useSecurityAuditLogs } from "@/hooks/useSecurityAuditLogs";
-import { User, Settings, Shield, LogOut, Clock, Calendar, Bell, ExternalLink } from "lucide-react";
+import { User, Settings, Shield, LogOut, Clock, Calendar, Bell, ExternalLink, Download, Share, Plus, Smartphone, Check } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { HMRCSettings } from "@/components/hmrc/HMRCSettings";
 import { useHMRCConnection } from "@/hooks/useHMRCConnection";
 import { SampleDataManager } from "@/components/settings/SampleDataManager";
+import { usePWAInstall } from "@/components/PWAEnhancements";
+import { toast } from "sonner";
 
 const Profile = () => {
   const { signOut } = useAuth();
@@ -27,6 +29,14 @@ const Profile = () => {
   const { preferences, updatePreferences } = useUserPreferences();
   const { auditLogs, isLoading: auditLoading } = useSecurityAuditLogs();
   const { isConnected } = useHMRCConnection();
+  const { isInstallable, isIOS, isStandalone, install } = usePWAInstall();
+
+  const handleInstallApp = async () => {
+    const success = await install();
+    if (success) {
+      toast.success('App installed successfully!');
+    }
+  };
 
   const handleSignOut = async () => {
     await signOut();
@@ -256,6 +266,50 @@ const Profile = () => {
 
           {/* Sample Data Manager */}
           <SampleDataManager />
+
+          {/* Install App */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Smartphone className="h-5 w-5" />
+                Install App
+              </CardTitle>
+              <CardDescription>
+                Add Accountant AI to your home screen for quick access
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              {isStandalone ? (
+                <div className="flex items-center gap-2 text-sm text-success">
+                  <Check className="h-4 w-4" />
+                  App is already installed
+                </div>
+              ) : isInstallable ? (
+                <Button onClick={handleInstallApp} className="gap-2">
+                  <Download className="h-4 w-4" />
+                  Install App
+                </Button>
+              ) : isIOS ? (
+                <div className="space-y-3">
+                  <p className="text-sm text-muted-foreground">To install on iOS:</p>
+                  <div className="flex flex-col gap-2 text-sm">
+                    <div className="flex items-center gap-2">
+                      <Share className="h-4 w-4 text-primary" />
+                      <span>1. Tap the Share button in Safari</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Plus className="h-4 w-4 text-primary" />
+                      <span>2. Select "Add to Home Screen"</span>
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <p className="text-sm text-muted-foreground">
+                  App installation is available in supported browsers (Chrome, Edge, Safari)
+                </p>
+              )}
+            </CardContent>
+          </Card>
         </TabsContent>
 
         <TabsContent value="security" className="space-y-4">

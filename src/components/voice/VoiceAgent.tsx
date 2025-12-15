@@ -156,7 +156,7 @@ export const VoiceAgent: React.FC<VoiceAgentProps> = ({ className, onClose }) =>
   };
 
   return (
-    <Card className={cn("flex flex-col h-full", className)}>
+    <Card className={cn("flex flex-col h-full min-h-0 overflow-hidden", className)}>
       {/* Header */}
       <CardHeader className="border-b p-4">
         <div className="flex items-center justify-between">
@@ -263,8 +263,9 @@ export const VoiceAgent: React.FC<VoiceAgentProps> = ({ className, onClose }) =>
       )}
 
       {/* Messages */}
-      <CardContent className="flex-1 p-0 overflow-hidden">
-        <ScrollArea className="h-full p-4">
+      <CardContent className="flex-1 min-h-0 p-0 overflow-hidden">
+        <ScrollArea className="h-full">
+          <div className="p-4">
           {messages.length === 0 && !isConnected ? (
             <div className="flex flex-col items-center justify-center h-full text-center space-y-4 py-8">
               <motion.div
@@ -330,6 +331,7 @@ export const VoiceAgent: React.FC<VoiceAgentProps> = ({ className, onClose }) =>
               )}
             </div>
           )}
+            </div>
         </ScrollArea>
       </CardContent>
 
