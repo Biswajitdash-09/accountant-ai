@@ -813,10 +813,68 @@
   padding-top: env(safe-area-inset-top, 0);
 }
 
+.safe-area-bottom {
+  padding-bottom: env(safe-area-inset-bottom, 0.5rem);
+}
+
 /* Improved mobile touch targets */
 .min-touch-target {
   min-height: 44px;
   min-width: 44px;
+}
+
+/* Touch feedback for mobile */
+.touch-feedback {
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+
+.touch-feedback:active {
+  transform: scale(0.97);
+  opacity: 0.9;
+}
+
+/* Touch manipulation for smooth scrolling */
+.touch-manipulation {
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Z-index hierarchy for mobile */
+.z-45 {
+  z-index: 45;
+}
+
+/* Mobile scrolling improvements */
+.mobile-scroll {
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+}
+
+/* Prevent text selection on touch */
+.no-select {
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+/* Mobile bottom navigation safe area */
+.mobile-bottom-safe {
+  padding-bottom: max(env(safe-area-inset-bottom), 0.5rem);
+}
+
+/* Compact card styling for mobile */
+@media (max-width: 640px) {
+  .mobile-compact {
+    padding: 0.75rem;
+  }
+  
+  .mobile-compact-header {
+    padding: 0.75rem 0.75rem 0;
+  }
+  
+  .mobile-compact-content {
+    padding: 0.75rem;
+  }
 }
 
 /* Tagline gradient background */
