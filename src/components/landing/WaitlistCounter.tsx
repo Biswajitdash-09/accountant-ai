@@ -10,13 +10,13 @@ export const WaitlistCounter = () => {
   useEffect(() => {
     fetchCount();
 
-    // Subscribe to real-time updates
+    // Subscribe to real-time updates for insert events only
     const channel = supabase
-      .channel('waitlist-changes')
+      .channel('waitlist-count')
       .on(
         'postgres_changes',
         {
-          event: '*',
+          event: 'INSERT',
           schema: 'public',
           table: 'waitlist',
         },
@@ -33,15 +33,18 @@ export const WaitlistCounter = () => {
 
   const fetchCount = async () => {
     try {
-      const { count: totalCount, error } = await supabase
-        .from('waitlist')
-        .select('*', { count: 'exact', head: true });
+      // Use the secure function to get total count
+      const { data, error } = await supabase.rpc('get_waitlist_position', {
+        check_email: ''
+      });
 
-      if (!error && totalCount !== null) {
-        setCount(totalCount);
+      if (!error && data && data.length > 0) {
+        setCount(data[0].total_count || 0);
       }
     } catch (error) {
       console.error('Error fetching waitlist count:', error);
+      // Fallback to 0 on error
+      setCount(0);
     } finally {
       setIsLoading(false);
     }
@@ -51,19 +54,19 @@ export const WaitlistCounter = () => {
     return (
       <div className="flex items-center justify-center gap-2 text-muted-foreground">
         <Users className="h-5 w-5 animate-pulse" />
-        <span className="text-lg">Loading...</span>
+        <span className="text-base sm:text-lg">Loading...</span>
       </div>
     );
   }
 
   return (
-    <div className="flex items-center justify-center gap-3 text-foreground">
-      <Users className="h-6 w-6 text-primary" />
-      <span className="text-xl font-medium">
+    <div className="flex items-center justify-center gap-2 text-foreground">
+      <Users className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
+      <span className="text-base sm:text-xl font-medium">
         Join{" "}
         <AnimatedCounter 
           value={count} 
-          className="font-bold text-primary text-2xl"
+          className="font-bold text-primary text-lg sm:text-2xl"
         />
         {" "}others on the waitlist
       </span>

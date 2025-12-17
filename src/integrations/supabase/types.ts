@@ -4409,6 +4409,13 @@ export type Database = {
           user_id: string
         }[]
       }
+      get_waitlist_position: {
+        Args: { check_email: string }
+        Returns: {
+          queue_position: number
+          total_count: number
+        }[]
+      }
       has_role: {
         Args: { _role_type: string; _user_id: string }
         Returns: boolean
