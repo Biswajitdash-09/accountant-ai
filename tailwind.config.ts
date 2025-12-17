@@ -247,6 +247,9 @@ export default {
 				'2xl': 'var(--space-2xl)',
 				'3xl': 'var(--space-3xl)',
 			},
+			zIndex: {
+				'45': '45',
+			},
 		}
 	},
 	plugins: [require("tailwindcss-animate")],

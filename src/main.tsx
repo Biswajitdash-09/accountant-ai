@@ -1,19 +1,4 @@
-import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter } from "react-router-dom";
-import { ErrorBoundary } from "@/components/ui/error-boundary";
-import "./index.css";
-
-// Create query client outside of component tree
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      staleTime: 5 * 60 * 1000, // 5 minutes
-      refetchOnWindowFocus: false,
-    },
-  },
-});
 
 const rootElement = document.getElementById("root");
 
@@ -21,38 +6,77 @@ if (!rootElement) {
   throw new Error("Root element not found");
 }
 
-// Lazy load providers and app to ensure React is fully initialized
-const initApp = async () => {
-  // Dynamic imports ensure proper React initialization order
-  const [
-    { ThemeProvider },
-    { AuthProvider },
-    { CurrencyProvider },
-    { default: App }
-  ] = await Promise.all([
-    import("@/hooks/useTheme"),
-    import("@/contexts/AuthContext"),
-    import("@/contexts/CurrencyContext"),
-    import("./App")
-  ]);
+// Bootstrap the app with all dependencies loaded dynamically
+// This ensures React is fully initialized before any hooks are called
+async function bootstrap() {
+  try {
+    // Load React first to ensure dispatcher is initialized
+    const React = await import("react");
+    const { StrictMode } = React;
+    
+    // Then load everything else
+    const [
+      { QueryClient, QueryClientProvider },
+      { BrowserRouter },
+      { ErrorBoundary },
+      { ThemeProvider },
+      { AuthProvider },
+      { CurrencyProvider },
+      { default: App },
+      { Toaster }
+    ] = await Promise.all([
+      import("@tanstack/react-query"),
+      import("react-router-dom"),
+      import("@/components/ui/error-boundary"),
+      import("@/hooks/useTheme"),
+      import("@/contexts/AuthContext"),
+      import("@/contexts/CurrencyContext"),
+      import("./App"),
+      import("sonner")
+    ]);
 
-  createRoot(rootElement).render(
-    <StrictMode>
-      <ErrorBoundary>
-        <QueryClientProvider client={queryClient}>
-          <BrowserRouter>
-            <ThemeProvider defaultTheme="light" storageKey="accountant-ai-theme">
-              <AuthProvider>
-                <CurrencyProvider>
-                  <App />
-                </CurrencyProvider>
-              </AuthProvider>
-            </ThemeProvider>
-          </BrowserRouter>
-        </QueryClientProvider>
-      </ErrorBoundary>
-    </StrictMode>
-  );
-};
+    // Create query client after React is ready
+    const queryClient = new QueryClient({
+      defaultOptions: {
+        queries: {
+          staleTime: 5 * 60 * 1000,
+          refetchOnWindowFocus: false,
+          retry: 1,
+        },
+      },
+    });
 
-initApp();
+    createRoot(rootElement).render(
+      <StrictMode>
+        <ErrorBoundary>
+          <QueryClientProvider client={queryClient}>
+            <BrowserRouter>
+              <ThemeProvider defaultTheme="light" storageKey="accountant-ai-theme">
+                <AuthProvider>
+                  <CurrencyProvider>
+                    <App />
+                    <Toaster position="top-center" richColors />
+                  </CurrencyProvider>
+                </AuthProvider>
+              </ThemeProvider>
+            </BrowserRouter>
+          </QueryClientProvider>
+        </ErrorBoundary>
+      </StrictMode>
+    );
+  } catch (error) {
+    console.error("Failed to bootstrap app:", error);
+    rootElement.innerHTML = `
+      <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100vh;font-family:system-ui;padding:20px;text-align:center;">
+        <h1 style="color:#ef4444;margin-bottom:16px;">Failed to load application</h1>
+        <p style="color:#666;margin-bottom:16px;">Please try refreshing the page.</p>
+        <button onclick="location.reload()" style="background:#3b82f6;color:white;border:none;padding:12px 24px;border-radius:8px;cursor:pointer;">
+          Refresh Page
+        </button>
+      </div>
+    `;
+  }
+}
+
+// Start bootstrap
+bootstrap();
