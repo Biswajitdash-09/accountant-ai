@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -13,10 +12,7 @@ import { useTaxDeductions } from "@/hooks/useTaxDeductions";
 import { useTaxSettings } from "@/hooks/useTaxSettings";
 import { useCurrencyFormatter } from "@/hooks/useCurrencyFormatter";
 import { useTransactions } from "@/hooks/useTransactions";
-import { useDemoMode } from "@/hooks/useDemoMode";
-import { getDemoData } from "@/utils/demoData";
 import { useToast } from "@/components/ui/use-toast";
-import DemoAccountBadge from "@/components/DemoAccountBadge";
 import { MobileForm, MobileFormSection } from "@/components/ui/mobile-form";
 
 export const TaxCalculator = ({ selectedCountry = 'USA' }: { selectedCountry?: 'USA' | 'UK' | 'India' | 'Nigeria' }) => {
@@ -27,7 +23,6 @@ export const TaxCalculator = ({ selectedCountry = 'USA' }: { selectedCountry?: '
   const { taxDeductions } = useTaxDeductions(currentPeriod?.id);
   const { transactions } = useTransactions();
   const { formatCurrency } = useCurrencyFormatter();
-  const { isDemo } = useDemoMode();
   const { toast } = useToast();
 
   const [grossIncome, setGrossIncome] = useState('');
@@ -35,14 +30,11 @@ export const TaxCalculator = ({ selectedCountry = 'USA' }: { selectedCountry?: '
   const [filingStatus, setFilingStatus] = useState('single');
   const [businessType, setBusinessType] = useState('sole_proprietorship');
 
-  // Use demo data if in demo mode
-  const displayTransactions = isDemo ? getDemoData('transactions') : transactions;
-
   const currentCalculation = taxCalculations[0];
   const approvedDeductions = taxDeductions.filter(d => d.is_approved).reduce((sum, d) => sum + d.amount, 0);
   
   // Calculate income from transactions
-  const periodIncome = displayTransactions
+  const periodIncome = transactions
     .filter(t => t.type === 'income' && currentPeriod && 
       new Date(t.date) >= new Date(currentPeriod.start_date) && 
       new Date(t.date) <= new Date(currentPeriod.end_date))
@@ -57,14 +49,6 @@ export const TaxCalculator = ({ selectedCountry = 'USA' }: { selectedCountry?: '
   }, [taxSettings]);
 
   const handleCalculate = async () => {
-    if (isDemo) {
-      toast({
-        title: "Demo Mode",
-        description: "Tax calculation simulated in demo mode - showing sample results",
-      });
-      return;
-    }
-
     if (!currentPeriod) {
       toast({
         title: "Error",
@@ -116,7 +100,6 @@ export const TaxCalculator = ({ selectedCountry = 'USA' }: { selectedCountry?: '
   };
 
   const getTaxBrackets = (filingStatus: string, country: 'USA' | 'UK' | 'India' | 'Nigeria') => {
-    // Minimal illustrative brackets per country (for display only)
     if (country === 'UK') {
       return [
         { range: "£0 - £12,570", rate: "0%", color: "bg-green-100 text-green-800" },
@@ -146,7 +129,6 @@ export const TaxCalculator = ({ selectedCountry = 'USA' }: { selectedCountry?: '
       ];
     }
 
-    // Default USA brackets with filing status
     const brackets = {
       single: [
         { range: "$0 - $11,000", rate: "10%", color: "bg-green-100 text-green-800" },
@@ -171,18 +153,6 @@ export const TaxCalculator = ({ selectedCountry = 'USA' }: { selectedCountry?: '
     return brackets[filingStatus as keyof typeof brackets] || brackets.single;
   };
 
-  // Demo calculation for display
-  const demoCalculation = isDemo ? {
-    gross_income: 75000,
-    total_deductions: 15000,
-    taxable_income: 60000,
-    tax_liability: 9240,
-    credits_applied: 1000,
-    amount_owed: 8240,
-    calculated_at: new Date().toISOString()
-  } : null;
-
-  const displayCalculation = isDemo ? demoCalculation : currentCalculation;
   const taxBrackets = getTaxBrackets(filingStatus, selectedCountry);
 
   return (
@@ -194,8 +164,6 @@ export const TaxCalculator = ({ selectedCountry = 'USA' }: { selectedCountry?: '
             Calculate your tax liability and plan your payments
           </p>
         </div>
-
-        <DemoAccountBadge />
 
         {!currentPeriod && (
           <Card>
@@ -323,7 +291,7 @@ export const TaxCalculator = ({ selectedCountry = 'USA' }: { selectedCountry?: '
                         {isLoading ? 'Calculating...' : 'Calculate Tax'}
                       </Button>
                       
-                      {displayCalculation && (
+                      {currentCalculation && (
                         <Button 
                           onClick={handleSaveCalculation}
                           variant="outline"
@@ -368,116 +336,72 @@ export const TaxCalculator = ({ selectedCountry = 'USA' }: { selectedCountry?: '
           </div>
 
           {/* Calculation Results */}
-          {displayCalculation && (
+          {currentCalculation && (
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <TrendingUp className="h-5 w-5" />
                   Tax Calculation Results
-                  {isDemo && (
-                    <span className="text-sm font-normal text-muted-foreground ml-2">
-                      (Demo Data)
-                    </span>
-                  )}
                 </CardTitle>
                 <CardDescription>
-                  Last calculated: {new Date(displayCalculation.calculated_at).toLocaleDateString()}
+                  Last calculated: {new Date(currentCalculation.calculated_at).toLocaleDateString()}
                 </CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
                   <div className="text-center p-4 bg-muted rounded-lg">
                     <div className="text-xl sm:text-2xl font-bold">
-                      {formatCurrency(displayCalculation.gross_income)}
+                      {formatCurrency(currentCalculation.gross_income)}
                     </div>
                     <div className="text-sm text-muted-foreground mt-1">Gross Income</div>
                   </div>
                   <div className="text-center p-4 bg-muted rounded-lg">
                     <div className="text-xl sm:text-2xl font-bold text-green-600">
-                      -{formatCurrency(displayCalculation.total_deductions)}
+                      -{formatCurrency(currentCalculation.total_deductions)}
                     </div>
                     <div className="text-sm text-muted-foreground mt-1">Total Deductions</div>
                   </div>
                   <div className="text-center p-4 bg-muted rounded-lg">
                     <div className="text-xl sm:text-2xl font-bold">
-                      {formatCurrency(displayCalculation.taxable_income)}
+                      {formatCurrency(currentCalculation.taxable_income)}
                     </div>
                     <div className="text-sm text-muted-foreground mt-1">Taxable Income</div>
                   </div>
                   <div className="text-center p-4 bg-finance-highlight/10 rounded-lg border-2 border-finance-highlight">
                     <div className="text-xl sm:text-2xl font-bold text-finance-highlight">
-                      {formatCurrency(displayCalculation.amount_owed)}
+                      {formatCurrency(currentCalculation.amount_owed)}
                     </div>
-                    <div className="text-sm text-muted-foreground mt-1">Tax Owed</div>
+                    <div className="text-sm text-muted-foreground mt-1">Amount Owed</div>
                   </div>
                 </div>
 
                 <Separator className="my-6" />
 
-                <div className="space-y-4">
-                  <h4 className="font-semibold">Calculation Breakdown</h4>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div className="p-3 bg-muted rounded-lg">
-                      <p className="text-sm text-muted-foreground">Tax Liability</p>
-                      <p className="font-medium text-lg">
-                        {formatCurrency(displayCalculation.tax_liability)}
-                      </p>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="p-4 bg-muted/50 rounded-lg">
+                    <div className="flex items-center gap-2 mb-2">
+                      <FileText className="h-4 w-4 text-primary" />
+                      <span className="font-medium">Tax Liability</span>
                     </div>
-                    <div className="p-3 bg-muted rounded-lg">
-                      <p className="text-sm text-muted-foreground">Credits Applied</p>
-                      <p className="font-medium text-lg">
-                        {formatCurrency(displayCalculation.credits_applied)}
-                      </p>
-                    </div>
+                    <div className="text-lg font-bold">{formatCurrency(currentCalculation.tax_liability)}</div>
                   </div>
-                  
-                  {/* Tax Planning Insights */}
-                  <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
-                    <h5 className="font-semibold text-blue-900 mb-2">💡 Tax Planning Insights</h5>
-                    <ul className="text-sm text-blue-800 space-y-1">
-                      <li>• Consider maximizing retirement contributions to reduce taxable income</li>
-                      <li>• Review eligible business expenses for additional deductions</li>
-                      <li>• Plan quarterly payments to avoid underpayment penalties</li>
-                    </ul>
+                  <div className="p-4 bg-muted/50 rounded-lg">
+                    <div className="flex items-center gap-2 mb-2">
+                      <AlertTriangle className="h-4 w-4 text-green-600" />
+                      <span className="font-medium">Credits Applied</span>
+                    </div>
+                    <div className="text-lg font-bold text-green-600">
+                      -{formatCurrency(currentCalculation.credits_applied)}
+                    </div>
                   </div>
                 </div>
               </CardContent>
             </Card>
           )}
-
-          {/* Quick Actions */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <AlertTriangle className="h-5 w-5" />
-                Next Steps & Tax Planning
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                <div className="p-4 border rounded-lg">
-                  <h4 className="font-semibold mb-2">Quarterly Payments</h4>
-                  <p className="text-sm text-muted-foreground">
-                    Set up quarterly estimated tax payments to avoid penalties and spread your tax liability.
-                  </p>
-                </div>
-                <div className="p-4 border rounded-lg">
-                  <h4 className="font-semibold mb-2">Deduction Optimization</h4>
-                  <p className="text-sm text-muted-foreground">
-                    Review your business expenses and ensure you're capturing all eligible deductions.
-                  </p>
-                </div>
-                <div className="p-4 border rounded-lg">
-                  <h4 className="font-semibold mb-2">Tax Calendar</h4>
-                  <p className="text-sm text-muted-foreground">
-                    Stay on top of important tax deadlines with our integrated tax calendar feature.
-                  </p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
         </MobileForm>
       </div>
     </div>
   );
 };
+
+export default TaxCalculator;
