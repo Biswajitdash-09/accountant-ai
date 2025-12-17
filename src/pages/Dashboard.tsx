@@ -21,15 +21,13 @@ import { NotificationCenter } from "@/components/NotificationCenter";
 import { CryptoPortfolio } from "@/components/CryptoPortfolio";
 import CurrencyConverter from "@/components/CurrencyConverter";
 import CurrencySwitcher from "@/components/CurrencySwitcher";
-import DemoTutorial from "@/components/DemoTutorial";
 import { PullToRefresh } from "@/components/mobile/TouchGestures";
 import { VoiceAgent } from "@/components/voice/VoiceAgent";
 import { useCurrencyFormatter } from "@/hooks/useCurrencyFormatter";
 import { useCurrency } from "@/contexts/CurrencyContext";
 import { useNotificationService } from "@/hooks/useNotificationService";
-import { useDemoMode } from "@/hooks/useDemoMode";
-import { getDemoData } from "@/utils/demoData";
-import DemoAccountBadge from "@/components/DemoAccountBadge";
+import { useTransactions } from "@/hooks/useTransactions";
+import { useAccounts } from "@/hooks/useAccounts";
 import { DashboardSkeleton } from "@/components/ui/smart-skeleton";
 import { OfflineIndicator } from "@/components/mobile/OfflineIndicator";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -63,11 +61,11 @@ const Dashboard = () => {
   const { formatCurrency } = useCurrencyFormatter();
   const { selectedCurrency } = useCurrency();
   const { createNotification } = useNotificationService();
-  const { isDemo } = useDemoMode();
+  const { transactions } = useTransactions();
+  const { accounts } = useAccounts();
 
   // Handle pull-to-refresh
   const handleRefresh = async () => {
-    // Simulate data refresh
     await new Promise(resolve => setTimeout(resolve, 1000));
     toast.success("Dashboard refreshed");
   };
@@ -86,85 +84,63 @@ const Dashboard = () => {
     setSearchParams(value === 'overview' ? {} : { tab: value });
   };
 
-  // Use demo data if in demo mode
-  const demoTransactions = isDemo ? getDemoData('transactions') : [];
-  const demoAccounts = isDemo ? getDemoData('accounts') : [];
-
-  // Calculate metrics from demo data or use sample data  
-  // Recalculate when currency changes to ensure fresh formatting
+  // Calculate metrics from real data
   const calculateMetrics = () => {
-    if (isDemo && demoTransactions.length > 0) {
-      const totalIncome = demoTransactions
-        .filter(t => t.type === 'income')
-        .reduce((sum, t) => sum + t.amount, 0);
-      
-      const totalExpenses = demoTransactions
-        .filter(t => t.type === 'expense')
-        .reduce((sum, t) => sum + Math.abs(t.amount), 0);
-      
-      const totalBalance = demoAccounts.reduce((sum, acc) => sum + acc.balance, 0);
-      
-      return {
-        totalBalance,
-        monthlyIncome: totalIncome,
-        monthlyExpenses: totalExpenses,
-        savingsRate: totalIncome > 0 ? ((totalIncome - totalExpenses) / totalIncome * 100).toFixed(0) : '0'
-      };
-    }
+    const now = new Date();
+    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
     
-    // Fallback sample data
+    const monthlyTransactions = transactions.filter(t => new Date(t.date) >= startOfMonth);
+    
+    const totalIncome = monthlyTransactions
+      .filter(t => t.type === 'income')
+      .reduce((sum, t) => sum + t.amount, 0);
+    
+    const totalExpenses = monthlyTransactions
+      .filter(t => t.type === 'expense')
+      .reduce((sum, t) => sum + Math.abs(t.amount), 0);
+    
+    const totalBalance = accounts.reduce((sum, acc) => sum + (acc.balance || 0), 0);
+    
     return {
-      totalBalance: 25000,
-      monthlyIncome: 8500,
-      monthlyExpenses: 6200,
-      savingsRate: '27'
+      totalBalance,
+      monthlyIncome: totalIncome,
+      monthlyExpenses: totalExpenses,
+      savingsRate: totalIncome > 0 ? ((totalIncome - totalExpenses) / totalIncome * 100).toFixed(0) : '0'
     };
   };
 
   const metrics = calculateMetrics();
-  
-  // Ensure metrics recalculate when currency changes
-  useEffect(() => {
-    // This effect will run when selectedCurrency changes, 
-    // triggering a re-render with updated currency formatting
-  }, [selectedCurrency]);
 
-  // Income/Expense chart now fetches dynamic data internally
+  // Get expense breakdown from real transactions
+  const getExpenseData = () => {
+    const now = new Date();
+    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+    
+    const expensesByCategory: Record<string, number> = {};
+    transactions
+      .filter(t => t.type === 'expense' && new Date(t.date) >= startOfMonth)
+      .forEach(t => {
+        const category = t.category || 'Other';
+        expensesByCategory[category] = (expensesByCategory[category] || 0) + Math.abs(t.amount);
+      });
+    
+    return Object.entries(expensesByCategory)
+      .map(([name, value]) => ({ name, value }))
+      .sort((a, b) => b.value - a.value)
+      .slice(0, 5);
+  };
 
-  const expenseData = [
-    { name: "Housing", value: 2500 },
-    { name: "Food", value: 800 },
-    { name: "Transportation", value: 600 },
-    { name: "Utilities", value: 400 },
-    { name: "Entertainment", value: 300 },
-  ];
+  const expenseData = getExpenseData();
 
-  const sampleTransactions = isDemo ? demoTransactions.slice(0, 3) : [
-    {
-      id: "1",
-      date: "2024-01-15",
-      description: "Client Payment",
-      category: "Revenue",
-      amount: 2500,
-      type: "income" as const,
-    },
-    {
-      id: "2",
-      date: "2024-01-14",
-      description: "Office Supplies",
-      category: "Business",
-      amount: 150,
-      type: "expense" as const,
-    },
-    {
-      id: "3",
-      date: "2024-01-13",
-      description: "Software Subscription",
-      category: "Technology",
-      amount: 99,
-      type: "expense" as const,
-    },
-  ];
+  // Get recent transactions
+  const recentTransactions = transactions.slice(0, 5).map(t => ({
+    id: t.id,
+    date: t.date,
+    description: t.description || t.category || 'Transaction',
+    category: t.category || 'Uncategorized',
+    amount: Math.abs(t.amount),
+    type: t.type as 'income' | 'expense',
+  }));
 
   // Show loading state while contexts initialize
   if (!isContextReady) {
@@ -207,13 +183,6 @@ const Dashboard = () => {
               </Button>
             </div>
           </div>
-
-        <DemoAccountBadge />
-
-        <DemoTutorial 
-          isOpen={showTutorial} 
-          onClose={() => setShowTutorial(false)} 
-        />
 
         {/* Voice Agent Drawer for Mobile */}
         <Drawer open={showVoiceAgent} onOpenChange={setShowVoiceAgent}>
@@ -311,7 +280,7 @@ const Dashboard = () => {
             </div>
 
             <div className="grid gap-3 sm:gap-6 grid-cols-1 xl:grid-cols-2">
-              <RecentTransactions transactions={sampleTransactions} />
+              <RecentTransactions transactions={recentTransactions} />
               <FinancialGoalsManager />
             </div>
           </TabsContent>
