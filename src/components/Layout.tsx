@@ -143,11 +143,11 @@ const Layout = ({ children }: LayoutProps) => {
         {/* Global Search */}
         <GlobalSearch isOpen={isSearchOpen} onClose={closeSearch} />
         
-        {/* Floating Arnold Button */}
-        <FloatingArnoldButton />
-        
-        {/* Floating Voice Button */}
-        <FloatingVoiceButton className="bottom-8 right-24" />
+        {/* Floating AI Buttons - Stacked vertically */}
+        <div className="fixed bottom-6 right-6 z-50 flex flex-col gap-3">
+          <FloatingVoiceButton />
+          <FloatingArnoldButton />
+        </div>
       </div>
     </div>
   );
