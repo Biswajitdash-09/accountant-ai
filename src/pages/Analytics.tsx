@@ -42,7 +42,7 @@ const Analytics = () => {
           </div>
         </div>
 
-        <DemoAccountBadge />
+        
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <div className="mobile-tabs-scroll">

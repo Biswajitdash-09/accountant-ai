@@ -168,7 +168,7 @@ const Pricing = () => {
           </Card>
         )}
 
-        <DemoAccountBadge />
+        
 
         {/* Subscriptions */}
         <Card>

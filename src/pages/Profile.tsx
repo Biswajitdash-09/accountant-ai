@@ -264,8 +264,6 @@ const Profile = () => {
             </Card>
           )}
 
-          {/* Sample Data Manager */}
-          <SampleDataManager />
 
           {/* Install App */}
           <Card>
