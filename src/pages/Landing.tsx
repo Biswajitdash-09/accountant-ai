@@ -3,8 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useTheme } from "@/hooks/useTheme";
 import { useNavigate } from "react-router-dom";
-import { useState, useEffect } from "react";
-import { useToast } from "@/components/ui/use-toast";
+import { useState } from "react";
 import VideoTutorial from "@/components/VideoTutorial";
 import { SocialMediaLinks } from "@/components/SocialMediaLinks";
 import { StatsSection } from "@/components/landing/StatsSection";
@@ -34,58 +33,7 @@ import {
 const Landing = () => {
   const { theme, toggleTheme } = useTheme();
   const navigate = useNavigate();
-  const { toast } = useToast();
-  const [isDemoLoading, setIsDemoLoading] = useState(false);
-  const [showTutorial, setShowTutorial] = useState(false);
   const [showVideoTutorial, setShowVideoTutorial] = useState(false);
-
-  useEffect(() => {
-    // Show tutorial for first-time visitors
-    const hasSeenTutorial = localStorage.getItem('demoTutorialCompleted');
-    if (!hasSeenTutorial) {
-      const timer = setTimeout(() => {
-        setShowTutorial(true);
-      }, 2000); // Show tutorial after 2 seconds
-      return () => clearTimeout(timer);
-    }
-  }, []);
-
-  const handleDemoMode = async () => {
-    try {
-      setIsDemoLoading(true);
-      console.log('Starting demo mode from landing page...');
-      
-      // Clear any existing auth state first
-      localStorage.removeItem('sb-erqisavlnwynkyfvnltb-auth-token');
-      
-      // Set demo mode
-      localStorage.setItem('isGuest', 'true');
-      
-      // Seed demo data
-      await seedDemoData();
-      
-      console.log('Demo data seeded, isGuest set to:', localStorage.getItem('isGuest'));
-      
-      toast({
-        title: "Demo Mode Active",
-        description: "You're now exploring Accountant AI with sample data!",
-      });
-      
-      console.log('Demo mode setup complete, navigating to dashboard');
-      
-      // Force page reload to ensure demo state is properly recognized
-      window.location.href = '/dashboard';
-    } catch (error) {
-      console.error('Error setting up demo mode:', error);
-      toast({
-        title: "Error",
-        description: "Failed to set up demo mode. Please try again.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsDemoLoading(false);
-    }
-  };
 
   const features = [
     {
@@ -284,15 +232,6 @@ const Landing = () => {
             <Button 
               variant="outline" 
               size="lg" 
-              onClick={handleDemoMode}
-              disabled={isDemoLoading}
-              className="text-lg px-8 py-6"
-            >
-              {isDemoLoading ? "Loading Demo..." : "Try Demo"}
-            </Button>
-            <Button 
-              variant="outline" 
-              size="lg" 
               onClick={() => setShowVideoTutorial(true)}
               className="text-lg px-8 py-6"
             >
@@ -450,20 +389,11 @@ const Landing = () => {
         </div>
       </footer>
 
-      {/* Demo Tutorial */}
-      <DemoTutorial 
-        isOpen={showTutorial} 
-        onClose={() => setShowTutorial(false)} 
-      />
 
       {/* Video Tutorial */}
       <VideoTutorial 
         isOpen={showVideoTutorial} 
         onClose={() => setShowVideoTutorial(false)}
-        onShowStepByStep={() => {
-          setShowVideoTutorial(false);
-          setShowTutorial(true);
-        }}
       />
     </div>
   );
