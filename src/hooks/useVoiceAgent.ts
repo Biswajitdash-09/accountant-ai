@@ -42,7 +42,6 @@ export const useVoiceAgent = (options: VoiceAgentOptions = {}) => {
   const [micPermission, setMicPermission] = useState<'granted' | 'denied' | 'prompt'>('prompt');
   const [executingTool, setExecutingTool] = useState<string | null>(null);
   const [isPushToTalkActive, setIsPushToTalkActive] = useState(false);
-  const [fallbackMode, setFallbackMode] = useState<'realtime' | 'lovable_text'>('realtime');
 
   const pcRef = useRef<RTCPeerConnection | null>(null);
   const dcRef = useRef<RTCDataChannel | null>(null);
@@ -262,50 +261,12 @@ export const useVoiceAgent = (options: VoiceAgentOptions = {}) => {
           pendingToolCallsRef.current.delete(toolCallId);
           break;
 
-        case 'response.done': {
+        case 'response.done':
           console.log('[VoiceAgent] Response done');
-
-          const resp = data.response;
-          const failed = resp?.status === 'failed';
-          const err = resp?.status_details?.error;
-
-          if (failed && err?.code === 'insufficient_quota') {
-            console.error('[VoiceAgent] OpenAI quota exhausted:', err);
-
-            // Prevent repeated failures from microphone-triggered responses
-            const track = mediaStreamRef.current?.getAudioTracks?.()[0];
-            if (track) track.enabled = false;
-            setIsMuted(true);
-
-            setFallbackMode('lovable_text');
-            addMessage('system', 'Voice is temporarily unavailable due to OpenAI quota limits. Switching to text mode.');
-
-            toast({
-              title: 'Voice temporarily unavailable',
-              description: 'OpenAI quota exhausted. Using text mode instead.',
-              variant: 'destructive'
-            });
-
-            updateStatus('listening');
-            break;
-          }
-
-          if (failed && err?.message) {
-            console.error('[VoiceAgent] Response failed:', err);
-            toast({
-              title: 'Voice error',
-              description: err.message,
-              variant: 'destructive'
-            });
-            updateStatus('error');
-            break;
-          }
-
           if (!audioQueueRef.current?.playing) {
             updateStatus('listening');
           }
           break;
-        }
 
         case 'response.created':
           console.log('[VoiceAgent] Response started');
@@ -556,8 +517,8 @@ export const useVoiceAgent = (options: VoiceAgentOptions = {}) => {
     reconnectAttemptsRef.current = 0;
   }, [updateStatus, cleanupConnection]);
 
-  const sendTextMessage = useCallback(async (text: string) => {
-    if (!isConnected) {
+  const sendTextMessage = useCallback((text: string) => {
+    if (!dcRef.current || dcRef.current.readyState !== 'open') {
       toast({
         title: 'Not Connected',
         description: 'Please connect first',
@@ -567,38 +528,6 @@ export const useVoiceAgent = (options: VoiceAgentOptions = {}) => {
     }
 
     addMessage('user', text);
-    updateStatus('processing');
-
-    // Fallback: if OpenAI realtime is unavailable (quota), respond via Lovable AI (ai-generate)
-    if (fallbackMode === 'lovable_text') {
-      const { data, error } = await supabase.functions.invoke('ai-generate', {
-        body: { message: text }
-      });
-
-      if (error || !data?.text) {
-        toast({
-          title: 'AI Error',
-          description: error?.message || 'Failed to generate response',
-          variant: 'destructive'
-        });
-        updateStatus('error');
-        return;
-      }
-
-      addMessage('assistant', data.text);
-      updateStatus('listening');
-      return;
-    }
-
-    if (!dcRef.current || dcRef.current.readyState !== 'open') {
-      toast({
-        title: 'Not Connected',
-        description: 'Please reconnect and try again',
-        variant: 'destructive'
-      });
-      updateStatus('error');
-      return;
-    }
 
     dcRef.current.send(JSON.stringify({
       type: 'conversation.item.create',
@@ -610,7 +539,8 @@ export const useVoiceAgent = (options: VoiceAgentOptions = {}) => {
     }));
 
     dcRef.current.send(JSON.stringify({ type: 'response.create' }));
-  }, [addMessage, toast, updateStatus, fallbackMode, isConnected]);
+    updateStatus('processing');
+  }, [addMessage, toast, updateStatus]);
 
   const toggleMute = useCallback(() => {
     if (mediaStreamRef.current) {
