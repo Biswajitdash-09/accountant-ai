@@ -87,13 +87,13 @@ export const WaitlistForm = () => {
     <form onSubmit={handleSubmit} className="w-full max-w-2xl mx-auto space-y-4">
       <div className="flex flex-col sm:flex-row gap-3">
         <div className="relative flex-1">
-          <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+          <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground z-10" />
           <Input
             type="email"
             placeholder="Enter your email..."
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            className="pl-10 h-12 text-base"
+            className="pl-10 h-12 text-base bg-background border-border text-foreground placeholder:text-muted-foreground"
             required
           />
         </div>
@@ -101,7 +101,7 @@ export const WaitlistForm = () => {
           type="submit" 
           size="lg" 
           disabled={isLoading}
-          className="h-12 px-8 text-base font-semibold whitespace-nowrap"
+          className="h-12 px-8 text-base font-semibold whitespace-nowrap bg-primary hover:bg-primary/90 text-primary-foreground"
         >
           {isLoading ? (
             <>
@@ -116,23 +116,23 @@ export const WaitlistForm = () => {
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <div className="relative">
-          <User className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+          <User className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground z-10" />
           <Input
             type="text"
             placeholder="Full Name (optional)"
             value={fullName}
             onChange={(e) => setFullName(e.target.value)}
-            className="pl-10 h-11"
+            className="pl-10 h-11 bg-background border-border text-foreground placeholder:text-muted-foreground"
           />
         </div>
         <div className="relative">
-          <Building2 className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+          <Building2 className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground z-10" />
           <Input
             type="text"
             placeholder="Company (optional)"
             value={companyName}
             onChange={(e) => setCompanyName(e.target.value)}
-            className="pl-10 h-11"
+            className="pl-10 h-11 bg-background border-border text-foreground placeholder:text-muted-foreground"
           />
         </div>
       </div>
