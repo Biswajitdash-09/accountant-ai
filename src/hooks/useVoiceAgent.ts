@@ -120,34 +120,28 @@ export const useVoiceAgent = (options: VoiceAgentOptions = {}) => {
   const handleDataChannelMessage = useCallback(async (event: MessageEvent) => {
     try {
       const data = JSON.parse(event.data);
-      console.log('[VoiceAgent] Received event:', data.type, data);
 
       switch (data.type) {
         case 'session.created':
-          console.log('[VoiceAgent] Session created successfully');
           sessionCreatedRef.current = true;
           setConnectionQuality('good');
           break;
 
         case 'session.updated':
-          console.log('[VoiceAgent] Session updated, now listening');
           updateStatus('listening');
           break;
 
         case 'input_audio_buffer.speech_started':
-          console.log('[VoiceAgent] Speech started');
           updateStatus('listening');
           setCurrentTranscript('');
           break;
 
         case 'input_audio_buffer.speech_stopped':
-          console.log('[VoiceAgent] Speech stopped, processing');
           updateStatus('processing');
           break;
 
         case 'conversation.item.input_audio_transcription.completed':
           if (data.transcript) {
-            console.log('[VoiceAgent] User transcript:', data.transcript);
             setCurrentTranscript(data.transcript);
             options.onTranscript?.(data.transcript, true);
             addMessage('user', data.transcript);
@@ -163,7 +157,6 @@ export const useVoiceAgent = (options: VoiceAgentOptions = {}) => {
 
         case 'response.audio_transcript.done':
           if (data.transcript) {
-            console.log('[VoiceAgent] Assistant response:', data.transcript);
             addMessage('assistant', data.transcript);
             setCurrentTranscript('');
           }
@@ -178,33 +171,18 @@ export const useVoiceAgent = (options: VoiceAgentOptions = {}) => {
           break;
 
         case 'response.audio.done':
-          console.log('[VoiceAgent] Audio response complete');
-          break;
-
-        case 'response.text.delta':
-          // Handle text delta for text-only responses
-          if (data.delta) {
-            setCurrentTranscript(prev => prev + data.delta);
-          }
-          break;
-
-        case 'response.text.done':
-          // Handle text response completion
-          if (data.text) {
-            console.log('[VoiceAgent] Text response:', data.text);
-            addMessage('assistant', data.text);
-            setCurrentTranscript('');
-            updateStatus('listening');
-          }
+          // Audio playback will trigger status change via AudioQueue callbacks
           break;
 
         case 'response.function_call_arguments.delta':
+          // Accumulate function call arguments
           const callId = data.call_id;
           if (!pendingToolCallsRef.current.has(callId)) {
             pendingToolCallsRef.current.set(callId, {
               name: data.name || '',
               arguments: ''
             });
+            // Show tool execution indicator
             setExecutingTool(data.name || 'Processing');
             addMessage('system', `Executing: ${data.name || 'tool'}...`, { 
               isToolExecution: true, 
@@ -216,6 +194,7 @@ export const useVoiceAgent = (options: VoiceAgentOptions = {}) => {
           break;
 
         case 'response.function_call_arguments.done':
+          // Execute the function call
           const toolCallId = data.call_id;
           const toolCall = pendingToolCallsRef.current.get(toolCallId) || {
             name: data.name,
@@ -223,19 +202,19 @@ export const useVoiceAgent = (options: VoiceAgentOptions = {}) => {
           };
           
           try {
-            console.log('[VoiceAgent] Executing tool:', data.name, toolCall.arguments || data.arguments);
             const args = JSON.parse(toolCall.arguments || data.arguments);
             
             const result = await executeVoiceAction(data.name, args);
-            console.log('[VoiceAgent] Tool result:', result);
             options.onToolCall?.(data.name, args, result);
 
+            // Update tool execution message
             setMessages(prev => prev.map(msg => 
               msg.isToolExecution && msg.toolName === data.name
                 ? { ...msg, content: result.success ? `✓ ${result.message || 'Completed'}` : `✗ ${result.error || 'Failed'}` }
                 : msg
             ));
 
+            // Send tool result back to the model
             if (dcRef.current?.readyState === 'open') {
               dcRef.current.send(JSON.stringify({
                 type: 'conversation.item.create',
@@ -246,10 +225,11 @@ export const useVoiceAgent = (options: VoiceAgentOptions = {}) => {
                 }
               }));
               
+              // Request a response based on the tool result
               dcRef.current.send(JSON.stringify({ type: 'response.create' }));
             }
           } catch (error) {
-            console.error('[VoiceAgent] Tool execution error:', error);
+            // Update tool execution message with error
             setMessages(prev => prev.map(msg => 
               msg.isToolExecution && msg.toolName === data.name
                 ? { ...msg, content: `✗ Error executing ${data.name}` }
@@ -262,21 +242,15 @@ export const useVoiceAgent = (options: VoiceAgentOptions = {}) => {
           break;
 
         case 'response.done':
-          console.log('[VoiceAgent] Response done');
           if (!audioQueueRef.current?.playing) {
             updateStatus('listening');
           }
           break;
 
-        case 'response.created':
-          console.log('[VoiceAgent] Response started');
-          updateStatus('processing');
-          break;
-
         case 'error':
           const errorMsg = data.error?.message || 'An error occurred';
-          console.error('[VoiceAgent] Error:', data.error);
           
+          // Handle rate limiting
           if (data.error?.code === 'rate_limit_exceeded') {
             toast({
               title: 'Rate Limit Reached',
@@ -292,12 +266,9 @@ export const useVoiceAgent = (options: VoiceAgentOptions = {}) => {
           }
           updateStatus('error');
           break;
-
-        default:
-          console.log('[VoiceAgent] Unhandled event type:', data.type);
       }
     } catch (error) {
-      console.error('[VoiceAgent] Error parsing message:', error);
+      // Silent catch for parsing errors
     }
   }, [updateStatus, addMessage, options, toast]);
 

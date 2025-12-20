@@ -5,11 +5,10 @@ import { Brain } from "lucide-react";
 import { ConversationalInterface } from "./ConversationalInterface";
 import { Badge } from "@/components/ui/badge";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { motion } from "framer-motion";
 
 export const FloatingArnoldButton = () => {
   const [isOpen, setIsOpen] = useState(false);
-  const [hasNewInsights] = useState(false);
+  const [hasNewInsights] = useState(false); // Can be connected to real insight notifications
   const isMobile = useIsMobile();
 
   // Hide on mobile - accessible via bottom nav AI button
@@ -17,27 +16,19 @@ export const FloatingArnoldButton = () => {
 
   return (
     <>
-      {/* Arnold Button - positioned by parent container */}
-      <motion.div
-        className="relative"
-        initial={{ scale: 0, opacity: 0 }}
-        animate={{ scale: 1, opacity: 1 }}
-        transition={{ type: "spring", stiffness: 260, damping: 20 }}
+      <Button
+        onClick={() => setIsOpen(true)}
+        size="lg"
+        className="fixed bottom-6 right-6 h-14 w-14 rounded-full shadow-lg hover:shadow-xl transition-all z-50 animate-pulse hover:animate-none"
+        title="Chat with Arnold AI"
       >
-        <Button
-          onClick={() => setIsOpen(true)}
-          size="lg"
-          className="h-14 w-14 rounded-full shadow-lg hover:shadow-xl transition-all bg-secondary hover:bg-secondary/90"
-          title="Chat with Arnold AI"
-        >
-          <Brain className="h-6 w-6" />
-          {hasNewInsights && (
-            <Badge className="absolute -top-1 -right-1 h-5 w-5 rounded-full p-0 flex items-center justify-center bg-destructive">
-              !
-            </Badge>
-          )}
-        </Button>
-      </motion.div>
+        <Brain className="h-6 w-6" />
+        {hasNewInsights && (
+          <Badge className="absolute -top-1 -right-1 h-5 w-5 rounded-full p-0 flex items-center justify-center bg-destructive">
+            !
+          </Badge>
+        )}
+      </Button>
 
       <Dialog open={isOpen} onOpenChange={setIsOpen}>
         <DialogContent className="max-w-3xl h-[80vh] p-0 flex flex-col">
