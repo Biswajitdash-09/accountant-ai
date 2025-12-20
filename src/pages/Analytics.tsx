@@ -12,7 +12,7 @@ import { SourceComparison } from "@/components/analytics/SourceComparison";
 import { InvestmentPerformanceChart } from "@/components/analytics/InvestmentPerformanceChart";
 import { TaxImpactAnalyzer } from "@/components/analytics/TaxImpactAnalyzer";
 import AnomalyDetector from "@/components/ai/AnomalyDetector";
-
+import DemoAccountBadge from "@/components/DemoAccountBadge";
 
 const Analytics = () => {
   const [activeTab, setActiveTab] = useState("overview");
@@ -42,7 +42,7 @@ const Analytics = () => {
           </div>
         </div>
 
-        
+        <DemoAccountBadge />
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <div className="mobile-tabs-scroll">

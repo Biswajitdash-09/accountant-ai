@@ -6,7 +6,7 @@ import { ArrowLeft, CreditCard, CheckCircle, XCircle, Crown, Sparkles } from "lu
 import { useCredits } from "@/hooks/useCredits";
 import { useToast } from "@/components/ui/use-toast";
 import CreditBalance from "@/components/CreditBalance";
-
+import DemoAccountBadge from "@/components/DemoAccountBadge";
 import CurrencySwitcher from "@/components/CurrencySwitcher";
 import BillingDashboard from "@/components/BillingDashboard";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -168,7 +168,7 @@ const Pricing = () => {
           </Card>
         )}
 
-        
+        <DemoAccountBadge />
 
         {/* Subscriptions */}
         <Card>

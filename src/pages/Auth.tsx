@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -5,6 +6,7 @@ import {
   Card,
   CardContent,
   CardDescription,
+  CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
@@ -13,6 +15,7 @@ import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Bot, Moon, Sun } from "lucide-react";
 import { useTheme } from "@/hooks/useTheme";
+import { seedDemoData } from "@/utils/demoData";
 import AuthForm from "@/components/auth/AuthForm";
 import OAuthProviders from "@/components/auth/OAuthProviders";
 import { useAuth } from "@/contexts/AuthContext";
@@ -40,6 +43,39 @@ const Auth = () => {
       setActiveTab("signup");
     }
   }, [user, loading, location.search, navigate]);
+
+  const handleGuestLogin = async () => {
+    try {
+      setIsLoading(true);
+      console.log('Starting guest login...');
+      
+      // Clear any existing auth state first
+      localStorage.removeItem('sb-erqisavlnwynkyfvnltb-auth-token');
+      
+      localStorage.setItem('isGuest', 'true');
+      await seedDemoData(); // Seed demo data immediately
+      
+      console.log('Demo data seeded, isGuest set to:', localStorage.getItem('isGuest'));
+      
+      toast({
+        title: "Demo Mode",
+        description: "You're now exploring Accountant AI with sample data!",
+      });
+      
+      console.log('Guest login successful, navigating to dashboard');
+      // Force page reload to ensure demo state is properly recognized
+      window.location.href = '/dashboard';
+    } catch (error) {
+      console.error('Error setting up guest mode:', error);
+      toast({
+        title: "Error",
+        description: "Failed to set up demo mode. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const handleAuthSuccess = async (isNewUser = false) => {
     console.log('Auth success, isNewUser:', isNewUser);
@@ -145,6 +181,17 @@ const Auth = () => {
                   onSuccess={handleAuthSuccess}
                 />
               </CardContent>
+              <CardFooter>
+                <Button
+                  variant="ghost"
+                  type="button"
+                  className="w-full transition-all duration-200 hover:scale-105 text-sm sm:text-base min-h-[44px]"
+                  onClick={handleGuestLogin}
+                  disabled={isLoading}
+                >
+                  {isLoading ? "Setting up demo..." : "Try Demo Mode"}
+                </Button>
+              </CardFooter>
             </Card>
           </TabsContent>
           
