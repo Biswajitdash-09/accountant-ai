@@ -93,7 +93,7 @@ export const WaitlistForm = () => {
             placeholder="Enter your email..."
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            className="pl-10 h-12 text-base bg-background border-border text-foreground placeholder:text-muted-foreground"
+            className="pl-10 h-12 text-base"
             required
           />
         </div>
@@ -101,7 +101,8 @@ export const WaitlistForm = () => {
           type="submit" 
           size="lg" 
           disabled={isLoading}
-          className="h-12 px-8 text-base font-semibold whitespace-nowrap bg-primary hover:bg-primary/90 text-primary-foreground"
+          className="h-12 px-8 text-base font-semibold whitespace-nowrap"
+          style={{ backgroundColor: 'hsl(221.2, 83.2%, 53.3%)', color: 'white' }}
         >
           {isLoading ? (
             <>
@@ -122,7 +123,7 @@ export const WaitlistForm = () => {
             placeholder="Full Name (optional)"
             value={fullName}
             onChange={(e) => setFullName(e.target.value)}
-            className="pl-10 h-11 bg-background border-border text-foreground placeholder:text-muted-foreground"
+            className="pl-10 h-11"
           />
         </div>
         <div className="relative">
@@ -132,7 +133,7 @@ export const WaitlistForm = () => {
             placeholder="Company (optional)"
             value={companyName}
             onChange={(e) => setCompanyName(e.target.value)}
-            className="pl-10 h-11 bg-background border-border text-foreground placeholder:text-muted-foreground"
+            className="pl-10 h-11"
           />
         </div>
       </div>
