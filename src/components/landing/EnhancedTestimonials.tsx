@@ -69,16 +69,16 @@ export const EnhancedTestimonials = () => {
               viewport={{ once: true }}
               transition={{ duration: 0.5, delay: index * 0.1 }}
             >
-              <Card className="h-full hover:shadow-lg transition-shadow">
-                <CardContent className="pt-6">
+              <Card className="h-full hover:shadow-lg transition-shadow border border-border bg-card/80 backdrop-blur-sm">
+                <CardContent className="p-6">
                   <div className="flex items-start gap-4 mb-4">
-                    <Avatar className="h-12 w-12">
-                      <AvatarFallback className="bg-primary text-primary-foreground">
+                    <Avatar className="h-12 w-12 shrink-0">
+                      <AvatarFallback className="bg-primary text-primary-foreground font-semibold">
                         {testimonial.initials}
                       </AvatarFallback>
                     </Avatar>
-                    <div className="flex-1">
-                      <h4 className="font-semibold">{testimonial.name}</h4>
+                    <div className="flex-1 min-w-0">
+                      <h4 className="font-semibold text-foreground">{testimonial.name}</h4>
                       <p className="text-sm text-muted-foreground">
                         {testimonial.role}
                       </p>
@@ -86,7 +86,7 @@ export const EnhancedTestimonials = () => {
                         {testimonial.company}
                       </p>
                     </div>
-                    <div className="flex">
+                    <div className="flex shrink-0">
                       {[...Array(testimonial.rating)].map((_, i) => (
                         <Star
                           key={i}
@@ -99,11 +99,11 @@ export const EnhancedTestimonials = () => {
                     "{testimonial.content}"
                   </p>
                   <div className="flex gap-4 text-sm">
-                    <div className="flex-1 p-3 rounded-lg bg-muted">
+                    <div className="flex-1 p-3 rounded-lg bg-muted/50 border border-border">
                       <p className="text-xs text-muted-foreground mb-1">Before</p>
-                      <p className="font-semibold">{testimonial.metrics.before}</p>
+                      <p className="font-semibold text-foreground">{testimonial.metrics.before}</p>
                     </div>
-                    <div className="flex-1 p-3 rounded-lg bg-primary/10">
+                    <div className="flex-1 p-3 rounded-lg bg-primary/10 border border-primary/20">
                       <p className="text-xs text-muted-foreground mb-1">After</p>
                       <p className="font-semibold text-primary">{testimonial.metrics.after}</p>
                     </div>
