@@ -5,8 +5,6 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { useFinancialGoals } from "@/hooks/useFinancialGoals";
 import { useCurrencyFormatter } from "@/hooks/useCurrencyFormatter";
-import { useDemoMode } from "@/hooks/useDemoMode";
-import { getDemoData } from "@/utils/demoData";
 import { useToast } from "@/hooks/use-toast";
 import { 
   Plus, 
@@ -22,28 +20,14 @@ import FinancialGoalForm from "./goals/FinancialGoalForm";
 const FinancialGoalsManager = () => {
   const { financialGoals, isLoading, createFinancialGoal, updateFinancialGoal, deleteFinancialGoal } = useFinancialGoals();
   const { formatCurrency } = useCurrencyFormatter();
-  const { isDemo } = useDemoMode();
   const { toast } = useToast();
   
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [editingGoal, setEditingGoal] = useState<any | null>(null);
 
-  // Use demo data if in demo mode
-  const displayGoals = isDemo ? getDemoData('goals') : financialGoals;
-
   const handleSubmitGoal = async (goalData: any) => {
     setIsSubmitting(true);
-
-    if (isDemo) {
-      setTimeout(() => {
-        toast({ title: "Demo Mode", description: editingGoal ? 'Goal updated (demo only)' : 'Goal created (demo only)' });
-        setIsFormOpen(false);
-        setEditingGoal(null);
-        setIsSubmitting(false);
-      }, 800);
-      return;
-    }
 
     try {
       if (editingGoal) {
@@ -68,15 +52,6 @@ const FinancialGoalsManager = () => {
   };
 
   const handleDeleteGoal = async (goalId: string) => {
-    if (isDemo) {
-      toast({ 
-        title: "Demo Mode",
-        description: 'Delete functionality is simulated in demo mode.',
-        variant: "default"
-      });
-      return;
-    }
-    
     try {
       await deleteFinancialGoal.mutateAsync(goalId);
       toast({ description: 'Goal deleted successfully.' });
@@ -89,7 +64,7 @@ const FinancialGoalsManager = () => {
     }
   };
 
-  if (isLoading && !isDemo) {
+  if (isLoading) {
     return (
       <div className="flex items-center justify-center p-8">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
@@ -125,11 +100,6 @@ const FinancialGoalsManager = () => {
               <CardTitle className="flex items-center gap-2 flex-wrap">
                 <Target className="h-5 w-5 flex-shrink-0" />
                 <span className="truncate">Financial Goals</span>
-                {isDemo && (
-                  <Badge variant="secondary" className="text-xs">
-                    Demo Data
-                  </Badge>
-                )}
               </CardTitle>
               <CardDescription className="break-words">
                 Track your progress towards financial objectives
@@ -142,7 +112,7 @@ const FinancialGoalsManager = () => {
           </div>
         </CardHeader>
         <CardContent>
-          {displayGoals.length === 0 ? (
+          {financialGoals.length === 0 ? (
             <div className="text-center py-8">
               <Target className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
               <h3 className="text-lg font-semibold mb-2">No Financial Goals</h3>
@@ -156,7 +126,7 @@ const FinancialGoalsManager = () => {
             </div>
           ) : (
             <div className="grid gap-4">
-              {displayGoals.map((goal: any) => {
+              {financialGoals.map((goal: any) => {
                 const progress = goal.target_amount > 0 ? (goal.current_amount / goal.target_amount) * 100 : 0;
                 const isAchieved = progress >= 100 || goal.is_achieved;
                 

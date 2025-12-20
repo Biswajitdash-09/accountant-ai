@@ -1,8 +1,6 @@
-
 import { useEffect, useState } from "react";
 import { Navigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
-import { useDemoMode } from "@/hooks/useDemoMode";
 import { supabase } from "@/integrations/supabase/client";
 import { Loader2 } from "lucide-react";
 
@@ -12,19 +10,18 @@ interface ProtectedRouteProps {
 
 const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
   const { user, loading } = useAuth();
-  const { isDemo } = useDemoMode();
   const location = useLocation();
   const [checkingOnboarding, setCheckingOnboarding] = useState(true);
   const [needsOnboarding, setNeedsOnboarding] = useState(false);
 
   useEffect(() => {
-    console.log('Protected route check - User authenticated:', !!user, 'Demo mode:', isDemo);
-  }, [user, isDemo]);
+    console.log('Protected route check - User authenticated:', !!user);
+  }, [user]);
 
   useEffect(() => {
     const checkOnboardingStatus = async () => {
-      // Skip onboarding check if on onboarding page, in demo mode, or no user
-      if (location.pathname === "/onboarding" || isDemo || !user) {
+      // Skip onboarding check if on onboarding page or no user
+      if (location.pathname === "/onboarding" || !user) {
         setCheckingOnboarding(false);
         return;
       }
@@ -59,7 +56,7 @@ const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
     } else {
       setCheckingOnboarding(false);
     }
-  }, [user, loading, location.pathname, isDemo]);
+  }, [user, loading, location.pathname]);
 
   // Show loading spinner while checking authentication or onboarding
   if (loading || checkingOnboarding) {
@@ -79,13 +76,13 @@ const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
     return <Navigate to="/onboarding" replace />;
   }
 
-  // Allow access if user is authenticated OR in demo mode
-  if (user || isDemo) {
-    console.log('Access granted -', user ? 'authenticated user' : 'demo mode');
+  // Allow access if user is authenticated
+  if (user) {
+    console.log('Access granted - authenticated user');
     return <>{children}</>;
   }
 
-  // Redirect to auth page if not authenticated and not in demo mode
+  // Redirect to auth page if not authenticated
   console.log('Access denied - redirecting to auth');
   return <Navigate to="/auth" replace />;
 };

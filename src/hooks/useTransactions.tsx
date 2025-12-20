@@ -1,4 +1,3 @@
-
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -6,7 +5,6 @@ import { useToast } from "@/components/ui/use-toast";
 import { useEffect } from "react";
 import { useUserPreferences } from "./useUserPreferences";
 import { useCurrencies } from "./useCurrencies";
-import { useDemoAwareData } from "./useDemoAwareData";
 
 export interface Transaction {
   id: string;
@@ -33,11 +31,10 @@ export const useTransactions = () => {
   const queryClient = useQueryClient();
   const { preferences } = useUserPreferences();
   const { baseCurrency } = useCurrencies();
-  const { isDemo, showDemoSavePrompt, getTransactionsData } = useDemoAwareData();
 
-  // Set up real-time subscription only for authenticated users
+  // Set up real-time subscription for authenticated users
   useEffect(() => {
-    if (!user || isDemo) return;
+    if (!user) return;
 
     const channel = supabase
       .channel('transactions-changes')
@@ -58,7 +55,7 @@ export const useTransactions = () => {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [user, queryClient, isDemo]);
+  }, [user, queryClient]);
 
   const {
     data: transactions = [],
@@ -67,11 +64,6 @@ export const useTransactions = () => {
   } = useQuery({
     queryKey: ['transactions'],
     queryFn: async () => {
-      // Return demo data if in demo mode
-      if (isDemo) {
-        return getTransactionsData();
-      }
-
       if (!user) return [];
       
       const { data, error } = await supabase
@@ -83,17 +75,11 @@ export const useTransactions = () => {
       if (error) throw error;
       return data as Transaction[];
     },
-    enabled: !!(user || isDemo),
+    enabled: !!user,
   });
 
   const createTransaction = useMutation({
     mutationFn: async (newTransaction: Omit<Transaction, 'id' | 'user_id' | 'created_at' | 'updated_at'>) => {
-      if (isDemo) {
-        showDemoSavePrompt();
-        // Simulate success for demo
-        return { id: `demo-${Date.now()}`, ...newTransaction, user_id: 'demo', created_at: new Date().toISOString() };
-      }
-
       if (!user) throw new Error('User not authenticated');
 
       // Ensure currency_id is set
@@ -117,35 +103,26 @@ export const useTransactions = () => {
       return data;
     },
     onSuccess: () => {
-      if (!isDemo) {
-        queryClient.invalidateQueries({ queryKey: ['transactions'] });
-        queryClient.invalidateQueries({ queryKey: ['accounts'] });
-        queryClient.invalidateQueries({ queryKey: ['revenue_streams'] });
-      }
+      queryClient.invalidateQueries({ queryKey: ['transactions'] });
+      queryClient.invalidateQueries({ queryKey: ['accounts'] });
+      queryClient.invalidateQueries({ queryKey: ['revenue_streams'] });
       toast({
         title: "Success",
         description: "Transaction created successfully",
       });
     },
     onError: (error) => {
-      if (!isDemo) {
-        toast({
-          title: "Error",
-          description: "Failed to create transaction",
-          variant: "destructive",
-        });
-        console.error('Create transaction error:', error);
-      }
+      toast({
+        title: "Error",
+        description: "Failed to create transaction",
+        variant: "destructive",
+      });
+      console.error('Create transaction error:', error);
     },
   });
 
   const updateTransaction = useMutation({
     mutationFn: async ({ id, ...updates }: Partial<Transaction> & { id: string }) => {
-      if (isDemo) {
-        showDemoSavePrompt();
-        return { id, ...updates };
-      }
-
       const { data, error } = await supabase
         .from('transactions')
         .update(updates)
@@ -157,34 +134,25 @@ export const useTransactions = () => {
       return data;
     },
     onSuccess: () => {
-      if (!isDemo) {
-        queryClient.invalidateQueries({ queryKey: ['transactions'] });
-        queryClient.invalidateQueries({ queryKey: ['accounts'] });
-        queryClient.invalidateQueries({ queryKey: ['revenue_streams'] });
-      }
+      queryClient.invalidateQueries({ queryKey: ['transactions'] });
+      queryClient.invalidateQueries({ queryKey: ['accounts'] });
+      queryClient.invalidateQueries({ queryKey: ['revenue_streams'] });
       toast({
         title: "Success",
         description: "Transaction updated successfully",
       });
     },
     onError: () => {
-      if (!isDemo) {
-        toast({
-          title: "Error",
-          description: "Failed to update transaction",
-          variant: "destructive",
-        });
-      }
+      toast({
+        title: "Error",
+        description: "Failed to update transaction",
+        variant: "destructive",
+      });
     },
   });
 
   const deleteTransaction = useMutation({
     mutationFn: async (id: string) => {
-      if (isDemo) {
-        showDemoSavePrompt();
-        return;
-      }
-
       const { error } = await supabase
         .from('transactions')
         .delete()
@@ -193,31 +161,27 @@ export const useTransactions = () => {
       if (error) throw error;
     },
     onSuccess: () => {
-      if (!isDemo) {
-        queryClient.invalidateQueries({ queryKey: ['transactions'] });
-        queryClient.invalidateQueries({ queryKey: ['accounts'] });
-        queryClient.invalidateQueries({ queryKey: ['revenue_streams'] });
-      }
+      queryClient.invalidateQueries({ queryKey: ['transactions'] });
+      queryClient.invalidateQueries({ queryKey: ['accounts'] });
+      queryClient.invalidateQueries({ queryKey: ['revenue_streams'] });
       toast({
         title: "Success",
         description: "Transaction deleted successfully",
       });
     },
     onError: () => {
-      if (!isDemo) {
-        toast({
-          title: "Error",
-          description: "Failed to delete transaction",
-          variant: "destructive",
-        });
-      }
+      toast({
+        title: "Error",
+        description: "Failed to delete transaction",
+        variant: "destructive",
+      });
     },
   });
 
   return {
     transactions,
-    isLoading: isDemo ? false : isLoading,
-    error: isDemo ? null : error,
+    isLoading,
+    error,
     createTransaction,
     updateTransaction,
     deleteTransaction,
