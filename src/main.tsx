@@ -1,4 +1,5 @@
 import { createRoot } from "react-dom/client";
+import "./index.css";
 
 const rootElement = document.getElementById("root");
 
@@ -13,7 +14,7 @@ async function bootstrap() {
     // Load React first to ensure dispatcher is initialized
     const React = await import("react");
     const { StrictMode } = React;
-    
+
     // Then load everything else
     const [
       { QueryClient, QueryClientProvider },
@@ -23,7 +24,7 @@ async function bootstrap() {
       { AuthProvider },
       { CurrencyProvider },
       { default: App },
-      { Toaster }
+      { Toaster },
     ] = await Promise.all([
       import("@tanstack/react-query"),
       import("react-router-dom"),
@@ -32,7 +33,7 @@ async function bootstrap() {
       import("@/contexts/AuthContext"),
       import("@/contexts/CurrencyContext"),
       import("./App"),
-      import("sonner")
+      import("sonner"),
     ]);
 
     // Create query client after React is ready
@@ -62,7 +63,7 @@ async function bootstrap() {
             </BrowserRouter>
           </QueryClientProvider>
         </ErrorBoundary>
-      </StrictMode>
+      </StrictMode>,
     );
   } catch (error) {
     console.error("Failed to bootstrap app:", error);
