@@ -35,7 +35,7 @@
     <meta name="apple-mobile-web-app-title" content="Accountant AI" />
     
     <style>
-      /* Critical CSS for above-the-fold content - synchronized with design system */
+      /* Minimal critical CSS: only theme variables + page background (avoid conflicting Tailwind utilities) */
       :root {
         --background: 210 40% 98%;
         --foreground: 222.2 84% 4.9%;
@@ -45,58 +45,28 @@
         --muted-foreground: 215.4 16.3% 46.9%;
         --border: 214.3 31.8% 85%;
         --card: 0 0% 100%;
+        --card-foreground: 222.2 84% 4.9%;
         --radius: 0.5rem;
       }
-      
+
       .dark {
         --background: 222.2 84% 4.9%;
         --foreground: 210 40% 98%;
         --primary: 217.2 91.2% 59.8%;
+        --primary-foreground: 222.2 84% 4.9%;
         --muted: 217.2 32.6% 17.5%;
         --muted-foreground: 215 20.2% 65.1%;
         --border: 217.2 32.6% 25%;
         --card: 222.2 84% 4.9%;
+        --card-foreground: 210 40% 98%;
       }
-      
-      * { box-sizing: border-box; margin: 0; padding: 0; }
-      
-      body { 
-        font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
-        line-height: 1.5;
+
+      body {
+        margin: 0;
         background: hsl(var(--background));
         color: hsl(var(--foreground));
         -webkit-font-smoothing: antialiased;
-      }
-      
-      /* Layout utilities */
-      .min-h-screen { min-height: 100vh; }
-      .max-w-7xl { max-width: 80rem; margin-left: auto; margin-right: auto; }
-      .mx-auto { margin-left: auto; margin-right: auto; }
-      
-      /* Flex utilities */
-      .flex { display: flex; }
-      .items-center { align-items: center; }
-      .justify-center { justify-content: center; }
-      .flex-col { flex-direction: column; }
-      
-      /* Text utilities */
-      .text-center { text-align: center; }
-      
-      /* Color utilities */
-      .text-muted-foreground { color: hsl(var(--muted-foreground)); }
-      .text-primary { color: hsl(var(--primary)); }
-      
-      /* Border utilities */
-      .border { border-width: 1px; border-style: solid; border-color: hsl(var(--border)); }
-      
-      /* Button base styles */
-      button { 
-        cursor: pointer;
-        border: none;
-        font: inherit;
-        padding: 0.5rem 1rem;
-        border-radius: calc(var(--radius) - 2px);
-        transition: all 150ms;
+        -moz-osx-font-smoothing: grayscale;
       }
     </style>
     
@@ -170,8 +140,19 @@
           }
 
           navigator.serviceWorker.register('/sw.js')
-            .then(registration => console.log('SW registered'))
-            .catch(error => console.log('SW registration failed'));
+            .then((registration) => {
+              // Force an update check so users pick up latest CSS/JS after deploy
+              registration.update().catch(() => {});
+
+              // If a new SW takes control, reload once to get fresh assets
+              let refreshing = false;
+              navigator.serviceWorker.addEventListener('controllerchange', () => {
+                if (refreshing) return;
+                refreshing = true;
+                window.location.reload();
+              });
+            })
+            .catch(() => {});
         });
       }
     </script>
