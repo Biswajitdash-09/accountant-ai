@@ -49,7 +49,7 @@ const setStoredTheme = (storageKey: string, theme: Theme) => {
 
 export function ThemeProvider({
   children,
-  defaultTheme = "dark",
+  defaultTheme = "light",
   storageKey = "accountant-ai-theme",
 }: ThemeProviderProps) {
   const [theme, setThemeState] = React.useState<Theme>(() => 

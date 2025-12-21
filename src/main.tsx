@@ -51,7 +51,7 @@ async function bootstrap() {
         <ErrorBoundary>
           <QueryClientProvider client={queryClient}>
             <BrowserRouter>
-              <ThemeProvider defaultTheme="dark" storageKey="accountant-ai-theme">
+              <ThemeProvider defaultTheme="light" storageKey="accountant-ai-theme">
                 <AuthProvider>
                   <CurrencyProvider>
                     <App />

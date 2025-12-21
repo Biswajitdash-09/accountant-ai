@@ -22,12 +22,15 @@ export const FloatingVoiceButton: React.FC<FloatingVoiceButtonProps> = ({ classN
 
   return (
     <>
-      {/* Voice Button - positioned by parent container */}
+      {/* Floating Button */}
       <motion.div
-        className={cn("relative", className)}
+        className={cn(
+          "fixed bottom-8 right-8 z-50",
+          className
+        )}
         initial={{ scale: 0, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
-        transition={{ type: "spring", stiffness: 260, damping: 20, delay: 0.1 }}
+        transition={{ type: "spring", stiffness: 260, damping: 20 }}
       >
         <Button
           onClick={() => setIsOpen(true)}
@@ -37,7 +40,6 @@ export const FloatingVoiceButton: React.FC<FloatingVoiceButtonProps> = ({ classN
             "bg-gradient-to-br from-primary to-primary/80",
             "hover:scale-110 transition-transform"
           )}
-          title="Voice Assistant"
         >
           <Mic className="h-6 w-6" />
         </Button>

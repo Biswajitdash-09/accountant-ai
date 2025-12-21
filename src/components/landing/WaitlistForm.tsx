@@ -87,7 +87,7 @@ export const WaitlistForm = () => {
     <form onSubmit={handleSubmit} className="w-full max-w-2xl mx-auto space-y-4">
       <div className="flex flex-col sm:flex-row gap-3">
         <div className="relative flex-1">
-          <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground z-10" />
+          <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
           <Input
             type="email"
             placeholder="Enter your email..."
@@ -102,7 +102,6 @@ export const WaitlistForm = () => {
           size="lg" 
           disabled={isLoading}
           className="h-12 px-8 text-base font-semibold whitespace-nowrap"
-          style={{ backgroundColor: 'hsl(221.2, 83.2%, 53.3%)', color: 'white' }}
         >
           {isLoading ? (
             <>
@@ -117,7 +116,7 @@ export const WaitlistForm = () => {
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <div className="relative">
-          <User className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground z-10" />
+          <User className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
           <Input
             type="text"
             placeholder="Full Name (optional)"
@@ -127,7 +126,7 @@ export const WaitlistForm = () => {
           />
         </div>
         <div className="relative">
-          <Building2 className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground z-10" />
+          <Building2 className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
           <Input
             type="text"
             placeholder="Company (optional)"
