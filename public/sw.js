@@ -1,4 +1,4 @@
-const CACHE_VERSION = 'v3.1';
+const CACHE_VERSION = 'v3.2';
 const CACHE_NAME = `accountant-ai-${CACHE_VERSION}`;
 const STATIC_CACHE = `accountant-ai-static-${CACHE_VERSION}`;
 const DYNAMIC_CACHE = `accountant-ai-dynamic-${CACHE_VERSION}`;
@@ -164,6 +164,28 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
+  // JS/CSS bundles - network first (prevents stale UI after deploy)
+  if (
+    request.destination === 'script' ||
+    request.destination === 'style' ||
+    /\.(css|js|mjs)$/i.test(url.pathname)
+  ) {
+    event.respondWith(
+      fetch(request)
+        .then((response) => {
+          if (response && response.ok) {
+            const responseClone = response.clone();
+            caches.open(STATIC_CACHE).then((cache) => {
+              cache.put(request, responseClone);
+            });
+          }
+          return response;
+        })
+        .catch(() => caches.match(request))
+    );
+    return;
+  }
+
   // Static assets - cache first
   event.respondWith(
     caches.match(request).then((cached) => {
@@ -184,7 +206,6 @@ self.addEventListener('fetch', (event) => {
         .catch(() => new Response('Offline', { status: 503 }));
     })
   );
-});
 
 // Background sync for offline operations
 self.addEventListener('sync', (event) => {

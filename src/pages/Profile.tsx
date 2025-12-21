@@ -18,7 +18,7 @@ import { User, Settings, Shield, LogOut, Clock, Calendar, Bell, ExternalLink, Do
 import { formatDistanceToNow } from "date-fns";
 import { HMRCSettings } from "@/components/hmrc/HMRCSettings";
 import { useHMRCConnection } from "@/hooks/useHMRCConnection";
-import { SampleDataManager } from "@/components/settings/SampleDataManager";
+
 import { usePWAInstall } from "@/components/PWAEnhancements";
 import { toast } from "sonner";
 
@@ -264,8 +264,6 @@ const Profile = () => {
             </Card>
           )}
 
-          {/* Sample Data Manager */}
-          <SampleDataManager />
 
           {/* Install App */}
           <Card>

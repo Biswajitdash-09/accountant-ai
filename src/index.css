@@ -82,12 +82,22 @@
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 210 40% 98%;
     
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
+    --border: 214.3 31.8% 85%;
+    --input: 214.3 31.8% 85%;
  
     --ring: 221.2 83.2% 53.3%;
 
     --radius: 0.5rem;
+
+    /* Sidebar */
+    --sidebar-background: 0 0% 100%;
+    --sidebar-foreground: 222.2 84% 4.9%;
+    --sidebar-primary: 221.2 83.2% 53.3%;
+    --sidebar-primary-foreground: 210 40% 98%;
+    --sidebar-accent: 210 40% 96%;
+    --sidebar-accent-foreground: 222.2 84% 4.9%;
+    --sidebar-border: 214.3 31.8% 91.4%;
+    --sidebar-ring: 221.2 83.2% 53.3%;
 
     /* Advanced Design Tokens */
     --success: 142 76% 36%;
@@ -98,8 +108,8 @@
     --info-foreground: 198 93% 97%;
 
     /* Glass and Backdrop Effects */
-    --glass-bg: 255 255 255 / 0.05;
-    --glass-border: 255 255 255 / 0.1;
+    --glass-bg: 0 0% 100% / 0.05;
+    --glass-border: 0 0% 100% / 0.1;
     --glass-shadow: 0 8px 32px rgba(31, 38, 135, 0.15);
     
     /* Advanced Gradients */
@@ -179,10 +189,20 @@
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 210 40% 98%;
 
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
+    --border: 217.2 32.6% 25%;
+    --input: 217.2 32.6% 25%;
 
     --ring: 224.3 76.3% 94.1%;
+
+    /* Sidebar Dark */
+    --sidebar-background: 222.2 84% 4.9%;
+    --sidebar-foreground: 210 40% 98%;
+    --sidebar-primary: 217.2 91.2% 59.8%;
+    --sidebar-primary-foreground: 222.2 84% 4.9%;
+    --sidebar-accent: 217.2 32.6% 17.5%;
+    --sidebar-accent-foreground: 210 40% 98%;
+    --sidebar-border: 217.2 32.6% 17.5%;
+    --sidebar-ring: 224.3 76.3% 94.1%;
 
     /* Dark Mode Advanced Tokens */
     --success: 142 71% 45%;
@@ -193,8 +213,8 @@
     --info-foreground: 198 93% 97%;
 
     /* Dark Glass Effects */
-    --glass-bg: 0 0 0 / 0.1;
-    --glass-border: 255 255 255 / 0.05;
+    --glass-bg: 0 0% 0% / 0.1;
+    --glass-border: 0 0% 100% / 0.05;
     --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
     
     /* Dark Gradients */
@@ -241,16 +261,16 @@
 @layer utilities {
   /* Enhanced Glassmorphism utilities */
   .glass {
-    background: rgba(var(--glass-bg));
+    background: hsl(var(--card) / 0.8);
     backdrop-filter: blur(20px) saturate(150%);
-    border: 1px solid rgba(var(--glass-border));
+    border: 1px solid hsl(var(--border));
     box-shadow: var(--glass-shadow);
   }
   
   .glass-strong {
-    background: rgba(var(--glass-bg));
+    background: hsl(var(--card) / 0.9);
     backdrop-filter: blur(40px) saturate(180%);
-    border: 1px solid rgba(var(--glass-border));
+    border: 1px solid hsl(var(--border));
     box-shadow: var(--shadow-large);
   }
   
@@ -573,7 +593,7 @@
   /* Mobile Navigation */
   .mobile-nav-bottom {
     padding-bottom: max(env(safe-area-inset-bottom), 1rem);
-    background: rgba(var(--background), 0.95);
+    background: hsl(var(--background) / 0.95);
     backdrop-filter: blur(20px);
     border-top: 1px solid hsl(var(--border));
   }
@@ -616,7 +636,7 @@
   /* Dark Mode Mobile Adjustments */
   @media (prefers-color-scheme: dark) {
     .mobile-nav-bottom {
-      background: rgba(var(--background), 0.98);
+      background: hsl(var(--background) / 0.98);
     }
     
     .touch-feedback:active::before {

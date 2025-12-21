@@ -7,7 +7,6 @@ import { MobileQuickActions } from "./mobile/MobileQuickActions";
 import { NavigationBreadcrumbs } from "./Navigation/Breadcrumbs";
 import { useIsMobile } from "@/hooks/use-mobile-enhanced";
 import { cn } from "@/lib/utils";
-import DemoAccountBadge from "./DemoAccountBadge";
 import { GlobalSearch } from "@/components/advanced/GlobalSearch";
 import { useGlobalSearch } from "@/hooks/useGlobalSearch";
 import PWAEnhancements from "@/components/PWAEnhancements";
@@ -81,13 +80,8 @@ const Layout = ({ children }: LayoutProps) => {
           {/* PWA Enhancements - Compact on mobile */}
           <PWAEnhancements />
           
-          {/* Demo Badge */}
-          <div className="px-3 pt-2">
-            <DemoAccountBadge showExitButton />
-          </div>
-          
           {/* Page Content - Reduced padding */}
-          <div className="px-3 pb-3 pt-1">
+          <div className="px-3 pb-3 pt-2">
             <div className="max-w-screen-xl mx-auto w-full">
               {children}
             </div>
@@ -133,11 +127,6 @@ const Layout = ({ children }: LayoutProps) => {
             <PWAEnhancements />
           </div>
           
-          {/* Demo Badge */}
-          <div className="px-4 sm:px-6 lg:px-8 pt-2">
-            <DemoAccountBadge showExitButton />
-          </div>
-          
           {/* Breadcrumbs */}
           <div className="px-4 sm:px-6 lg:px-8">
             <NavigationBreadcrumbs />
@@ -154,11 +143,11 @@ const Layout = ({ children }: LayoutProps) => {
         {/* Global Search */}
         <GlobalSearch isOpen={isSearchOpen} onClose={closeSearch} />
         
-        {/* Floating Arnold Button */}
-        <FloatingArnoldButton />
-        
-        {/* Floating Voice Button */}
-        <FloatingVoiceButton className="bottom-8 right-24" />
+        {/* Floating AI Buttons - Stacked vertically */}
+        <div className="fixed bottom-6 right-6 z-50 flex flex-col gap-3">
+          <FloatingVoiceButton />
+          <FloatingArnoldButton />
+        </div>
       </div>
     </div>
   );

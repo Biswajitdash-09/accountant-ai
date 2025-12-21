@@ -3,10 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useTheme } from "@/hooks/useTheme";
 import { useNavigate } from "react-router-dom";
-import { seedDemoData } from "@/utils/demoData";
-import { useState, useEffect } from "react";
-import { useToast } from "@/components/ui/use-toast";
-import DemoTutorial from "@/components/DemoTutorial";
+import { useState } from "react";
 import VideoTutorial from "@/components/VideoTutorial";
 import { SocialMediaLinks } from "@/components/SocialMediaLinks";
 import { StatsSection } from "@/components/landing/StatsSection";
@@ -36,58 +33,7 @@ import {
 const Landing = () => {
   const { theme, toggleTheme } = useTheme();
   const navigate = useNavigate();
-  const { toast } = useToast();
-  const [isDemoLoading, setIsDemoLoading] = useState(false);
-  const [showTutorial, setShowTutorial] = useState(false);
   const [showVideoTutorial, setShowVideoTutorial] = useState(false);
-
-  useEffect(() => {
-    // Show tutorial for first-time visitors
-    const hasSeenTutorial = localStorage.getItem('demoTutorialCompleted');
-    if (!hasSeenTutorial) {
-      const timer = setTimeout(() => {
-        setShowTutorial(true);
-      }, 2000); // Show tutorial after 2 seconds
-      return () => clearTimeout(timer);
-    }
-  }, []);
-
-  const handleDemoMode = async () => {
-    try {
-      setIsDemoLoading(true);
-      console.log('Starting demo mode from landing page...');
-      
-      // Clear any existing auth state first
-      localStorage.removeItem('sb-erqisavlnwynkyfvnltb-auth-token');
-      
-      // Set demo mode
-      localStorage.setItem('isGuest', 'true');
-      
-      // Seed demo data
-      await seedDemoData();
-      
-      console.log('Demo data seeded, isGuest set to:', localStorage.getItem('isGuest'));
-      
-      toast({
-        title: "Demo Mode Active",
-        description: "You're now exploring Accountant AI with sample data!",
-      });
-      
-      console.log('Demo mode setup complete, navigating to dashboard');
-      
-      // Force page reload to ensure demo state is properly recognized
-      window.location.href = '/dashboard';
-    } catch (error) {
-      console.error('Error setting up demo mode:', error);
-      toast({
-        title: "Error",
-        description: "Failed to set up demo mode. Please try again.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsDemoLoading(false);
-    }
-  };
 
   const features = [
     {
@@ -200,7 +146,7 @@ const Landing = () => {
 
       {/* Hero Section with Waitlist */}
       <section className="text-center py-20 px-4 relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-purple-500/5 to-transparent animate-gradient" />
+        <div className="absolute inset-0 animate-gradient" style={{ background: 'linear-gradient(to bottom right, rgba(59, 130, 246, 0.1), rgba(168, 85, 247, 0.05), transparent)' }} />
         <motion.div 
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -211,7 +157,12 @@ const Landing = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.1 }}
-            className="inline-flex items-center gap-2 bg-primary/10 text-primary px-4 py-2 rounded-full mb-6 text-sm font-medium"
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-full mb-6 text-sm font-medium"
+            style={{
+              background: 'rgba(59, 130, 246, 0.15)',
+              color: '#60a5fa',
+              border: '1px solid rgba(59, 130, 246, 0.3)',
+            }}
           >
             <Rocket className="h-4 w-4" />
             Launching Soon - Join the Waitlist
@@ -221,7 +172,13 @@ const Landing = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.2 }}
-            className="text-4xl md:text-6xl font-bold mb-6 bg-clip-text text-transparent bg-gradient-to-r from-primary via-purple-500 to-primary"
+            className="text-4xl md:text-6xl font-bold mb-6"
+            style={{
+              background: 'linear-gradient(to right, #3b82f6, #a855f7, #3b82f6)',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+              backgroundClip: 'text',
+            }}
           >
             AI-Powered Accounting Made Simple
           </motion.h1>
@@ -229,9 +186,16 @@ const Landing = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.3 }}
-            className="bg-gradient-primary/10 rounded-2xl px-6 py-5 mx-auto max-w-2xl backdrop-blur-sm border-2 border-primary/20 shadow-soft hover:shadow-medium transition-all duration-300"
+            className="rounded-2xl px-6 py-5 mx-auto max-w-2xl backdrop-blur-sm border-2 shadow-soft hover:shadow-medium transition-all duration-300"
+            style={{
+              background: 'linear-gradient(135deg, rgba(59, 130, 246, 0.1), rgba(168, 85, 247, 0.1))',
+              borderColor: 'rgba(168, 85, 247, 0.3)',
+            }}
           >
-            <p className="text-xl sm:text-2xl md:text-3xl font-bold text-primary leading-relaxed">
+            <p 
+              className="text-xl sm:text-2xl md:text-3xl font-bold leading-relaxed"
+              style={{ color: '#a855f7' }}
+            >
               "Accounting made easy, accounting in your pocket."
             </p>
           </motion.div>
@@ -253,7 +217,7 @@ const Landing = () => {
           >
             <WaitlistCounter />
             
-            <div className="glass rounded-2xl p-8 max-w-3xl mx-auto">
+            <div className="backdrop-blur-xl rounded-2xl p-8 max-w-3xl mx-auto shadow-lg" style={{ background: 'rgba(30, 41, 59, 0.9)', border: '1px solid rgba(148, 163, 184, 0.2)' }}>
               <h3 className="text-2xl font-bold mb-3">Be Among the First to Experience the Future</h3>
               <p className="text-muted-foreground mb-6">
                 Join the waitlist and get exclusive early access with special launch benefits
@@ -283,15 +247,6 @@ const Landing = () => {
             transition={{ duration: 0.8, delay: 0.7 }}
             className="flex flex-col sm:flex-row gap-4 justify-center"
           >
-            <Button 
-              variant="outline" 
-              size="lg" 
-              onClick={handleDemoMode}
-              disabled={isDemoLoading}
-              className="text-lg px-8 py-6"
-            >
-              {isDemoLoading ? "Loading Demo..." : "Try Demo"}
-            </Button>
             <Button 
               variant="outline" 
               size="lg" 
@@ -395,7 +350,7 @@ const Landing = () => {
       <FAQSection />
 
       {/* CTA Section */}
-      <section className="py-20 px-4 bg-gradient-to-r from-primary/10 via-purple-500/5 to-primary/10">
+      <section className="py-20 px-4" style={{ background: 'linear-gradient(to right, rgba(59, 130, 246, 0.1), rgba(168, 85, 247, 0.05), rgba(59, 130, 246, 0.1))' }}>
         <motion.div 
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -452,20 +407,11 @@ const Landing = () => {
         </div>
       </footer>
 
-      {/* Demo Tutorial */}
-      <DemoTutorial 
-        isOpen={showTutorial} 
-        onClose={() => setShowTutorial(false)} 
-      />
 
       {/* Video Tutorial */}
       <VideoTutorial 
         isOpen={showVideoTutorial} 
         onClose={() => setShowVideoTutorial(false)}
-        onShowStepByStep={() => {
-          setShowVideoTutorial(false);
-          setShowTutorial(true);
-        }}
       />
     </div>
   );
