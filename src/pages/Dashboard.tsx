@@ -32,6 +32,7 @@ import { DashboardSkeleton } from "@/components/ui/smart-skeleton";
 import { OfflineIndicator } from "@/components/mobile/OfflineIndicator";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { toast } from "sonner";
+import { InteractiveTutorial } from "@/components/tutorials/InteractiveTutorial";
 
 const Dashboard = () => {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -148,9 +149,22 @@ const Dashboard = () => {
   }
 
   return (
-    <PullToRefresh onRefresh={handleRefresh} className="h-full">
-      <div className="container mx-auto p-2 sm:p-4 max-w-7xl">
-        <OfflineIndicator />
+    <>
+      {showTutorial && (
+        <InteractiveTutorial
+          onComplete={() => {
+            setShowTutorial(false);
+            toast.success("Tutorial completed! You're all set.");
+          }}
+          onSkip={() => {
+            setShowTutorial(false);
+            toast.info("Tutorial skipped. You can restart it anytime.");
+          }}
+        />
+      )}
+      <PullToRefresh onRefresh={handleRefresh} className="h-full">
+        <div className="container mx-auto p-2 sm:p-4 max-w-7xl">
+          <OfflineIndicator />
         <div className="space-y-3 sm:space-y-6">
           <div className="flex items-center justify-between flex-wrap gap-3">
             <div>
@@ -335,6 +349,7 @@ const Dashboard = () => {
         </div>
       </div>
     </PullToRefresh>
+    </>
   );
 };
 

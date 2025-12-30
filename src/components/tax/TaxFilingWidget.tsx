@@ -124,12 +124,14 @@ const TaxFilingWidget = () => {
         return {
           title: 'Nigeria Tax Filing (FIRS)',
           instructions: [
-            'Generate FIRS payment reference',
-            'Visit JTB Self-Service portal',
-            'Submit your tax return',
-            'Make payment via Remita',
+            'Visit the FIRS TaxPro Max portal',
+            'Register or login with your TIN',
+            'Complete your annual tax return',
+            'Generate payment reference and pay via Remita',
           ],
           links: [
+            { label: 'FIRS TaxPro Max', url: 'https://tax.firs.gov.ng' },
+            { label: 'Remita Payment', url: 'https://remita.net' },
             { label: 'JTB Portal', url: 'https://www.jtb.gov.ng' },
           ],
         };
