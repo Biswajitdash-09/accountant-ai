@@ -84,10 +84,17 @@ export const AdvancedAnalytics = () => {
     { label: "Emergency Fund Ratio", value: 4.2, change: 0.8, trend: 'up', format: 'currency' },
   ];
 
-  const cashFlowData = analyticsData.map(item => ({
+  const cashFlowData = (analyticsData || []).map(item => ({
     ...item,
+    period: item.month, // Map 'month' to 'period' for chart compatibility
     netFlow: item.income - item.expenses,
     cumulativeSavings: item.savings,
+  }));
+
+  // Create chart-ready data with 'period' field for consistency
+  const chartData = (analyticsData || []).map(item => ({
+    ...item,
+    period: item.month,
   }));
 
   const exportData = () => {
@@ -223,8 +230,8 @@ export const AdvancedAnalytics = () => {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <ResponsiveContainer width="100%" height={300}>
-                  <BarChart data={analyticsData}>
+              <ResponsiveContainer width="100%" height={300}>
+                  <BarChart data={chartData}>
                     <CartesianGrid strokeDasharray="3 3" />
                     <XAxis dataKey="period" />
                     <YAxis />
@@ -371,7 +378,7 @@ export const AdvancedAnalytics = () => {
             </CardHeader>
             <CardContent>
               <ResponsiveContainer width="100%" height={400}>
-                <LineChart data={analyticsData}>
+                <LineChart data={chartData}>
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis dataKey="period" />
                   <YAxis />
