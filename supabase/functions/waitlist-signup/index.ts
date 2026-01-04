@@ -94,8 +94,11 @@ serve(async (req) => {
       .select('*', { count: 'exact', head: true });
 
     // Send confirmation email
+    let emailSent = false;
     try {
-      await resend.emails.send({
+      console.log('Attempting to send confirmation email to:', email);
+      
+      const emailResult = await resend.emails.send({
         from: 'Accountant AI <onboarding@resend.dev>',
         to: [email],
         subject: '🎉 You\'re on the Waitlist for Accountant AI!',
@@ -103,65 +106,63 @@ serve(async (req) => {
           <!DOCTYPE html>
           <html>
             <head>
-              <style>
-                body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #333; }
-                .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-                .header { background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%); color: white; padding: 40px 20px; text-align: center; border-radius: 10px 10px 0 0; }
-                .content { background: #ffffff; padding: 40px; border: 1px solid #e5e7eb; border-top: none; }
-                .position-badge { background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%); color: white; padding: 15px 30px; border-radius: 8px; text-align: center; font-size: 24px; font-weight: bold; margin: 20px 0; }
-                .feature { margin: 15px 0; padding-left: 25px; position: relative; }
-                .feature:before { content: "✓"; position: absolute; left: 0; color: #3b82f6; font-weight: bold; }
-                .cta-button { display: inline-block; background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%); color: white; padding: 15px 30px; text-decoration: none; border-radius: 8px; margin: 20px 0; }
-                .footer { text-align: center; padding: 20px; color: #6b7280; font-size: 14px; }
-              </style>
+              <meta charset="utf-8">
+              <meta name="viewport" content="width=device-width, initial-scale=1.0">
             </head>
-            <body>
-              <div class="container">
-                <div class="header">
-                  <h1 style="margin: 0;">🎉 Welcome to Accountant AI!</h1>
+            <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #333; margin: 0; padding: 0; background-color: #f3f4f6;">
+              <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
+                <div style="background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%); color: white; padding: 40px 20px; text-align: center; border-radius: 16px 16px 0 0;">
+                  <h1 style="margin: 0; font-size: 28px;">🎉 Welcome to Accountant AI!</h1>
                 </div>
-                <div class="content">
-                  <p>Hi${full_name ? ` ${full_name}` : ''},</p>
+                <div style="background: #ffffff; padding: 40px; border-radius: 0 0 16px 16px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
+                  <p style="font-size: 16px;">Hi${full_name ? ` ${full_name}` : ''},</p>
                   
-                  <p>You're officially on the waitlist for Accountant AI - the future of AI-powered accounting!</p>
+                  <p style="font-size: 16px;">You're officially on the waitlist for <strong>Accountant AI</strong> - the future of AI-powered accounting!</p>
                   
-                  <div class="position-badge">
-                    You're #${waitlistEntry.position} in line
+                  <div style="text-align: center; margin: 30px 0;">
+                    <div style="background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%); color: white; padding: 20px 40px; border-radius: 12px; display: inline-block;">
+                      <p style="margin: 0; font-size: 14px; opacity: 0.9;">Your Position</p>
+                      <p style="margin: 5px 0; font-size: 48px; font-weight: bold;">#${waitlistEntry.position}</p>
+                      <p style="margin: 0; font-size: 14px; opacity: 0.9;">of ${totalCount} people waiting</p>
+                    </div>
                   </div>
                   
-                  <p><strong>Total on waitlist: ${totalCount}</strong></p>
+                  <h3 style="color: #1f2937; margin-top: 30px;">🌟 What you'll get:</h3>
+                  <ul style="padding-left: 20px;">
+                    <li style="margin: 10px 0;">✅ Priority access when we launch</li>
+                    <li style="margin: 10px 0;">✅ Exclusive 30% launch discount</li>
+                    <li style="margin: 10px 0;">✅ 100 bonus AI credits</li>
+                    <li style="margin: 10px 0;">✅ Personal onboarding session</li>
+                    <li style="margin: 10px 0;">✅ Direct line to our founding team</li>
+                  </ul>
                   
-                  <h3>🌟 What to expect:</h3>
-                  <div class="feature">Priority access when we launch</div>
-                  <div class="feature">Exclusive 30% launch discount</div>
-                  <div class="feature">100 bonus AI credits</div>
-                  <div class="feature">Personal onboarding session</div>
-                  <div class="feature">Direct line to our founding team</div>
-                  
-                  <p>We're working hard to launch soon. You'll be the first to know!</p>
-                  
-                  <p>Meanwhile, check out what we're building:</p>
-                  <a href="${Deno.env.get('SUPABASE_URL')?.replace('supabase.co', '')}" class="cta-button">Explore Demo</a>
+                  <p style="font-size: 16px; margin-top: 30px;">We're working hard to launch soon. You'll be the first to know!</p>
                   
                   <p style="margin-top: 30px;">Questions? Just reply to this email.</p>
                   
-                  <p>Best,<br>The Accountant AI Team</p>
-                  
-                  <p style="margin-top: 30px; font-size: 14px; color: #6b7280;">
-                    <strong>P.S.</strong> Know someone who'd love this? Forward this email and help them skip ahead in line!
-                  </p>
+                  <p>Best,<br><strong>The Accountant AI Team</strong></p>
                 </div>
-                <div class="footer">
-                  © 2025 Accountant AI. All rights reserved.
+                <div style="text-align: center; padding: 20px; color: #6b7280; font-size: 12px;">
+                  © 2026 Accountant AI. All rights reserved.
                 </div>
               </div>
             </body>
           </html>
         `,
       });
-    } catch (emailError) {
-      console.error('Error sending confirmation email:', emailError);
-      // Don't fail the request if email fails
+      
+      if (emailResult.error) {
+        console.error('Resend API error:', JSON.stringify(emailResult.error));
+        // Check if it's a domain verification issue
+        if (emailResult.error.message?.includes('verify a domain')) {
+          console.log('Note: Domain not verified - emails only work for account owner');
+        }
+      } else {
+        console.log('Email sent successfully:', emailResult.data?.id);
+        emailSent = true;
+      }
+    } catch (emailError: any) {
+      console.error('Error sending confirmation email:', emailError?.message || emailError);
     }
 
     return new Response(
@@ -170,6 +171,7 @@ serve(async (req) => {
         message: 'Successfully joined waitlist',
         position: waitlistEntry.position,
         totalCount,
+        emailSent,
       }),
       { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
