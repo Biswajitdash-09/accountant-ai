@@ -120,18 +120,30 @@ serve(async (req) => {
       {
         type: "function",
         name: "calculate_tax",
-        description: "Calculate tax estimates for the user based on their financial data",
+        description: "Calculate tax estimates for the user based on their financial data. For Nigeria, uses the 2026 Personal Income Tax Act rates.",
         parameters: {
           type: "object",
           properties: {
             tax_year: { 
               type: "integer",
-              description: "Tax year to calculate (e.g., 2024)"
+              description: "Tax year to calculate (e.g., 2026)"
             },
             region: {
               type: "string",
               enum: ["uk", "usa", "nigeria", "india", "eu"],
               description: "Tax jurisdiction"
+            },
+            gross_income: {
+              type: "number",
+              description: "Gross annual income"
+            },
+            pension_contribution: {
+              type: "number",
+              description: "Annual pension contribution (8% of gross for Nigeria)"
+            },
+            annual_rent: {
+              type: "number",
+              description: "Annual rent paid (for rent relief calculation)"
             },
             include_investments: {
               type: "boolean",
@@ -265,7 +277,7 @@ serve(async (req) => {
       }
     ];
 
-    // System prompt for Arnold AI
+    // System prompt for Arnold AI with NIGERIA 2026 TAX KNOWLEDGE
     const systemPrompt = instructions || `You are Arnold, a friendly and knowledgeable AI financial assistant for AccountantAI. 
 
 Your personality:
@@ -282,6 +294,48 @@ Your capabilities:
 - Create transactions and manage budgets
 - Search and retrieve transaction history
 - Provide investment and savings advice
+
+## NIGERIA 2026 TAX CALCULATION RULES (CRITICAL - USE THESE EXACT FORMULAS)
+
+When calculating Nigerian Personal Income Tax, you MUST use the Nigeria Tax Act 2025 rates (effective January 1, 2026):
+
+### Tax Bands:
+| Taxable Income Band | Tax Rate |
+|---------------------|----------|
+| ₦0 - ₦800,000 | 0% (Exempt) |
+| ₦800,001 - ₦3,000,000 | 15% |
+| ₦3,000,001 - ₦12,000,000 | 18% |
+| ₦12,000,001 - ₦25,000,000 | 21% |
+| ₦25,000,001 - ₦50,000,000 | 23% |
+| Above ₦50,000,000 | 25% |
+
+### Allowable Deductions:
+1. **Pension Contribution**: 8% of gross salary - FULLY DEDUCTIBLE
+2. **Rent Relief**: 20% of annual rent paid, CAPPED at ₦500,000 maximum
+3. **NHIS**: National Health Insurance contributions - fully deductible
+4. **NHF**: National Housing Fund contributions - fully deductible
+5. **Life Insurance**: Premiums paid - fully deductible
+
+### Calculation Steps:
+1. Calculate pension deduction (if applicable): Gross × 8%
+2. Calculate rent relief: Min(Annual Rent × 20%, ₦500,000)
+3. Total Deductions = Pension + Rent Relief + NHIS + NHF + Life Insurance
+4. Taxable Income = Gross Income - Total Deductions
+5. Apply progressive tax bands to taxable income
+
+### Example Calculation (Mr. Sam scenario):
+- Gross Income: ₦7,500,000
+- Pension (8%): ₦600,000
+- Rent Paid: ₦1,200,000 → Rent Relief: ₦240,000 (20% of ₦1,200,000)
+- Total Deductions: ₦840,000
+- Taxable Income: ₦6,660,000
+
+Tax Calculation:
+- First ₦800,000: ₦0 (exempt)
+- ₦800,001 - ₦3,000,000: ₦2,200,000 × 15% = ₦330,000
+- ₦3,000,001 - ₦6,660,000: ₦3,660,000 × 18% = ₦658,800
+- **Total Tax: ₦988,800**
+- Effective Rate: 13.18%
 
 When users ask about their finances:
 1. Use the available tools to fetch real data
