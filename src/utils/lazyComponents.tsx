@@ -35,3 +35,44 @@ export const LazyHMRCIntegration = lazyLoadComponent(
 export const LazyScanner = lazyLoadComponent(
   () => import("@/pages/Scanner")
 );
+
+// Additional heavy pages for better initial load performance
+export const LazyAnalytics = lazyLoadComponent(
+  () => import("@/pages/Analytics")
+);
+
+export const LazyTax = lazyLoadComponent(
+  () => import("@/pages/Tax")
+);
+
+export const LazyTransactions = lazyLoadComponent(
+  () => import("@/pages/Transactions")
+);
+
+export const LazyAccounts = lazyLoadComponent(
+  () => import("@/pages/Accounts")
+);
+
+export const LazyFinancialManagement = lazyLoadComponent(
+  () => import("@/pages/FinancialManagement")
+);
+
+export const LazyIntegrations = lazyLoadComponent(
+  () => import("@/pages/Integrations")
+);
+
+export const LazyMarkets = lazyLoadComponent(
+  () => import("@/pages/Markets")
+);
+
+export const LazySecurity = lazyLoadComponent(
+  () => import("@/pages/Security")
+);
+
+export const LazyProfile = lazyLoadComponent(
+  () => import("@/pages/Profile")
+);
+
+export const LazyPricing = lazyLoadComponent(
+  () => import("@/pages/Pricing")
+);

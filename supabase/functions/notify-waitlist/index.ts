@@ -1,6 +1,7 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
 import { Resend } from "npm:resend@4.0.0";
+import { launchNotificationEmail } from "../_shared/emailTemplates.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -101,80 +102,27 @@ serve(async (req) => {
       .from('waitlist')
       .select('*', { count: 'exact', head: true });
 
+    // Get app URL from environment
+    const appUrl = Deno.env.get('SUPABASE_URL')?.replace('.supabase.co', '.lovable.app') || 'https://accountant-ai.com';
+
     let successCount = 0;
     let failureCount = 0;
 
     // Send emails in batches
     for (const entry of waitlistEntries) {
       try {
+        const emailHtml = launchNotificationEmail({
+          fullName: entry.full_name,
+          position: entry.position,
+          totalCount: totalCount || 0,
+          appUrl,
+        });
+
         await resend.emails.send({
           from: 'Accountant AI <onboarding@resend.dev>',
           to: [entry.email],
           subject: '🚀 Accountant AI is LIVE - Your Early Access Awaits!',
-          html: `
-            <!DOCTYPE html>
-            <html>
-              <head>
-                <style>
-                  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #333; }
-                  .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-                  .header { background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%); color: white; padding: 40px 20px; text-align: center; border-radius: 10px 10px 0 0; }
-                  .content { background: #ffffff; padding: 40px; border: 1px solid #e5e7eb; border-top: none; }
-                  .badge { display: inline-block; background: #10b981; color: white; padding: 8px 16px; border-radius: 20px; font-size: 14px; font-weight: bold; margin: 10px 0; }
-                  .benefit { margin: 15px 0; padding-left: 30px; position: relative; font-size: 16px; }
-                  .benefit:before { content: "✨"; position: absolute; left: 0; font-size: 20px; }
-                  .cta-button { display: inline-block; background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%); color: white; padding: 18px 40px; text-decoration: none; border-radius: 8px; margin: 20px 0; font-size: 18px; font-weight: bold; }
-                  .coupon-code { background: #fef3c7; border: 2px dashed #f59e0b; padding: 15px; border-radius: 8px; text-align: center; margin: 20px 0; }
-                  .footer { text-align: center; padding: 20px; color: #6b7280; font-size: 14px; }
-                  .urgency { background: #fef2f2; border-left: 4px solid #ef4444; padding: 15px; margin: 20px 0; }
-                </style>
-              </head>
-              <body>
-                <div class="container">
-                  <div class="header">
-                    <h1 style="margin: 0;">🚀 We're Live!</h1>
-                    <p style="margin: 10px 0 0 0; font-size: 18px;">Your wait is over - Accountant AI is officially here</p>
-                  </div>
-                  <div class="content">
-                    <p>Hi${entry.full_name ? ` ${entry.full_name}` : ''},</p>
-                    
-                    <p style="font-size: 18px;"><strong>The moment you've been waiting for has arrived!</strong></p>
-                    
-                    <p>As waitlist member <strong>#${entry.position}</strong> (out of ${totalCount}), you get exclusive early access benefits:</p>
-                    
-                    <div class="benefit">30% off your first 3 months</div>
-                    <div class="benefit">100 bonus AI credits (worth $50)</div>
-                    <div class="benefit">Priority support for 90 days</div>
-                    <div class="benefit">Free personal onboarding call</div>
-                    
-                    <div class="coupon-code">
-                      <p style="margin: 0; font-size: 14px; color: #92400e;">Your exclusive launch code:</p>
-                      <p style="margin: 10px 0 0 0; font-size: 28px; font-weight: bold; color: #92400e; letter-spacing: 2px;">EARLY30</p>
-                    </div>
-                    
-                    <div style="text-align: center;">
-                      <a href="${Deno.env.get('SUPABASE_URL')?.replace('supabase.co', '')}/auth" class="cta-button">
-                        🎯 Claim Your Early Access →
-                      </a>
-                    </div>
-                    
-                    <div class="urgency">
-                      <p style="margin: 0; font-weight: bold; color: #dc2626;">⏰ This offer expires in 48 hours!</p>
-                      <p style="margin: 10px 0 0 0; font-size: 14px; color: #991b1b;">Don't miss out on your exclusive benefits</p>
-                    </div>
-                    
-                    <p>Thank you for believing in us from day one. We can't wait to help you transform your accounting!</p>
-                    
-                    <p>Best,<br>The Accountant AI Team</p>
-                  </div>
-                  <div class="footer">
-                    © 2025 Accountant AI. All rights reserved.<br>
-                    Your waitlist position: #${entry.position} | Total on waitlist: ${totalCount}
-                  </div>
-                </div>
-              </body>
-            </html>
-          `,
+          html: emailHtml,
         });
 
         // Update status
