@@ -156,21 +156,68 @@ export const EnhancedOnboarding = () => {
   };
 
   const handleSkip = async () => {
-    if (!user) return;
-
     setLoading(true);
     try {
-      await supabase
-        .from("profiles")
-        .update({
-          onboarding_completed: true,
-          onboarding_step: currentStep,
-        })
-        .eq("id", user.id);
+      if (user) {
+        const { error } = await supabase
+          .from("profiles")
+          .update({
+            onboarding_completed: true,
+            onboarding_step: currentStep,
+          })
+          .eq("id", user.id);
 
+        if (error) {
+          console.error("Error saving skip status:", error);
+          toast({
+            title: "Skipping onboarding",
+            description: "Your preferences weren't saved, but you can set them later in Settings.",
+          });
+        } else {
+          toast({
+            title: "Onboarding skipped",
+            description: "You can complete setup anytime from Settings.",
+          });
+        }
+      }
+      
+      // Always navigate to dashboard
       navigate("/dashboard");
     } catch (error) {
       console.error("Error skipping onboarding:", error);
+      // Navigate anyway on error
+      navigate("/dashboard");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSkipAll = async () => {
+    setLoading(true);
+    try {
+      if (user) {
+        const { error } = await supabase
+          .from("profiles")
+          .update({
+            onboarding_completed: true,
+            onboarding_step: totalSteps,
+          })
+          .eq("id", user.id);
+
+        if (error) {
+          console.error("Error saving skip all status:", error);
+        }
+      }
+      
+      toast({
+        title: "Setup skipped",
+        description: "You can complete your profile anytime from Settings.",
+      });
+      
+      navigate("/dashboard");
+    } catch (error) {
+      console.error("Error skipping all:", error);
+      navigate("/dashboard");
     } finally {
       setLoading(false);
     }
@@ -182,23 +229,9 @@ export const EnhancedOnboarding = () => {
     );
   };
 
+  // All steps are now optional - users can proceed without completing each step
   const canProceed = () => {
-    switch (currentStep) {
-      case 1:
-        return onboardingData.region !== null;
-      case 2:
-        return true; // Bank connection is optional
-      case 3:
-        return onboardingData.accountingSoftware !== null;
-      case 4:
-        return onboardingData.fiscalYearEnd !== "";
-      case 5:
-        return arnoldGreeting !== ""; // Arnold interaction required
-      case 6:
-        return true; // Goals are optional
-      default:
-        return false;
-    }
+    return true;
   };
 
   const renderStep = () => {
@@ -545,14 +578,26 @@ export const EnhancedOnboarding = () => {
               <h1 className="text-sm font-medium text-muted-foreground">
                 Step {currentStep} of {totalSteps}
               </h1>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={handleSkip}
-                disabled={loading}
-              >
-                Skip for now
-              </Button>
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={handleSkip}
+                  disabled={loading}
+                >
+                  Skip step
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleSkipAll}
+                  disabled={loading}
+                  className="text-muted-foreground"
+                >
+                  Skip All
+                  <ChevronRight className="h-4 w-4 ml-1" />
+                </Button>
+              </div>
             </div>
             <Progress value={progress} className="h-2" />
           </div>
