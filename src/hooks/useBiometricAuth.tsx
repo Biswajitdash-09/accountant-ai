@@ -9,6 +9,7 @@ interface BiometricAuthOptions {
 export const useBiometricAuth = () => {
   const [isAvailable, setIsAvailable] = useState(false);
   const [isEnrolled, setIsEnrolled] = useState(false);
+  const [isSetUp, setIsSetUp] = useState(false);
 
   useEffect(() => {
     checkAvailability();
@@ -19,13 +20,18 @@ export const useBiometricAuth = () => {
     if (window.PublicKeyCredential) {
       setIsAvailable(true);
       
-      // Check if user has enrolled biometrics
+      // Check if device has biometric capability
       try {
         const available = await PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable();
         setIsEnrolled(available);
       } catch (error) {
         console.error("Error checking biometric enrollment:", error);
       }
+      
+      // Check if user has already set up biometrics in our app
+      const credentialId = localStorage.getItem('biometric-credential-id');
+      const biometricEnabled = localStorage.getItem('biometric-auth-enabled') === 'true';
+      setIsSetUp(!!credentialId && biometricEnabled);
     }
   };
 
@@ -116,6 +122,7 @@ export const useBiometricAuth = () => {
   return {
     isAvailable,
     isEnrolled,
+    isSetUp,
     authenticate,
     register,
   };
