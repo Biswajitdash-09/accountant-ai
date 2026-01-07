@@ -27,7 +27,7 @@ export const FloatingArnoldButton = () => {
         <Button
           onClick={() => setIsOpen(true)}
           size="lg"
-          className="h-14 w-14 rounded-full shadow-lg hover:shadow-xl transition-all bg-secondary hover:bg-secondary/90"
+          className="h-14 w-14 rounded-full shadow-lg hover:shadow-xl transition-all bg-accent text-accent-foreground hover:bg-accent/90 border border-border"
           title="Chat with Arnold AI"
         >
           <Brain className="h-6 w-6" />
