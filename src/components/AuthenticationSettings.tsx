@@ -4,19 +4,30 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
-import { Badge } from '@/components/ui/badge';
-import { Shield, Key, Smartphone, Mail } from 'lucide-react';
+import { Key, Mail, Shield, CheckCircle, AlertCircle } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
 
 const AuthenticationSettings = () => {
-  const [twoFactorEnabled, setTwoFactorEnabled] = useState(false);
   const [emailNotifications, setEmailNotifications] = useState(true);
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [isUpdating, setIsUpdating] = useState(false);
   const { toast } = useToast();
+  const { user } = useAuth();
 
-  const handlePasswordChange = () => {
+  const handlePasswordChange = async () => {
+    if (!newPassword || !confirmPassword) {
+      toast({
+        title: "Missing fields",
+        description: "Please fill in all password fields.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     if (newPassword !== confirmPassword) {
       toast({
         title: "Passwords don't match",
@@ -26,25 +37,42 @@ const AuthenticationSettings = () => {
       return;
     }
 
-    // Mock password change
-    toast({
-      title: "Password Updated",
-      description: "Your password has been successfully updated.",
-    });
-    
-    setCurrentPassword('');
-    setNewPassword('');
-    setConfirmPassword('');
-  };
+    if (newPassword.length < 8) {
+      toast({
+        title: "Password too short",
+        description: "Password must be at least 8 characters.",
+        variant: "destructive",
+      });
+      return;
+    }
 
-  const handleTwoFactorToggle = () => {
-    setTwoFactorEnabled(!twoFactorEnabled);
-    toast({
-      title: twoFactorEnabled ? "2FA Disabled" : "2FA Enabled",
-      description: twoFactorEnabled 
-        ? "Two-factor authentication has been disabled." 
-        : "Two-factor authentication has been enabled for added security.",
-    });
+    setIsUpdating(true);
+    try {
+      const { error } = await supabase.auth.updateUser({ 
+        password: newPassword 
+      });
+
+      if (error) {
+        throw error;
+      }
+
+      toast({
+        title: "Password Updated",
+        description: "Your password has been successfully updated.",
+      });
+      
+      setCurrentPassword('');
+      setNewPassword('');
+      setConfirmPassword('');
+    } catch (error: any) {
+      toast({
+        title: "Error updating password",
+        description: error.message || "Could not update password. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsUpdating(false);
+    }
   };
 
   return (
@@ -80,7 +108,7 @@ const AuthenticationSettings = () => {
                 type="password"
                 value={newPassword}
                 onChange={(e) => setNewPassword(e.target.value)}
-                placeholder="Enter new password"
+                placeholder="Enter new password (min 8 characters)"
               />
             </div>
             <div>
@@ -95,39 +123,11 @@ const AuthenticationSettings = () => {
             </div>
             <Button 
               onClick={handlePasswordChange}
-              disabled={!currentPassword || !newPassword || !confirmPassword}
+              disabled={!newPassword || !confirmPassword || isUpdating}
             >
-              Update Password
+              {isUpdating ? "Updating..." : "Update Password"}
             </Button>
           </div>
-        </div>
-
-        {/* Two-Factor Authentication */}
-        <div className="space-y-4">
-          <div className="flex items-center gap-2">
-            <Smartphone className="h-4 w-4" />
-            <h3 className="font-semibold">Two-Factor Authentication</h3>
-            <Badge variant={twoFactorEnabled ? "default" : "secondary"}>
-              {twoFactorEnabled ? "Enabled" : "Disabled"}
-            </Badge>
-          </div>
-          <p className="text-sm text-muted-foreground">
-            Add an extra layer of security to your account with two-factor authentication.
-          </p>
-          <div className="flex items-center justify-between">
-            <span className="text-sm">Enable 2FA</span>
-            <Switch
-              checked={twoFactorEnabled}
-              onCheckedChange={handleTwoFactorToggle}
-            />
-          </div>
-          {twoFactorEnabled && (
-            <div className="p-3 bg-muted rounded-lg">
-              <p className="text-sm">
-                📱 Two-factor authentication is active. You'll need your authenticator app to sign in.
-              </p>
-            </div>
-          )}
         </div>
 
         {/* Email Notifications */}
@@ -150,17 +150,31 @@ const AuthenticationSettings = () => {
           </div>
         </div>
 
-        {/* Security Status */}
-        <div className="p-3 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800">
+        {/* Account Info */}
+        <div className="p-3 bg-muted/50 rounded-lg border">
+          <div className="flex items-center gap-2 mb-2">
+            <CheckCircle className="h-4 w-4 text-green-600 dark:text-green-400" />
+            <span className="text-sm font-medium">Account Information</span>
+          </div>
+          <div className="space-y-1 text-xs text-muted-foreground">
+            <p>Email: {user?.email || 'Not available'}</p>
+            <p>Last sign in: {user?.last_sign_in_at ? new Date(user.last_sign_in_at).toLocaleString() : 'Unknown'}</p>
+          </div>
+        </div>
+
+        {/* Security Tips */}
+        <div className="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
           <div className="flex items-center gap-2">
-            <Shield className="h-4 w-4 text-green-600 dark:text-green-400" />
-            <span className="text-sm font-medium text-green-700 dark:text-green-300">
-              Account Security: Good
+            <AlertCircle className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+            <span className="text-sm font-medium text-blue-700 dark:text-blue-300">
+              Security Tips
             </span>
           </div>
-          <p className="text-xs text-green-600 dark:text-green-400 mt-1">
-            Your account has strong security settings enabled.
-          </p>
+          <ul className="text-xs text-blue-600 dark:text-blue-400 mt-1 space-y-1 list-disc list-inside">
+            <li>Use a strong, unique password</li>
+            <li>Enable 2FA for extra protection</li>
+            <li>Review active sessions regularly</li>
+          </ul>
         </div>
       </CardContent>
     </Card>
