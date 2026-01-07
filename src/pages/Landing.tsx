@@ -325,8 +325,8 @@ const Landing = () => {
         </motion.div>
       </section>
 
-      {/* Stats Section */}
-      <StatsSection />
+
+      {/* Trust Badges */}
 
       {/* Trust Badges */}
       <TrustBadges />
