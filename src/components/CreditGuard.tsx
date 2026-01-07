@@ -28,19 +28,19 @@ const CreditGuard = ({
         <CardHeader className="text-center">
           <CardTitle className="flex items-center justify-center gap-2 text-amber-800 dark:text-amber-200">
             <CreditCard className="h-5 w-5" />
-            Credits Required
+            Out of Credits
           </CardTitle>
           <CardDescription className="text-amber-700 dark:text-amber-300">
-            You need {requiredCredits} credit{requiredCredits > 1 ? 's' : ''} to use {featureName}
+            You've used all your credits
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="text-center">
-            <p className="text-sm text-amber-800 dark:text-amber-200 mb-4">
-              Available Credits: <span className="font-bold">{availableCredits}</span>
-              {dailyCreditsRemaining > 0 && (
-                <> (+ {dailyCreditsRemaining} daily free)</>
-              )}
+            <p className="text-sm text-amber-800 dark:text-amber-200 mb-2">
+              To continue using AI features like <span className="font-semibold">Chat</span> and <span className="font-semibold">Arnold AI Assistant</span>, you need to purchase credits.
+            </p>
+            <p className="text-xs text-amber-600 dark:text-amber-400 mb-4">
+              Credits are required for AI-powered analysis, chat responses, and smart insights.
             </p>
             <Button 
               onClick={() => navigate('/pricing')}
