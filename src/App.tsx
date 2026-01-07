@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -10,6 +9,7 @@ import PWAEnhancements from "@/components/PWAEnhancements";
 import { OfflineIndicator } from "@/components/mobile/OfflineIndicator";
 import { MobileSyncStatus } from "@/components/mobile/MobileSyncStatus";
 import { ErrorBoundary } from "@/components/ui/error-boundary";
+import { CookieConsentBanner } from "@/components/gdpr/CookieConsentBanner";
 import "./App.css";
 
 // Eager load only critical public pages
@@ -64,6 +64,7 @@ function App() {
         <PWAEnhancements />
         <OfflineIndicator />
         <MobileSyncStatus />
+        <CookieConsentBanner />
       <Suspense fallback={<PageLoader />}>
         <Routes>
           {/* Public routes */}

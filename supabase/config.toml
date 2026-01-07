@@ -96,3 +96,9 @@ verify_jwt = false  # Auth handled in code
 
 [functions.generate-backup-codes]
 verify_jwt = false  # Auth handled in code
+
+[functions.gdpr-data-export]
+verify_jwt = false  # Auth handled in code
+
+[functions.gdpr-data-delete]
+verify_jwt = false  # Auth handled in code
