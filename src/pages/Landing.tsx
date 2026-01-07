@@ -36,10 +36,14 @@ const Landing = () => {
   const { theme, toggleTheme } = useTheme();
   const navigate = useNavigate();
   const [showVideoTutorial, setShowVideoTutorial] = useState(false);
-  const { isEnrolled } = useBiometricAuth();
+  const { isEnrolled, isSetUp, isAvailable } = useBiometricAuth();
 
   const handleBiometricSignIn = () => {
     navigate("/auth?biometric=true");
+  };
+
+  const handleGetStarted = () => {
+    navigate("/auth");
   };
 
   const features = [
@@ -120,13 +124,12 @@ const Landing = () => {
               )}
             </Button>
             
-            {/* Biometric Sign-in CTA */}
-            {isEnrolled && (
+            {/* Biometric Sign-in CTA - Show if user has set up biometrics */}
+            {isSetUp && (
               <Button
-                variant="outline"
-                size="sm"
                 onClick={handleBiometricSignIn}
-                className="hidden sm:inline-flex items-center gap-2 hover-scale transition-all duration-200 border-primary/50 text-primary hover:bg-primary/10"
+                size="sm"
+                className="hidden sm:inline-flex items-center gap-2 hover-scale transition-all duration-200 bg-gradient-to-r from-primary to-purple-600 hover:from-primary/90 hover:to-purple-600/90"
               >
                 <Fingerprint className="h-4 w-4" />
                 Quick Sign-in
@@ -138,6 +141,17 @@ const Landing = () => {
                 Sign In
               </Button>
             </Link>
+            {/* Mobile Biometric Quick Sign-in */}
+            {isSetUp && (
+              <Button
+                onClick={handleBiometricSignIn}
+                size="icon"
+                className="sm:hidden h-9 w-9 bg-gradient-to-r from-primary to-purple-600 hover:from-primary/90 hover:to-purple-600/90"
+              >
+                <Fingerprint className="h-4 w-4" />
+              </Button>
+            )}
+            
             <Link to="/auth">
               <Button size="sm" className="hover-scale transition-all duration-200">
                 Get Started
@@ -261,6 +275,59 @@ const Landing = () => {
               </div>
             </div>
           </motion.div>
+
+          {/* Biometric Quick Access Section */}
+          {isAvailable && (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, delay: 0.6 }}
+              className="my-8"
+            >
+              <div 
+                className="backdrop-blur-xl rounded-2xl p-6 max-w-md mx-auto border cursor-pointer hover:scale-[1.02] transition-all duration-300"
+                style={{ 
+                  background: 'linear-gradient(135deg, rgba(59, 130, 246, 0.15), rgba(168, 85, 247, 0.15))',
+                  borderColor: 'rgba(59, 130, 246, 0.3)'
+                }}
+                onClick={isSetUp ? handleBiometricSignIn : handleGetStarted}
+              >
+                <div className="flex items-center justify-center gap-3 mb-3">
+                  <div className="p-3 rounded-full bg-primary/20">
+                    <Fingerprint className="h-8 w-8 text-primary" />
+                  </div>
+                </div>
+                <h3 className="text-xl font-bold mb-2">
+                  {isSetUp ? "Quick Sign-in Available" : "Enable Biometric Login"}
+                </h3>
+                <p className="text-sm text-muted-foreground mb-4">
+                  {isSetUp 
+                    ? "Use your fingerprint or face to sign in instantly"
+                    : "Set up fingerprint or face recognition for faster, more secure access"
+                  }
+                </p>
+                <Button 
+                  className="w-full bg-gradient-to-r from-primary to-purple-600 hover:from-primary/90 hover:to-purple-600/90"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    isSetUp ? handleBiometricSignIn() : handleGetStarted();
+                  }}
+                >
+                  {isSetUp ? (
+                    <>
+                      <Fingerprint className="mr-2 h-4 w-4" />
+                      Sign in with Biometrics
+                    </>
+                  ) : (
+                    <>
+                      <ArrowRight className="mr-2 h-4 w-4" />
+                      Get Started & Enable
+                    </>
+                  )}
+                </Button>
+              </div>
+            </motion.div>
+          )}
 
           <motion.div 
             initial={{ opacity: 0, y: 20 }}

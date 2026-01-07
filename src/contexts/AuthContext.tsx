@@ -52,6 +52,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         }
         
         if (event === 'SIGNED_OUT') {
+          // Clear biometric session data
+          sessionStorage.removeItem('biometric-session-active');
+          
           // Clear all data and redirect to landing page
           setTimeout(() => {
             window.location.href = '/';

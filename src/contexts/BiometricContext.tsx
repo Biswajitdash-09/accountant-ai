@@ -56,11 +56,20 @@ export const BiometricProvider = ({ children }: { children: React.ReactNode }) =
       const enabled = localStorage.getItem('biometric-auth-enabled') === 'true';
       const credentialId = localStorage.getItem('biometric-credential-id');
       
-      // Check if this is a fresh app open (page load/refresh)
-      const isAppOpen = sessionStorage.getItem('biometric-session-active') !== 'true';
+      // Check if this is a fresh page load (not just a route change)
+      // We use a combination of sessionStorage and performance.navigation
+      const isPageLoad = performance.navigation?.type === 1 || // page reload
+                         !sessionStorage.getItem('biometric-session-active');
       
-      // Always lock on fresh app open when biometrics are enabled
-      const shouldLock = enabled && credentialId && user && isAppOpen;
+      // Lock the app when:
+      // 1. Biometrics are enabled with a valid credential
+      // 2. User is authenticated
+      // 3. This is a fresh page load/refresh OR session has timed out
+      const lastUnlock = localStorage.getItem('biometric-last-unlock');
+      const sessionExpired = lastUnlock && (Date.now() - parseInt(lastUnlock) > SESSION_TIMEOUT);
+      const shouldLock = enabled && credentialId && user && (isPageLoad || sessionExpired);
+
+      console.log('Biometric check:', { available, enabled, credentialId: !!credentialId, user: !!user, isPageLoad, shouldLock });
 
       setState({
         isAvailable: available,
