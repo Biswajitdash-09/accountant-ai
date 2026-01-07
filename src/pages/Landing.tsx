@@ -403,7 +403,7 @@ const Landing = () => {
             <Link to="/terms" className="story-link">Terms of Service</Link>
             <Link to="/cookies" className="story-link">Cookie Policy</Link>
           </nav>
-          <p className="text-muted-foreground text-sm sm:text-base mt-4">© 2025 Accountant AI. All rights reserved.</p>
+          <p className="text-muted-foreground text-sm sm:text-base mt-4">© {new Date().getFullYear()} Accountant AI. All rights reserved.</p>
         </div>
       </footer>
 

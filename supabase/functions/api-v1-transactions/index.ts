@@ -3,7 +3,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-authenticated-user-id",
 };
 
 serve(async (req) => {
@@ -17,9 +17,14 @@ serve(async (req) => {
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
     );
 
+    // SECURITY: Get user_id from authenticated header (set by API gateway)
+    // Never trust user_id from query params or body directly
+    const authenticatedUserId = req.headers.get('x-authenticated-user-id');
+    
     if (req.method === 'GET') {
       const url = new URL(req.url);
-      const userId = url.searchParams.get('user_id');
+      // Use authenticated user ID from header, fall back to query param for legacy support
+      const userId = authenticatedUserId || url.searchParams.get('user_id');
       const startDate = url.searchParams.get('start_date');
       const endDate = url.searchParams.get('end_date');
       const type = url.searchParams.get('type');
@@ -28,10 +33,10 @@ serve(async (req) => {
       if (!userId) {
         return new Response(JSON.stringify({
           success: false,
-          error: "Missing required parameter: user_id",
-          code: "DATA_001"
+          error: "Missing required parameter: user_id. Ensure you're authenticated via API gateway.",
+          code: "AUTH_001"
         }), {
-          status: 400,
+          status: 401,
           headers: { ...corsHeaders, "Content-Type": "application/json" }
         });
       }
@@ -63,9 +68,12 @@ serve(async (req) => {
     }
 
     if (req.method === 'POST') {
-      const { user_id, transactions } = await req.json();
+      const body = await req.json();
+      // SECURITY: Use authenticated user ID, not from request body
+      const userId = authenticatedUserId || body.user_id;
+      const transactions = body.transactions;
 
-      if (!user_id || !transactions || !Array.isArray(transactions)) {
+      if (!userId || !transactions || !Array.isArray(transactions)) {
         return new Response(JSON.stringify({
           success: false,
           error: "Invalid request. Provide user_id and transactions array",
