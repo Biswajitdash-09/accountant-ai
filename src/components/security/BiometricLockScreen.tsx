@@ -1,6 +1,6 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Fingerprint, Shield, AlertCircle, Loader2, KeyRound } from 'lucide-react';
+import { Fingerprint, Shield, AlertCircle, Loader2, KeyRound, Smartphone } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
@@ -20,19 +20,11 @@ export const BiometricLockScreen = ({
   const { user, signOut } = useAuth();
   const [error, setError] = useState<string | null>(null);
   const [attemptCount, setAttemptCount] = useState(0);
+  const [hasTriggered, setHasTriggered] = useState(false);
 
-  // Auto-trigger biometric on mount
-  useEffect(() => {
-    const autoTrigger = async () => {
-      // Small delay to allow UI to render
-      await new Promise(resolve => setTimeout(resolve, 500));
-      handleUnlock();
-    };
+  const handleUnlock = useCallback(async () => {
+    if (isVerifying) return;
     
-    autoTrigger();
-  }, []);
-
-  const handleUnlock = async () => {
     setError(null);
     
     try {
@@ -40,20 +32,38 @@ export const BiometricLockScreen = ({
       
       if (!success) {
         setAttemptCount(prev => prev + 1);
-        setError('Authentication cancelled. Please try again.');
+        setError('Authentication cancelled. Tap below to try again.');
       }
     } catch (err: any) {
       setAttemptCount(prev => prev + 1);
       
       if (err.name === 'InvalidStateError') {
-        setError('Biometric not set up properly. Please reconfigure in settings.');
+        setError('Biometric not set up properly. Please sign out and reconfigure.');
       } else if (err.name === 'NotSupportedError') {
         setError('Biometric authentication not supported on this device.');
+      } else if (err.name === 'NotAllowedError') {
+        setError('Authentication was cancelled. Tap below to try again.');
+      } else if (err.name === 'SecurityError') {
+        setError('Security error. Please ensure you are using HTTPS.');
       } else {
         setError('Authentication failed. Please try again.');
       }
     }
-  };
+  }, [onUnlock, isVerifying]);
+
+  // Auto-trigger biometric on mount (only once)
+  useEffect(() => {
+    if (hasTriggered) return;
+    
+    const autoTrigger = async () => {
+      // Small delay to allow UI to render
+      await new Promise(resolve => setTimeout(resolve, 300));
+      setHasTriggered(true);
+      handleUnlock();
+    };
+    
+    autoTrigger();
+  }, [handleUnlock, hasTriggered]);
 
   const handleSignOut = async () => {
     await signOut();
@@ -153,22 +163,27 @@ export const BiometricLockScreen = ({
             </Button>
 
             <div className="text-center space-y-3 pt-2">
-              <p className="text-xs text-muted-foreground">
-                Use fingerprint or face recognition to access your account
-              </p>
+              <div className="flex items-center justify-center gap-2 text-xs text-muted-foreground">
+                <Smartphone className="h-3.5 w-3.5" />
+                <span>Use fingerprint or face recognition</span>
+              </div>
               
-              {attemptCount >= 3 && (
+              {attemptCount >= 2 && (
                 <motion.div
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
+                  className="space-y-2"
                 >
+                  <p className="text-xs text-muted-foreground">
+                    Having trouble? You can sign out and use password instead.
+                  </p>
                   <Button
                     variant="ghost"
                     size="sm"
                     onClick={handleSignOut}
                     className="text-muted-foreground hover:text-foreground"
                   >
-                    Sign out and use password instead
+                    Sign out
                   </Button>
                 </motion.div>
               )}
