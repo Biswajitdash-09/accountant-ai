@@ -40,7 +40,7 @@ export const BiometricProvider = ({ children }: { children: React.ReactNode }) =
   // Session timeout duration (5 minutes)
   const SESSION_TIMEOUT = 5 * 60 * 1000;
 
-  // Check biometric availability and load settings
+  // Check biometric availability and load settings - ALWAYS lock on fresh app open
   React.useEffect(() => {
     const checkAvailability = async () => {
       let available = false;
@@ -55,13 +55,12 @@ export const BiometricProvider = ({ children }: { children: React.ReactNode }) =
 
       const enabled = localStorage.getItem('biometric-auth-enabled') === 'true';
       const credentialId = localStorage.getItem('biometric-credential-id');
-      const lastUnlock = localStorage.getItem('biometric-last-unlock');
       
-      // Check if user should be locked
-      const shouldLock = enabled && credentialId && user && (
-        !lastUnlock || 
-        Date.now() - parseInt(lastUnlock) > SESSION_TIMEOUT
-      );
+      // Check if this is a fresh app open (page load/refresh)
+      const isAppOpen = sessionStorage.getItem('biometric-session-active') !== 'true';
+      
+      // Always lock on fresh app open when biometrics are enabled
+      const shouldLock = enabled && credentialId && user && isAppOpen;
 
       setState({
         isAvailable: available,
@@ -141,6 +140,8 @@ export const BiometricProvider = ({ children }: { children: React.ReactNode }) =
       });
 
       if (credential) {
+        // Mark session as active so we don't re-lock until app is closed/refreshed
+        sessionStorage.setItem('biometric-session-active', 'true');
         localStorage.setItem('biometric-last-unlock', Date.now().toString());
         setState(prev => ({ ...prev, isLocked: false }));
         return true;
