@@ -84,3 +84,15 @@ verify_jwt = true   # Require authentication for smart alerts generation
 
 [functions.voice-realtime-session]
 verify_jwt = true   # Require authentication for voice sessions
+
+[functions.enable-2fa]
+verify_jwt = false  # Auth handled in code
+
+[functions.verify-2fa]
+verify_jwt = false  # Auth handled in code
+
+[functions.disable-2fa]
+verify_jwt = false  # Auth handled in code
+
+[functions.generate-backup-codes]
+verify_jwt = false  # Auth handled in code

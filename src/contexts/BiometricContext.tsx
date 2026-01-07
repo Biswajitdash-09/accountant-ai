@@ -120,6 +120,10 @@ export const BiometricProvider = ({ children }: { children: React.ReactNode }) =
 
   const unlock = React.useCallback(async (): Promise<boolean> => {
     if (!state.credentialId || !state.isAvailable) {
+      console.log('Unlock failed: no credential or not available', { 
+        hasCredential: !!state.credentialId, 
+        isAvailable: state.isAvailable 
+      });
       return false;
     }
 
@@ -129,17 +133,27 @@ export const BiometricProvider = ({ children }: { children: React.ReactNode }) =
       const challenge = new Uint8Array(32);
       crypto.getRandomValues(challenge);
 
-      const credentialIdArray = Uint8Array.from(
-        atob(state.credentialId), 
-        c => c.charCodeAt(0)
-      );
+      let credentialIdArray: Uint8Array;
+      try {
+        credentialIdArray = Uint8Array.from(
+          atob(state.credentialId), 
+          c => c.charCodeAt(0)
+        );
+      } catch (e) {
+        console.error('Failed to decode credential ID:', e);
+        // Clear invalid credential
+        localStorage.removeItem('biometric-credential-id');
+        localStorage.removeItem('biometric-auth-enabled');
+        setState(prev => ({ ...prev, isEnabled: false, credentialId: null, isLocked: false }));
+        return false;
+      }
 
       const credential = await navigator.credentials.get({
         publicKey: {
           challenge,
           rpId: window.location.hostname,
           allowCredentials: [{
-            id: credentialIdArray,
+            id: credentialIdArray.buffer as ArrayBuffer,
             type: 'public-key',
             transports: ['internal'],
           }],
@@ -159,9 +173,29 @@ export const BiometricProvider = ({ children }: { children: React.ReactNode }) =
       return false;
     } catch (error: any) {
       console.error('Biometric unlock error:', error);
+      
+      // Handle specific error cases
       if (error.name === 'NotAllowedError') {
+        // User cancelled or denied
+        console.log('Biometric authentication was cancelled or denied');
         return false;
       }
+      
+      if (error.name === 'InvalidStateError') {
+        // Credential is invalid, clear it
+        console.log('Credential is invalid, clearing...');
+        localStorage.removeItem('biometric-credential-id');
+        localStorage.removeItem('biometric-auth-enabled');
+        setState(prev => ({ ...prev, isEnabled: false, credentialId: null, isLocked: false }));
+        return false;
+      }
+      
+      if (error.name === 'SecurityError') {
+        // Security error - might be wrong origin
+        console.error('Security error during biometric auth');
+        return false;
+      }
+      
       throw error;
     } finally {
       setIsVerifying(false);
@@ -170,7 +204,7 @@ export const BiometricProvider = ({ children }: { children: React.ReactNode }) =
 
   const enable = React.useCallback(async (userId: string, userEmail: string): Promise<boolean> => {
     if (!state.isAvailable) {
-      throw new Error('Biometric authentication not available on this device');
+      throw new Error('Biometric authentication is not available on this device. Please ensure you have a fingerprint sensor or Face ID configured in your device settings.');
     }
 
     try {
@@ -213,6 +247,7 @@ export const BiometricProvider = ({ children }: { children: React.ReactNode }) =
         localStorage.setItem('biometric-auth-enabled', 'true');
         localStorage.setItem('biometric-credential-id', credentialId);
         localStorage.setItem('biometric-last-unlock', Date.now().toString());
+        sessionStorage.setItem('biometric-session-active', 'true');
         
         setState(prev => ({
           ...prev,
@@ -225,9 +260,26 @@ export const BiometricProvider = ({ children }: { children: React.ReactNode }) =
       }
       
       return false;
-    } catch (error) {
+    } catch (error: any) {
       console.error('Biometric enable error:', error);
-      throw error;
+      
+      if (error.name === 'NotAllowedError') {
+        throw new Error('Biometric registration was cancelled. Please try again and complete the fingerprint/face scan when prompted.');
+      }
+      
+      if (error.name === 'InvalidStateError') {
+        throw new Error('A biometric credential already exists for this device. Try disabling and re-enabling biometrics.');
+      }
+      
+      if (error.name === 'NotSupportedError') {
+        throw new Error('Your browser does not support biometric authentication. Please try using a modern browser like Chrome, Safari, or Edge.');
+      }
+      
+      if (error.name === 'SecurityError') {
+        throw new Error('Biometric registration failed due to a security error. Make sure you are using a secure (HTTPS) connection.');
+      }
+      
+      throw new Error(error.message || 'Failed to enable biometric authentication. Please try again.');
     }
   }, [state.isAvailable]);
 

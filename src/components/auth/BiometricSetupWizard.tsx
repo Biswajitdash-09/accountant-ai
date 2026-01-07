@@ -23,8 +23,8 @@ const BiometricSetupWizard = ({ isOpen, onClose, onComplete }: BiometricSetupWiz
   const handleSetup = async () => {
     if (!user?.id || !user?.email) {
       toast({
-        title: "Error",
-        description: "User information not available",
+        title: "User information required",
+        description: "Please ensure you're logged in to enable biometrics.",
         variant: "destructive",
       });
       return;
@@ -40,11 +40,18 @@ const BiometricSetupWizard = ({ isOpen, onClose, onComplete }: BiometricSetupWiz
           title: "Biometric Sign-in Enabled! 🎉",
           description: "You can now use fingerprint or Face ID to sign in.",
         });
+      } else {
+        toast({
+          title: "Setup Incomplete",
+          description: "Biometric registration was not completed. Please try again.",
+          variant: "destructive",
+        });
       }
     } catch (error: any) {
+      console.error('Biometric setup error:', error);
       toast({
         title: "Setup Failed",
-        description: error.message || "Could not enable biometric authentication",
+        description: error.message || "Could not enable biometric authentication. Please ensure your device supports fingerprint or face recognition.",
         variant: "destructive",
       });
     } finally {
