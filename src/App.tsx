@@ -47,6 +47,7 @@ const APILicensing = lazy(() => import("./pages/APILicensing"));
 const DeveloperDocs = lazy(() => import("./pages/DeveloperDocs"));
 const HelpCenter = lazy(() => import("./pages/HelpCenter"));
 const WaitlistManagement = lazy(() => import("./pages/admin/WaitlistManagement"));
+const FinancialManagement = lazy(() => import("./pages/FinancialManagement"));
 
 // Loading fallback component
 const PageLoader = () => (
@@ -234,6 +235,15 @@ function App() {
             <ProtectedRoute>
               <Layout>
                 <HelpCenter />
+              </Layout>
+            </ProtectedRoute>
+          } />
+          
+          {/* Financial Management Route */}
+          <Route path="/financial-management" element={
+            <ProtectedRoute>
+              <Layout>
+                <FinancialManagement />
               </Layout>
             </ProtectedRoute>
           } />
