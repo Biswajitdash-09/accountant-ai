@@ -164,7 +164,7 @@ const Landing = () => {
       {/* Legal Disclaimer */}
       <section className="py-6 px-4 sm:px-6 bg-yellow-50 dark:bg-yellow-900/20 border-l-4 border-yellow-400">
         <div className="max-w-7xl mx-auto">
-          <div className="flex items-center gap-3">
+          <div className="flex flex-col items-center justify-center gap-3 text-center">
             <Shield className="h-6 w-6 text-yellow-600 dark:text-yellow-400 flex-shrink-0" />
             <div className="space-y-1">
               <h3 className="font-semibold text-yellow-800 dark:text-yellow-300">Important Disclaimer</h3>
