@@ -8,7 +8,6 @@ import ProtectedRoute from "@/components/ProtectedRoute";
 import Layout from "@/components/Layout";
 import PWAEnhancements from "@/components/PWAEnhancements";
 import { OfflineIndicator } from "@/components/mobile/OfflineIndicator";
-import { MobileQuickActions } from "@/components/mobile/MobileQuickActions";
 import { MobileSyncStatus } from "@/components/mobile/MobileSyncStatus";
 import { ErrorBoundary } from "@/components/ui/error-boundary";
 import "./App.css";
@@ -64,7 +63,6 @@ function App() {
         <Sonner />
         <PWAEnhancements />
         <OfflineIndicator />
-        <MobileQuickActions />
         <MobileSyncStatus />
       <Suspense fallback={<PageLoader />}>
         <Routes>
