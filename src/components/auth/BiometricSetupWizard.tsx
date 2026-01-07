@@ -91,7 +91,7 @@ const BiometricSetupWizard = ({ isOpen, onClose, onComplete }: BiometricSetupWiz
                 </div>
                 <DialogTitle className="text-2xl">Enable Quick Sign-in</DialogTitle>
                 <DialogDescription className="text-base mt-2">
-                  Use your fingerprint or Face ID for faster, more secure access to your account.
+                  Skip passwords! Use your fingerprint or Face ID for instant, secure access every time you open the app.
                 </DialogDescription>
               </DialogHeader>
 

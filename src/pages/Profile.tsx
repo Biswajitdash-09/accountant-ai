@@ -14,7 +14,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useAuth } from "@/contexts/AuthContext";
 import { useUserPreferences } from "@/hooks/useUserPreferences";
 import { useSecurityAuditLogs } from "@/hooks/useSecurityAuditLogs";
-import { User, Settings, Shield, LogOut, Clock, Calendar, Bell, ExternalLink, Download, Share, Plus, Smartphone, Check } from "lucide-react";
+import { User, Settings, Shield, LogOut, Clock, Calendar, Bell, ExternalLink, Download, Share, Plus, Smartphone, Check, Fingerprint } from "lucide-react";
+import { BiometricAuth } from "@/components/security/BiometricAuth";
 import { formatDistanceToNow } from "date-fns";
 import { HMRCSettings } from "@/components/hmrc/HMRCSettings";
 import { useHMRCConnection } from "@/hooks/useHMRCConnection";
@@ -311,6 +312,9 @@ const Profile = () => {
         </TabsContent>
 
         <TabsContent value="security" className="space-y-4">
+          {/* Biometric Authentication */}
+          <BiometricAuth />
+
           {/* Authentication Settings */}
           <AuthenticationSettings />
 

@@ -178,18 +178,30 @@ const Auth = () => {
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                {/* Biometric Quick Sign-in Button */}
-                {isEnabled && (
+                {/* Biometric Sign-in - Show if available */}
+                {isAvailable && (
                   <>
-                    <Button
-                      onClick={handleBiometricLogin}
-                      variant="outline"
-                      className="w-full h-12 border-primary/50 hover:bg-primary/10"
-                      disabled={isLoading}
-                    >
-                      <Fingerprint className="mr-2 h-5 w-5 text-primary" />
-                      Sign in with Biometrics
-                    </Button>
+                    {isEnabled ? (
+                      <Button
+                        onClick={handleBiometricLogin}
+                        variant="outline"
+                        className="w-full h-12 border-primary/50 hover:bg-primary/10"
+                        disabled={isLoading}
+                      >
+                        <Fingerprint className="mr-2 h-5 w-5 text-primary" />
+                        Sign in with Biometrics
+                      </Button>
+                    ) : (
+                      <Button
+                        onClick={() => setShowBiometricSetup(true)}
+                        variant="ghost"
+                        className="w-full h-10 text-muted-foreground hover:text-primary hover:bg-primary/5"
+                        disabled={isLoading}
+                      >
+                        <Fingerprint className="mr-2 h-4 w-4" />
+                        Set up Fingerprint / Face ID
+                      </Button>
+                    )}
                     
                     <div className="relative">
                       <div className="absolute inset-0 flex items-center">
@@ -197,7 +209,7 @@ const Auth = () => {
                       </div>
                       <div className="relative flex justify-center text-xs uppercase">
                         <span className="bg-background px-2 text-muted-foreground">
-                          or use other methods
+                          {isEnabled ? 'or use other methods' : 'or sign in with'}
                         </span>
                       </div>
                     </div>
@@ -239,6 +251,17 @@ const Auth = () => {
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
+                {/* Biometric setup prompt for new users */}
+                {isAvailable && (
+                  <div className="flex items-center gap-3 p-3 rounded-lg bg-primary/5 border border-primary/20">
+                    <Fingerprint className="h-5 w-5 text-primary flex-shrink-0" />
+                    <div className="flex-1">
+                      <p className="text-sm font-medium">Quick Sign-in Available</p>
+                      <p className="text-xs text-muted-foreground">Set up fingerprint or Face ID after creating your account</p>
+                    </div>
+                  </div>
+                )}
+
                 <OAuthProviders
                   isLoading={isLoading}
                   setIsLoading={setIsLoading}
@@ -259,7 +282,7 @@ const Auth = () => {
                   type="signup"
                   isLoading={isLoading}
                   setIsLoading={setIsLoading}
-                  onSuccess={handleAuthSuccess}
+                  onSuccess={() => handleAuthSuccess(true)}
                   onSwitchMode={() => setActiveTab("login")}
                 />
               </CardContent>
