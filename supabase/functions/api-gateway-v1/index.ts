@@ -184,10 +184,13 @@ serve(async (req) => {
 
     const body = req.method !== 'GET' ? await req.json() : {};
     
+    // SECURITY: Inject authenticated user ID into headers, not body
+    // This prevents clients from spoofing user_id in the request
     const response = await supabase.functions.invoke(functionName, {
       body: { ...body, user_id: key.user_id },
       headers: {
-        Authorization: `Bearer ${Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")}`
+        'Authorization': `Bearer ${Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")}`,
+        'x-authenticated-user-id': key.user_id
       }
     });
 

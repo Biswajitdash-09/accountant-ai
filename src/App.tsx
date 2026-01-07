@@ -10,6 +10,7 @@ import PWAEnhancements from "@/components/PWAEnhancements";
 import { OfflineIndicator } from "@/components/mobile/OfflineIndicator";
 import { MobileQuickActions } from "@/components/mobile/MobileQuickActions";
 import { MobileSyncStatus } from "@/components/mobile/MobileSyncStatus";
+import { ErrorBoundary } from "@/components/ui/error-boundary";
 import "./App.css";
 
 // Eager load only critical public pages
@@ -56,13 +57,14 @@ const PageLoader = () => (
 
 function App() {
   return (
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <PWAEnhancements />
-      <OfflineIndicator />
-      <MobileQuickActions />
-      <MobileSyncStatus />
+    <ErrorBoundary>
+      <TooltipProvider>
+        <Toaster />
+        <Sonner />
+        <PWAEnhancements />
+        <OfflineIndicator />
+        <MobileQuickActions />
+        <MobileSyncStatus />
       <Suspense fallback={<PageLoader />}>
         <Routes>
           {/* Public routes */}
@@ -252,7 +254,8 @@ function App() {
           <Route path="*" element={<NotFound />} />
         </Routes>
       </Suspense>
-    </TooltipProvider>
+      </TooltipProvider>
+    </ErrorBoundary>
   );
 }
 

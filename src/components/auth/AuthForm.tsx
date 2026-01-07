@@ -6,8 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { Loader2, User } from "lucide-react";
-import SavedCredentialsManager from "./SavedCredentialsManager";
+import { Loader2 } from "lucide-react";
 
 interface AuthFormProps {
   type: "login" | "signup";
@@ -153,19 +152,6 @@ const AuthForm = ({ type, isLoading, setIsLoading, onSuccess, onSwitchMode }: Au
 
   return (
     <div className="space-y-4">
-      {type === "login" && (
-        <SavedCredentialsManager
-          onCredentialSelect={(selectedEmail, selectedPassword) => {
-            setEmail(selectedEmail);
-            setPassword(selectedPassword);
-            setKeepLoggedIn(true);
-          }}
-          onAddCredential={(newEmail, newPassword, nickname) => {
-            // Credentials are already saved in SavedCredentialsManager
-          }}
-        />
-      )}
-      
       <form onSubmit={handleSubmit} className="space-y-4">
         {type === "signup" && (
           <div className="space-y-2">
