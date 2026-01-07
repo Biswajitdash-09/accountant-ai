@@ -28,12 +28,19 @@ import {
   Zap,
   ArrowRight,
   Rocket,
+  Fingerprint,
 } from "lucide-react";
+import { useBiometricAuth } from "@/hooks/useBiometricAuth";
 
 const Landing = () => {
   const { theme, toggleTheme } = useTheme();
   const navigate = useNavigate();
   const [showVideoTutorial, setShowVideoTutorial] = useState(false);
+  const { isEnrolled } = useBiometricAuth();
+
+  const handleBiometricSignIn = () => {
+    navigate("/auth?biometric=true");
+  };
 
   const features = [
     {
@@ -112,6 +119,20 @@ const Landing = () => {
                 <Moon className="h-4 w-4" />
               )}
             </Button>
+            
+            {/* Biometric Sign-in CTA */}
+            {isEnrolled && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleBiometricSignIn}
+                className="hidden sm:inline-flex items-center gap-2 hover-scale transition-all duration-200 border-primary/50 text-primary hover:bg-primary/10"
+              >
+                <Fingerprint className="h-4 w-4" />
+                Quick Sign-in
+              </Button>
+            )}
+            
             <Link to="/auth" className="hidden sm:inline-block">
               <Button variant="outline" size="sm" className="hover-scale transition-all duration-200">
                 Sign In

@@ -11,11 +11,13 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { Bot, Moon, Sun } from "lucide-react";
+import { Bot, Moon, Sun, Fingerprint } from "lucide-react";
 import { useTheme } from "@/hooks/useTheme";
 import AuthForm from "@/components/auth/AuthForm";
 import OAuthProviders from "@/components/auth/OAuthProviders";
 import { useAuth } from "@/contexts/AuthContext";
+import { useBiometric } from "@/contexts/BiometricContext";
+import BiometricSetupWizard from "@/components/auth/BiometricSetupWizard";
 
 const Auth = () => {
   const navigate = useNavigate();
@@ -23,10 +25,22 @@ const Auth = () => {
   const { toast } = useToast();
   const { theme, toggleTheme } = useTheme();
   const { user, loading } = useAuth();
+  const { isEnabled, isAvailable, unlock } = useBiometric();
   const [isLoading, setIsLoading] = useState(false);
   const [activeTab, setActiveTab] = useState<"login" | "signup">("login");
+  const [showBiometricSetup, setShowBiometricSetup] = useState(false);
+  const [biometricMode, setBiometricMode] = useState(false);
+  const [isNewUserLogin, setIsNewUserLogin] = useState(false);
   
   useEffect(() => {
+    // Check for biometric mode parameter
+    const params = new URLSearchParams(location.search);
+    if (params.get("biometric") === "true" && isEnabled) {
+      setBiometricMode(true);
+      // Auto-trigger biometric auth
+      handleBiometricLogin();
+    }
+    
     // Redirect authenticated users to dashboard
     if (!loading && user) {
       console.log('User already authenticated, redirecting to dashboard');
@@ -35,17 +49,38 @@ const Auth = () => {
     }
 
     // Check for signup parameter in URL
-    const params = new URLSearchParams(location.search);
     if (params.get("signup") === "true") {
       setActiveTab("signup");
     }
-  }, [user, loading, location.search, navigate]);
+  }, [user, loading, location.search, navigate, isEnabled]);
+
+  const handleBiometricLogin = async () => {
+    try {
+      const success = await unlock();
+      if (success) {
+        toast({
+          title: "Biometric verified",
+          description: "Signing you in...",
+        });
+        navigate("/dashboard");
+      }
+    } catch (error) {
+      console.error('Biometric login failed:', error);
+      setBiometricMode(false);
+    }
+  };
 
   const handleAuthSuccess = async (isNewUser = false) => {
     console.log('Auth success, isNewUser:', isNewUser);
     
-    // For new signups, redirect to onboarding
+    // For new signups, check if we should show biometric setup
     if (isNewUser) {
+      setIsNewUserLogin(true);
+      const hasSeenSetup = localStorage.getItem('biometric-setup-shown');
+      if (isAvailable && !hasSeenSetup) {
+        setShowBiometricSetup(true);
+        return;
+      }
       console.log('New user detected, redirecting to onboarding');
       navigate("/onboarding");
       return;
@@ -60,14 +95,35 @@ const Auth = () => {
         .single();
       
       if (!profile?.onboarding_completed) {
+        // Show biometric setup for users who haven't seen it
+        const hasSeenSetup = localStorage.getItem('biometric-setup-shown');
+        if (isAvailable && !hasSeenSetup && !isEnabled) {
+          setShowBiometricSetup(true);
+          return;
+        }
         console.log('User has not completed onboarding, redirecting');
         navigate("/onboarding");
         return;
       }
     }
     
+    // Show biometric setup for existing users who haven't enabled it
+    const hasSeenSetup = localStorage.getItem('biometric-setup-shown');
+    if (isAvailable && !hasSeenSetup && !isEnabled) {
+      setShowBiometricSetup(true);
+      return;
+    }
+    
     console.log('Existing user with completed onboarding, navigating to dashboard');
     navigate("/dashboard");
+  };
+
+  const handleBiometricSetupComplete = () => {
+    if (isNewUserLogin) {
+      navigate("/onboarding");
+    } else {
+      navigate("/dashboard");
+    }
   };
 
   // Show loading while checking auth state
@@ -122,6 +178,32 @@ const Auth = () => {
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
+                {/* Biometric Quick Sign-in Button */}
+                {isEnabled && (
+                  <>
+                    <Button
+                      onClick={handleBiometricLogin}
+                      variant="outline"
+                      className="w-full h-12 border-primary/50 hover:bg-primary/10"
+                      disabled={isLoading}
+                    >
+                      <Fingerprint className="mr-2 h-5 w-5 text-primary" />
+                      Sign in with Biometrics
+                    </Button>
+                    
+                    <div className="relative">
+                      <div className="absolute inset-0 flex items-center">
+                        <div className="w-full border-t border-muted-foreground/20"></div>
+                      </div>
+                      <div className="relative flex justify-center text-xs uppercase">
+                        <span className="bg-background px-2 text-muted-foreground">
+                          or use other methods
+                        </span>
+                      </div>
+                    </div>
+                  </>
+                )}
+
                 <OAuthProviders
                   isLoading={isLoading}
                   setIsLoading={setIsLoading}
@@ -185,6 +267,16 @@ const Auth = () => {
           </TabsContent>
         </Tabs>
       </div>
+
+      {/* Biometric Setup Wizard */}
+      <BiometricSetupWizard
+        isOpen={showBiometricSetup}
+        onClose={() => {
+          setShowBiometricSetup(false);
+          handleBiometricSetupComplete();
+        }}
+        onComplete={handleBiometricSetupComplete}
+      />
     </div>
   );
 };
