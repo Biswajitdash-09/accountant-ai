@@ -27,7 +27,7 @@ export const useAuthProfile = () => {
           return;
         }
 
-        // If profile doesn't exist, create it
+        // If profile doesn't exist, create it with onboarding already completed
         if (!existingProfile) {
           console.log('Creating new profile for user');
           
@@ -39,6 +39,8 @@ export const useAuthProfile = () => {
                 full_name: user.user_metadata?.full_name || user.user_metadata?.name || '',
                 email: user.email,
                 avatar_url: user.user_metadata?.avatar_url || user.user_metadata?.picture,
+                onboarding_completed: true,
+                onboarding_step: 6,
               }
             ]);
 
