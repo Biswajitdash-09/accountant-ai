@@ -1,5 +1,5 @@
 
-import { Bell, User, Sun, Moon, CreditCard, Check, Trash2, AlertCircle, TrendingUp, DollarSign } from "lucide-react";
+import { Bell, User, Sun, Moon, CreditCard, Check, Trash2, AlertCircle, TrendingUp, DollarSign, Lock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -11,6 +11,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/contexts/AuthContext";
+import { useBiometric } from "@/contexts/BiometricContext";
 import { useTheme } from "@/hooks/useTheme";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import CurrencySelector from "./CurrencySelector";
@@ -29,6 +30,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useRealtimeNotifications } from "@/hooks/useRealtimeNotifications";
 import { useArnoldNotifications } from "@/hooks/useArnoldNotifications";
 import { formatDistanceToNow } from "date-fns";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 interface HeaderProps {
   onMobileMenuToggle: () => void;
@@ -37,6 +39,7 @@ interface HeaderProps {
 
 const Header = ({ onMobileMenuToggle, onSearchToggle }: HeaderProps) => {
   const { signOut } = useAuth();
+  const { isEnabled: biometricEnabled, lock: lockApp } = useBiometric();
   const { theme, toggleTheme } = useTheme();
   const isMobile = useIsMobile();
   const location = useLocation();
@@ -340,6 +343,28 @@ const Header = ({ onMobileMenuToggle, onSearchToggle }: HeaderProps) => {
           <div className="hidden sm:flex">
             <CurrencySelector />
           </div>
+          
+          {/* Biometric Lock Button - Only show if enabled */}
+          {biometricEnabled && (
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button 
+                    variant="ghost" 
+                    size="icon" 
+                    onClick={lockApp}
+                    className="btn-enhanced mobile-touch h-9 w-9"
+                    aria-label="Lock app"
+                  >
+                    <Lock className="h-4 w-4" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Lock App</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          )}
           
           {/* Theme toggle */}
           <Button 

@@ -4,6 +4,7 @@ import { Shield, Lock, Eye, Key, UserCheck, AlertTriangle } from "lucide-react";
 import { motion } from "framer-motion";
 import AuthenticationSettings from "@/components/AuthenticationSettings";
 import SessionManagement from "@/components/SessionManagement";
+import { BiometricAuth } from "@/components/security/BiometricAuth";
 
 const Security = () => {
   return (
@@ -22,6 +23,15 @@ const Security = () => {
           Manage your account security, authentication settings, and privacy preferences. 
           Keep your financial data safe and secure.
         </p>
+      </motion.div>
+
+      {/* Biometric Security - Featured */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.05 }}
+      >
+        <BiometricAuth />
       </motion.div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
