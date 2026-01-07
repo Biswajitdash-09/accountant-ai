@@ -51,13 +51,13 @@ export const BiometricLockScreen = ({
     }
   }, [onUnlock, isVerifying]);
 
-  // Auto-trigger biometric on mount (only once)
+  // Auto-trigger biometric on mount (only once) - faster for better UX
   useEffect(() => {
     if (hasTriggered) return;
     
     const autoTrigger = async () => {
-      // Small delay to allow UI to render
-      await new Promise(resolve => setTimeout(resolve, 300));
+      // Minimal delay for smooth UI
+      await new Promise(resolve => setTimeout(resolve, 100));
       setHasTriggered(true);
       handleUnlock();
     };
