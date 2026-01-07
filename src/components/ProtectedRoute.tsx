@@ -1,8 +1,10 @@
 import { useEffect, useState } from "react";
 import { Navigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
+import { useBiometric } from "@/contexts/BiometricContext";
 import { supabase } from "@/integrations/supabase/client";
 import { Loader2 } from "lucide-react";
+import { BiometricLockScreen } from "@/components/security/BiometricLockScreen";
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -10,13 +12,14 @@ interface ProtectedRouteProps {
 
 const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
   const { user, loading } = useAuth();
+  const { isLocked, isEnabled, isVerifying, unlock } = useBiometric();
   const location = useLocation();
   const [checkingOnboarding, setCheckingOnboarding] = useState(true);
   const [needsOnboarding, setNeedsOnboarding] = useState(false);
 
   useEffect(() => {
-    console.log('Protected route check - User authenticated:', !!user);
-  }, [user]);
+    console.log('Protected route check - User authenticated:', !!user, 'Biometric locked:', isLocked);
+  }, [user, isLocked]);
 
   useEffect(() => {
     const checkOnboardingStatus = async () => {
@@ -78,6 +81,16 @@ const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
 
   // Allow access if user is authenticated
   if (user) {
+    // Show biometric lock screen if enabled and locked
+    if (isEnabled && isLocked) {
+      return (
+        <BiometricLockScreen
+          onUnlock={unlock}
+          isVerifying={isVerifying}
+        />
+      );
+    }
+    
     console.log('Access granted - authenticated user');
     return <>{children}</>;
   }

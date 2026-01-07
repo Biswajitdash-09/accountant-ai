@@ -1,84 +1,55 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Fingerprint, Smartphone, CheckCircle2, XCircle } from 'lucide-react';
+import { Fingerprint, Smartphone, CheckCircle2, XCircle, Lock, Loader2, Shield } from 'lucide-react';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/components/ui/use-toast';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { useBiometric } from '@/contexts/BiometricContext';
+import { useAuth } from '@/contexts/AuthContext';
 
 export const BiometricAuth = () => {
-  const [isAvailable, setIsAvailable] = useState(false);
-  const [isEnabled, setIsEnabled] = useState(false);
+  const { isAvailable, isEnabled, enable, disable, lock, isVerifying, unlock } = useBiometric();
+  const { user } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
   const isMobile = useIsMobile();
 
-  useEffect(() => {
-    checkBiometricAvailability();
-    loadBiometricPreference();
-  }, []);
-
-  const checkBiometricAvailability = async () => {
-    // Check if Web Authentication API is available
-    if (window.PublicKeyCredential) {
-      const available = await PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable();
-      setIsAvailable(available);
-    } else {
-      setIsAvailable(false);
+  const handleEnableBiometric = async () => {
+    if (!user?.id || !user?.email) {
+      toast({
+        title: "Error",
+        description: "You must be logged in to enable biometric authentication.",
+        variant: "destructive",
+      });
+      return;
     }
-  };
 
-  const loadBiometricPreference = () => {
-    const enabled = localStorage.getItem('biometric-auth-enabled') === 'true';
-    setIsEnabled(enabled);
-  };
-
-  const registerBiometric = async () => {
     setIsLoading(true);
     try {
-      // Create credential for biometric authentication
-      const credential = await navigator.credentials.create({
-        publicKey: {
-          challenge: new Uint8Array(32),
-          rp: {
-            name: "Accountant AI",
-            id: window.location.hostname,
-          },
-          user: {
-            id: new Uint8Array(16),
-            name: "user@example.com",
-            displayName: "User",
-          },
-          pubKeyCredParams: [
-            { alg: -7, type: "public-key" },
-            { alg: -257, type: "public-key" }
-          ],
-          authenticatorSelection: {
-            authenticatorAttachment: "platform",
-            userVerification: "required",
-          },
-          timeout: 60000,
-          attestation: "none",
-        },
-      });
-
-      if (credential) {
-        localStorage.setItem('biometric-auth-enabled', 'true');
-        localStorage.setItem('biometric-credential-id', (credential as any).id);
-        setIsEnabled(true);
-        
+      const success = await enable(user.id, user.email);
+      
+      if (success) {
         toast({
           title: "Biometric Auth Enabled",
-          description: "You can now use fingerprint or face recognition to sign in.",
+          description: "Your fingerprint or face recognition is now set up for secure sign-in.",
         });
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Biometric registration error:', error);
+      
+      let message = "Could not register biometric authentication. Please try again.";
+      if (error.name === 'NotAllowedError') {
+        message = "Biometric authentication was cancelled or denied.";
+      } else if (error.name === 'InvalidStateError') {
+        message = "A biometric credential already exists. Please disable and re-enable.";
+      }
+      
       toast({
         title: "Registration Failed",
-        description: "Could not register biometric authentication. Please try again.",
+        description: message,
         variant: "destructive",
       });
     } finally {
@@ -86,42 +57,29 @@ export const BiometricAuth = () => {
     }
   };
 
-  const disableBiometric = () => {
-    localStorage.removeItem('biometric-auth-enabled');
-    localStorage.removeItem('biometric-credential-id');
-    setIsEnabled(false);
-    
+  const handleDisableBiometric = () => {
+    disable();
     toast({
       title: "Biometric Auth Disabled",
       description: "Biometric authentication has been turned off.",
     });
   };
 
-  const testBiometric = async () => {
+  const handleTestBiometric = async () => {
     setIsLoading(true);
     try {
-      const credentialId = localStorage.getItem('biometric-credential-id');
-      if (!credentialId) {
-        throw new Error('No credential found');
-      }
-
-      const credential = await navigator.credentials.get({
-        publicKey: {
-          challenge: new Uint8Array(32),
-          rpId: window.location.hostname,
-          allowCredentials: [{
-            id: Uint8Array.from(atob(credentialId), c => c.charCodeAt(0)),
-            type: 'public-key',
-          }],
-          userVerification: "required",
-          timeout: 60000,
-        },
-      });
-
-      if (credential) {
+      const success = await unlock();
+      
+      if (success) {
         toast({
           title: "Authentication Successful",
           description: "Biometric verification completed successfully.",
+        });
+      } else {
+        toast({
+          title: "Verification Cancelled",
+          description: "Biometric verification was cancelled.",
+          variant: "destructive",
         });
       }
     } catch (error) {
@@ -136,23 +94,35 @@ export const BiometricAuth = () => {
     }
   };
 
+  const handleLockApp = () => {
+    lock();
+    toast({
+      title: "App Locked",
+      description: "The app has been locked. Use biometrics to unlock.",
+    });
+  };
+
   return (
     <Card>
       <CardHeader>
         <div className="flex items-center gap-2">
-          <Fingerprint className="h-5 w-5 text-primary" />
-          <CardTitle>Biometric Authentication</CardTitle>
+          <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
+            <Fingerprint className="h-5 w-5 text-primary" />
+          </div>
+          <div>
+            <CardTitle className="text-lg">Biometric Security</CardTitle>
+            <CardDescription>
+              Protect your app with fingerprint or face recognition
+            </CardDescription>
+          </div>
         </div>
-        <CardDescription>
-          Use fingerprint or face recognition for quick sign-in
-        </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
         {!isAvailable ? (
           <Alert>
             <XCircle className="h-4 w-4" />
             <AlertDescription>
-              Biometric authentication is not available on this device. Make sure your device has fingerprint or face recognition capabilities.
+              Biometric authentication is not available on this device. Make sure your device has fingerprint or face recognition capabilities and that you're using a supported browser.
             </AlertDescription>
           </Alert>
         ) : (
@@ -161,27 +131,28 @@ export const BiometricAuth = () => {
               <Alert>
                 <Smartphone className="h-4 w-4" />
                 <AlertDescription>
-                  Biometric authentication works best on mobile devices with fingerprint or face recognition.
+                  Biometric authentication works best on mobile devices with fingerprint or face recognition hardware.
                 </AlertDescription>
               </Alert>
             )}
 
-            {isEnabled ? (
-              <Alert>
+            {isEnabled && (
+              <Alert className="border-green-500/50 bg-green-500/10">
                 <CheckCircle2 className="h-4 w-4 text-green-500" />
-                <AlertDescription className="text-green-500">
-                  Biometric authentication is enabled for your account.
+                <AlertDescription className="text-green-600 dark:text-green-400">
+                  Biometric security is active. Your app will require verification after 5 minutes of inactivity or when returning to the app.
                 </AlertDescription>
               </Alert>
-            ) : null}
+            )}
 
-            <div className="flex items-center justify-between p-4 border rounded-lg">
+            <div className="flex items-center justify-between p-4 border rounded-lg bg-muted/30">
               <div className="space-y-0.5">
-                <Label htmlFor="biometric-toggle" className="font-medium">
-                  Enable Biometric Sign-In
+                <Label htmlFor="biometric-toggle" className="font-medium flex items-center gap-2">
+                  <Shield className="h-4 w-4 text-primary" />
+                  Enable Biometric Lock
                 </Label>
                 <p className="text-sm text-muted-foreground">
-                  Use your device's biometric features to sign in quickly
+                  Require biometric verification to access your account
                 </p>
               </div>
               <Switch
@@ -189,31 +160,48 @@ export const BiometricAuth = () => {
                 checked={isEnabled}
                 onCheckedChange={(checked) => {
                   if (checked) {
-                    registerBiometric();
+                    handleEnableBiometric();
                   } else {
-                    disableBiometric();
+                    handleDisableBiometric();
                   }
                 }}
-                disabled={isLoading}
+                disabled={isLoading || isVerifying}
               />
             </div>
 
             {isEnabled && (
-              <Button
-                variant="outline"
-                onClick={testBiometric}
-                disabled={isLoading}
-                className="w-full"
-              >
-                <Fingerprint className="h-4 w-4 mr-2" />
-                Test Biometric Authentication
-              </Button>
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  onClick={handleTestBiometric}
+                  disabled={isLoading || isVerifying}
+                  className="flex-1"
+                >
+                  {isLoading || isVerifying ? (
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  ) : (
+                    <Fingerprint className="h-4 w-4 mr-2" />
+                  )}
+                  Test Biometrics
+                </Button>
+                <Button
+                  variant="secondary"
+                  onClick={handleLockApp}
+                  disabled={isLoading || isVerifying}
+                  className="flex-1"
+                >
+                  <Lock className="h-4 w-4 mr-2" />
+                  Lock App Now
+                </Button>
+              </div>
             )}
 
-            <div className="text-xs text-muted-foreground space-y-1">
+            <div className="text-xs text-muted-foreground space-y-1 pt-2 border-t">
+              <p className="font-medium mb-2">How it works:</p>
+              <p>• App locks automatically after 5 minutes of inactivity</p>
+              <p>• App locks when you switch away and return</p>
               <p>• Your biometric data never leaves your device</p>
               <p>• Compatible with Touch ID, Face ID, and fingerprint sensors</p>
-              <p>• Requires device with biometric capabilities</p>
             </div>
           </>
         )}

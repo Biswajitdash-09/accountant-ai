@@ -23,6 +23,7 @@ async function bootstrap() {
       { ThemeProvider },
       { AuthProvider },
       { CurrencyProvider },
+      { BiometricProvider },
       { default: App },
       { Toaster },
     ] = await Promise.all([
@@ -32,6 +33,7 @@ async function bootstrap() {
       import("@/hooks/useTheme"),
       import("@/contexts/AuthContext"),
       import("@/contexts/CurrencyContext"),
+      import("@/contexts/BiometricContext"),
       import("./App"),
       import("sonner"),
     ]);
@@ -54,10 +56,12 @@ async function bootstrap() {
             <BrowserRouter>
               <ThemeProvider defaultTheme="dark" storageKey="accountant-ai-theme">
                 <AuthProvider>
-                  <CurrencyProvider>
-                    <App />
-                    <Toaster position="top-center" richColors />
-                  </CurrencyProvider>
+                  <BiometricProvider>
+                    <CurrencyProvider>
+                      <App />
+                      <Toaster position="top-center" richColors />
+                    </CurrencyProvider>
+                  </BiometricProvider>
                 </AuthProvider>
               </ThemeProvider>
             </BrowserRouter>
