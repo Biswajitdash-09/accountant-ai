@@ -1,26 +1,82 @@
 import * as React from 'react';
 import { useAuth } from '@/contexts/AuthContext';
+import { 
+  detectPlatform, 
+  getBiometricCapabilities, 
+  checkWebAuthnSupport,
+  type PlatformInfo,
+  type BiometricCapabilities
+} from '@/utils/platformDetection';
+
+interface BiometricDiagnosis {
+  isSecureContext: boolean;
+  webAuthnSupported: boolean;
+  platformAuthenticatorAvailable: boolean;
+  platform: PlatformInfo;
+  capabilities: BiometricCapabilities;
+  errorMessage: string | null;
+}
 
 interface BiometricContextProps {
   isLocked: boolean;
   isAvailable: boolean;
   isEnabled: boolean;
   isVerifying: boolean;
+  // Device-specific capabilities
+  platform: PlatformInfo;
+  capabilities: BiometricCapabilities;
+  // Diagnostic info
+  diagnosis: BiometricDiagnosis | null;
+  // Actions
   unlock: () => Promise<boolean>;
   enable: (userId: string, userEmail: string) => Promise<boolean>;
   disable: () => void;
   lock: () => void;
+  diagnose: () => Promise<BiometricDiagnosis>;
 }
+
+const defaultPlatform: PlatformInfo = {
+  isMobile: false,
+  isTablet: false,
+  isDesktop: true,
+  os: 'Unknown',
+  browser: 'Unknown',
+  supportsTouchId: false,
+  supportsFaceId: false,
+  supportsWindowsHello: false,
+  isSecureContext: false,
+};
+
+const defaultCapabilities: BiometricCapabilities = {
+  isMobile: false,
+  hasFingerprint: false,
+  hasFaceId: false,
+  platformName: 'Unknown',
+  biometricLabel: 'Biometric Authentication',
+  biometricIcon: 'fingerprint',
+  setupInstructions: 'Configure biometric authentication in your device settings',
+};
 
 const BiometricContext = React.createContext<BiometricContextProps>({
   isLocked: false,
   isAvailable: false,
   isEnabled: false,
   isVerifying: false,
+  platform: defaultPlatform,
+  capabilities: defaultCapabilities,
+  diagnosis: null,
   unlock: async () => false,
   enable: async () => false,
   disable: () => {},
   lock: () => {},
+  diagnose: async () => ({
+    isSecureContext: false,
+    webAuthnSupported: false,
+    platformAuthenticatorAvailable: false,
+    platform: defaultPlatform,
+    capabilities: defaultCapabilities,
+    errorMessage: null,
+  }),
 });
 
 export const useBiometric = () => {
@@ -36,46 +92,70 @@ export const BiometricProvider = ({ children }: { children: React.ReactNode }) =
     credentialId: null as string | null,
   });
   const [isVerifying, setIsVerifying] = React.useState(false);
+  const [platform, setPlatform] = React.useState<PlatformInfo>(defaultPlatform);
+  const [capabilities, setCapabilities] = React.useState<BiometricCapabilities>(defaultCapabilities);
+  const [diagnosis, setDiagnosis] = React.useState<BiometricDiagnosis | null>(null);
 
   // Session timeout duration (5 minutes)
   const SESSION_TIMEOUT = 5 * 60 * 1000;
 
-  // Check biometric availability and load settings - ALWAYS lock on fresh app open
+  // Check biometric availability and load settings
   React.useEffect(() => {
     const checkAvailability = async () => {
+      // Detect platform and capabilities
+      const detectedPlatform = detectPlatform();
+      const detectedCapabilities = getBiometricCapabilities();
+      
+      setPlatform(detectedPlatform);
+      setCapabilities(detectedCapabilities);
+      
       let available = false;
       
-      if (window.PublicKeyCredential) {
-        try {
-          available = await PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable();
-        } catch (error) {
-          console.error('Error checking biometric availability:', error);
-        }
+      // Check WebAuthn support
+      const webAuthnCheck = await checkWebAuthnSupport();
+      
+      if (webAuthnCheck.isSupported && webAuthnCheck.isPlatformAuthenticatorAvailable) {
+        available = true;
       }
 
       const enabled = localStorage.getItem('biometric-auth-enabled') === 'true';
       const credentialId = localStorage.getItem('biometric-credential-id');
       
-      // Check if this is a fresh page load (not just a route change)
-      // We use a combination of sessionStorage and performance.navigation
-      const isPageLoad = performance.navigation?.type === 1 || // page reload
+      // Check if this is a fresh page load
+      const isPageLoad = performance.navigation?.type === 1 || 
                          !sessionStorage.getItem('biometric-session-active');
       
-      // Lock the app when:
-      // 1. Biometrics are enabled with a valid credential
-      // 2. User is authenticated
-      // 3. This is a fresh page load/refresh OR session has timed out
+      // Lock the app when appropriate
       const lastUnlock = localStorage.getItem('biometric-last-unlock');
       const sessionExpired = lastUnlock && (Date.now() - parseInt(lastUnlock) > SESSION_TIMEOUT);
       const shouldLock = enabled && credentialId && user && (isPageLoad || sessionExpired);
 
-      console.log('Biometric check:', { available, enabled, credentialId: !!credentialId, user: !!user, isPageLoad, shouldLock });
+      console.log('Biometric check:', { 
+        available, 
+        enabled, 
+        credentialId: !!credentialId, 
+        user: !!user, 
+        isPageLoad, 
+        shouldLock,
+        platform: detectedPlatform.os,
+        isMobile: detectedPlatform.isMobile
+      });
 
       setState({
         isAvailable: available,
         isEnabled: enabled,
         credentialId,
         isLocked: shouldLock || false,
+      });
+      
+      // Store initial diagnosis
+      setDiagnosis({
+        isSecureContext: webAuthnCheck.isSecureContext,
+        webAuthnSupported: webAuthnCheck.isSupported,
+        platformAuthenticatorAvailable: webAuthnCheck.isPlatformAuthenticatorAvailable,
+        platform: detectedPlatform,
+        capabilities: detectedCapabilities,
+        errorMessage: webAuthnCheck.errorMessage,
       });
     };
 
@@ -118,6 +198,24 @@ export const BiometricProvider = ({ children }: { children: React.ReactNode }) =
     return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
   }, [state.isEnabled, user]);
 
+  const diagnose = React.useCallback(async (): Promise<BiometricDiagnosis> => {
+    const detectedPlatform = detectPlatform();
+    const detectedCapabilities = getBiometricCapabilities();
+    const webAuthnCheck = await checkWebAuthnSupport();
+    
+    const result: BiometricDiagnosis = {
+      isSecureContext: webAuthnCheck.isSecureContext,
+      webAuthnSupported: webAuthnCheck.isSupported,
+      platformAuthenticatorAvailable: webAuthnCheck.isPlatformAuthenticatorAvailable,
+      platform: detectedPlatform,
+      capabilities: detectedCapabilities,
+      errorMessage: webAuthnCheck.errorMessage,
+    };
+    
+    setDiagnosis(result);
+    return result;
+  }, []);
+
   const unlock = React.useCallback(async (): Promise<boolean> => {
     if (!state.credentialId || !state.isAvailable) {
       console.log('Unlock failed: no credential or not available', { 
@@ -141,7 +239,6 @@ export const BiometricProvider = ({ children }: { children: React.ReactNode }) =
         );
       } catch (e) {
         console.error('Failed to decode credential ID:', e);
-        // Clear invalid credential
         localStorage.removeItem('biometric-credential-id');
         localStorage.removeItem('biometric-auth-enabled');
         setState(prev => ({ ...prev, isEnabled: false, credentialId: null, isLocked: false }));
@@ -163,7 +260,6 @@ export const BiometricProvider = ({ children }: { children: React.ReactNode }) =
       });
 
       if (credential) {
-        // Mark session as active so we don't re-lock until app is closed/refreshed
         sessionStorage.setItem('biometric-session-active', 'true');
         localStorage.setItem('biometric-last-unlock', Date.now().toString());
         setState(prev => ({ ...prev, isLocked: false }));
@@ -174,15 +270,12 @@ export const BiometricProvider = ({ children }: { children: React.ReactNode }) =
     } catch (error: any) {
       console.error('Biometric unlock error:', error);
       
-      // Handle specific error cases
       if (error.name === 'NotAllowedError') {
-        // User cancelled or denied
         console.log('Biometric authentication was cancelled or denied');
         return false;
       }
       
       if (error.name === 'InvalidStateError') {
-        // Credential is invalid, clear it
         console.log('Credential is invalid, clearing...');
         localStorage.removeItem('biometric-credential-id');
         localStorage.removeItem('biometric-auth-enabled');
@@ -191,7 +284,6 @@ export const BiometricProvider = ({ children }: { children: React.ReactNode }) =
       }
       
       if (error.name === 'SecurityError') {
-        // Security error - might be wrong origin
         console.error('Security error during biometric auth');
         return false;
       }
@@ -204,7 +296,9 @@ export const BiometricProvider = ({ children }: { children: React.ReactNode }) =
 
   const enable = React.useCallback(async (userId: string, userEmail: string): Promise<boolean> => {
     if (!state.isAvailable) {
-      throw new Error('Biometric authentication is not available on this device. Please ensure you have a fingerprint sensor or Face ID configured in your device settings.');
+      const errorMsg = diagnosis?.errorMessage || 
+        `Biometric authentication is not available on this device. ${capabilities.setupInstructions}`;
+      throw new Error(errorMsg);
     }
 
     try {
@@ -264,7 +358,7 @@ export const BiometricProvider = ({ children }: { children: React.ReactNode }) =
       console.error('Biometric enable error:', error);
       
       if (error.name === 'NotAllowedError') {
-        throw new Error('Biometric registration was cancelled. Please try again and complete the fingerprint/face scan when prompted.');
+        throw new Error(`${capabilities.biometricLabel} registration was cancelled. Please try again and complete the verification when prompted.`);
       }
       
       if (error.name === 'InvalidStateError') {
@@ -272,7 +366,7 @@ export const BiometricProvider = ({ children }: { children: React.ReactNode }) =
       }
       
       if (error.name === 'NotSupportedError') {
-        throw new Error('Your browser does not support biometric authentication. Please try using a modern browser like Chrome, Safari, or Edge.');
+        throw new Error('Your browser does not support biometric authentication. Please try using Chrome, Safari, or Edge.');
       }
       
       if (error.name === 'SecurityError') {
@@ -281,7 +375,7 @@ export const BiometricProvider = ({ children }: { children: React.ReactNode }) =
       
       throw new Error(error.message || 'Failed to enable biometric authentication. Please try again.');
     }
-  }, [state.isAvailable]);
+  }, [state.isAvailable, diagnosis, capabilities]);
 
   const disable = React.useCallback(() => {
     localStorage.removeItem('biometric-auth-enabled');
@@ -308,11 +402,15 @@ export const BiometricProvider = ({ children }: { children: React.ReactNode }) =
     isAvailable: state.isAvailable,
     isEnabled: state.isEnabled,
     isVerifying,
+    platform,
+    capabilities,
+    diagnosis,
     unlock,
     enable,
     disable,
     lock,
-  }), [state, isVerifying, unlock, enable, disable, lock]);
+    diagnose,
+  }), [state, isVerifying, platform, capabilities, diagnosis, unlock, enable, disable, lock, diagnose]);
 
   return (
     <BiometricContext.Provider value={contextValue}>

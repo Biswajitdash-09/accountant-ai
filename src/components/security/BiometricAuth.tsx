@@ -2,7 +2,18 @@ import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Fingerprint, Smartphone, CheckCircle2, XCircle, Lock, Loader2, Shield } from 'lucide-react';
+import { 
+  Fingerprint, 
+  Smartphone, 
+  CheckCircle2, 
+  XCircle, 
+  Lock, 
+  Loader2, 
+  Shield,
+  ScanFace,
+  Monitor,
+  Info
+} from 'lucide-react';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/components/ui/use-toast';
@@ -11,7 +22,18 @@ import { useBiometric } from '@/contexts/BiometricContext';
 import { useAuth } from '@/contexts/AuthContext';
 
 export const BiometricAuth = () => {
-  const { isAvailable, isEnabled, enable, disable, lock, isVerifying, unlock } = useBiometric();
+  const { 
+    isAvailable, 
+    isEnabled, 
+    enable, 
+    disable, 
+    lock, 
+    isVerifying, 
+    unlock,
+    platform,
+    capabilities,
+    diagnosis
+  } = useBiometric();
   const { user } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
@@ -33,23 +55,16 @@ export const BiometricAuth = () => {
       
       if (success) {
         toast({
-          title: "Biometric Auth Enabled",
-          description: "Your fingerprint or face recognition is now set up for secure sign-in.",
+          title: `${capabilities.biometricLabel} Enabled`,
+          description: `Your ${capabilities.biometricLabel.toLowerCase()} is now set up for secure sign-in.`,
         });
       }
     } catch (error: any) {
       console.error('Biometric registration error:', error);
       
-      let message = "Could not register biometric authentication. Please try again.";
-      if (error.name === 'NotAllowedError') {
-        message = "Biometric authentication was cancelled or denied.";
-      } else if (error.name === 'InvalidStateError') {
-        message = "A biometric credential already exists. Please disable and re-enable.";
-      }
-      
       toast({
         title: "Registration Failed",
-        description: message,
+        description: error.message || "Could not register biometric authentication. Please try again.",
         variant: "destructive",
       });
     } finally {
@@ -60,7 +75,7 @@ export const BiometricAuth = () => {
   const handleDisableBiometric = () => {
     disable();
     toast({
-      title: "Biometric Auth Disabled",
+      title: `${capabilities.biometricLabel} Disabled`,
       description: "Biometric authentication has been turned off.",
     });
   };
@@ -73,7 +88,7 @@ export const BiometricAuth = () => {
       if (success) {
         toast({
           title: "Authentication Successful",
-          description: "Biometric verification completed successfully.",
+          description: `${capabilities.biometricLabel} verification completed successfully.`,
         });
       } else {
         toast({
@@ -98,8 +113,39 @@ export const BiometricAuth = () => {
     lock();
     toast({
       title: "App Locked",
-      description: "The app has been locked. Use biometrics to unlock.",
+      description: `The app has been locked. Use ${capabilities.biometricLabel.toLowerCase()} to unlock.`,
     });
+  };
+
+  // Render appropriate icon based on device type
+  const BiometricIcon = () => {
+    if (capabilities.biometricIcon === 'face') {
+      return <ScanFace className="h-5 w-5 text-primary" />;
+    }
+    if (capabilities.biometricIcon === 'both') {
+      return (
+        <div className="flex items-center gap-1">
+          <Fingerprint className="h-4 w-4 text-primary" />
+          <span className="text-muted-foreground">/</span>
+          <ScanFace className="h-4 w-4 text-primary" />
+        </div>
+      );
+    }
+    return <Fingerprint className="h-5 w-5 text-primary" />;
+  };
+
+  // Get device-specific description
+  const getDeviceDescription = () => {
+    if (platform.isMobile) {
+      return 'Use fingerprint or face recognition to secure your app';
+    }
+    if (platform.os === 'Windows') {
+      return 'Use Windows Hello face recognition to secure your app';
+    }
+    if (platform.os === 'macOS') {
+      return 'Use Touch ID to secure your app';
+    }
+    return 'Use facial recognition to secure your app';
   };
 
   return (
@@ -107,40 +153,93 @@ export const BiometricAuth = () => {
       <CardHeader>
         <div className="flex items-center gap-2">
           <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
-            <Fingerprint className="h-5 w-5 text-primary" />
+            {capabilities.biometricIcon === 'face' ? (
+              <ScanFace className="h-5 w-5 text-primary" />
+            ) : capabilities.biometricIcon === 'both' ? (
+              <Fingerprint className="h-5 w-5 text-primary" />
+            ) : (
+              <Fingerprint className="h-5 w-5 text-primary" />
+            )}
           </div>
           <div>
-            <CardTitle className="text-lg">Biometric Security</CardTitle>
+            <CardTitle className="text-lg">{capabilities.biometricLabel}</CardTitle>
             <CardDescription>
-              Protect your app with fingerprint or face recognition
+              {getDeviceDescription()}
             </CardDescription>
           </div>
         </div>
       </CardHeader>
       <CardContent className="space-y-4">
         {!isAvailable ? (
-          <Alert>
-            <XCircle className="h-4 w-4" />
-            <AlertDescription>
-              Biometric authentication is not available on this device. Make sure your device has fingerprint or face recognition capabilities and that you're using a supported browser.
-            </AlertDescription>
-          </Alert>
+          <>
+            <Alert>
+              <XCircle className="h-4 w-4" />
+              <AlertDescription>
+                {diagnosis?.errorMessage || 
+                  'Biometric authentication is not available on this device.'}
+              </AlertDescription>
+            </Alert>
+            
+            {/* Setup instructions based on platform */}
+            <div className="p-4 rounded-lg bg-muted/50 space-y-3">
+              <div className="flex items-center gap-2">
+                <Info className="h-4 w-4 text-primary" />
+                <span className="font-medium text-sm">How to enable biometrics</span>
+              </div>
+              <p className="text-sm text-muted-foreground">
+                {capabilities.setupInstructions}
+              </p>
+              
+              {/* Platform-specific icons */}
+              <div className="flex items-center gap-2 pt-2">
+                {platform.isMobile ? (
+                  <Smartphone className="h-4 w-4 text-muted-foreground" />
+                ) : (
+                  <Monitor className="h-4 w-4 text-muted-foreground" />
+                )}
+                <span className="text-xs text-muted-foreground">
+                  {platform.os} • {platform.browser}
+                </span>
+              </div>
+            </div>
+          </>
         ) : (
           <>
-            {!isMobile && (
-              <Alert>
-                <Smartphone className="h-4 w-4" />
-                <AlertDescription>
-                  Biometric authentication works best on mobile devices with fingerprint or face recognition hardware.
-                </AlertDescription>
-              </Alert>
-            )}
+            {/* Device type indicator */}
+            <Alert className="border-primary/30 bg-primary/5">
+              {platform.isMobile ? (
+                <Smartphone className="h-4 w-4 text-primary" />
+              ) : (
+                <Monitor className="h-4 w-4 text-primary" />
+              )}
+              <AlertDescription className="text-sm">
+                {platform.isMobile ? (
+                  <>
+                    <span className="font-medium">Mobile device detected.</span>{' '}
+                    {platform.os === 'iOS' 
+                      ? 'Touch ID and Face ID are available.'
+                      : 'Fingerprint and face unlock are available.'
+                    }
+                  </>
+                ) : (
+                  <>
+                    <span className="font-medium">{platform.os} detected.</span>{' '}
+                    {platform.os === 'Windows' 
+                      ? 'Windows Hello face recognition is available.'
+                      : platform.os === 'macOS'
+                        ? 'Touch ID is available.'
+                        : 'Facial recognition is available.'
+                    }
+                  </>
+                )}
+              </AlertDescription>
+            </Alert>
 
             {isEnabled && (
               <Alert className="border-green-500/50 bg-green-500/10">
                 <CheckCircle2 className="h-4 w-4 text-green-500" />
                 <AlertDescription className="text-green-600 dark:text-green-400">
-                  Biometric security is active. Your app will require verification after 5 minutes of inactivity or when returning to the app.
+                  {capabilities.biometricLabel} is active. Your app will require verification after 5 minutes of inactivity.
                 </AlertDescription>
               </Alert>
             )}
@@ -149,10 +248,10 @@ export const BiometricAuth = () => {
               <div className="space-y-0.5">
                 <Label htmlFor="biometric-toggle" className="font-medium flex items-center gap-2">
                   <Shield className="h-4 w-4 text-primary" />
-                  Enable Biometric Lock
+                  Enable {capabilities.biometricLabel}
                 </Label>
                 <p className="text-sm text-muted-foreground">
-                  Require biometric verification to access your account
+                  Require {capabilities.biometricLabel.toLowerCase()} to access your account
                 </p>
               </div>
               <Switch
@@ -180,9 +279,9 @@ export const BiometricAuth = () => {
                   {isLoading || isVerifying ? (
                     <Loader2 className="h-4 w-4 mr-2 animate-spin" />
                   ) : (
-                    <Fingerprint className="h-4 w-4 mr-2" />
+                    <BiometricIcon />
                   )}
-                  Test Biometrics
+                  <span className="ml-2">Test {capabilities.biometricLabel}</span>
                 </Button>
                 <Button
                   variant="secondary"
@@ -201,7 +300,11 @@ export const BiometricAuth = () => {
               <p>• App locks automatically after 5 minutes of inactivity</p>
               <p>• App locks when you switch away and return</p>
               <p>• Your biometric data never leaves your device</p>
-              <p>• Compatible with Touch ID, Face ID, and fingerprint sensors</p>
+              {platform.isMobile ? (
+                <p>• Compatible with {platform.os === 'iOS' ? 'Touch ID and Face ID' : 'fingerprint and face unlock'}</p>
+              ) : (
+                <p>• Compatible with {platform.os === 'Windows' ? 'Windows Hello' : platform.os === 'macOS' ? 'Touch ID' : 'facial recognition'}</p>
+              )}
             </div>
           </>
         )}

@@ -19,8 +19,6 @@ import {
   FileTextIcon,
   PieChartIcon,
   TrendingUpIcon,
-  CheckCircleIcon,
-  StarIcon,
   Moon,
   Sun,
   Bot,
@@ -29,21 +27,72 @@ import {
   ArrowRight,
   Rocket,
   Fingerprint,
+  ScanFace,
 } from "lucide-react";
-import { useBiometricAuth } from "@/hooks/useBiometricAuth";
+import { useBiometric } from "@/contexts/BiometricContext";
 
 const Landing = () => {
   const { theme, toggleTheme } = useTheme();
   const navigate = useNavigate();
   const [showVideoTutorial, setShowVideoTutorial] = useState(false);
-  const { isEnrolled, isSetUp, isAvailable } = useBiometricAuth();
+  const { isAvailable, isEnabled, platform, capabilities } = useBiometric();
 
   const handleBiometricSignIn = () => {
     navigate("/auth?biometric=true");
   };
 
+  const handleGetStartedWithBiometric = () => {
+    // Navigate to auth with signup and biometric setup intent
+    navigate("/auth?signup=true");
+  };
+
   const handleGetStarted = () => {
     navigate("/auth");
+  };
+
+  // Get the appropriate icon for the biometric button
+  const getBiometricIcon = () => {
+    if (capabilities.biometricIcon === 'face') {
+      return <ScanFace className="h-8 w-8 text-primary" />;
+    }
+    if (capabilities.biometricIcon === 'both') {
+      return (
+        <div className="flex items-center gap-1">
+          <Fingerprint className="h-6 w-6 text-primary" />
+          <ScanFace className="h-6 w-6 text-primary" />
+        </div>
+      );
+    }
+    return <Fingerprint className="h-8 w-8 text-primary" />;
+  };
+
+  // Get the header quick sign-in icon
+  const getQuickSignInIcon = () => {
+    if (capabilities.biometricIcon === 'face') {
+      return <ScanFace className="h-4 w-4" />;
+    }
+    return <Fingerprint className="h-4 w-4" />;
+  };
+
+  // Get description text for biometric section
+  const getBiometricDescription = () => {
+    if (isEnabled) {
+      return `Use your ${capabilities.biometricLabel.toLowerCase()} to sign in instantly`;
+    }
+    
+    if (platform.isMobile) {
+      return 'Set up fingerprint or face recognition for faster, more secure access';
+    }
+    
+    if (platform.os === 'Windows') {
+      return 'Set up Windows Hello face recognition for faster, more secure access';
+    }
+    
+    if (platform.os === 'macOS') {
+      return 'Set up Touch ID for faster, more secure access';
+    }
+    
+    return 'Set up biometric authentication for faster, more secure access';
   };
 
   const features = [
@@ -79,27 +128,6 @@ const Landing = () => {
     },
   ];
 
-  const testimonials = [
-    {
-      name: "Sarah Johnson",
-      role: "Small Business Owner",
-      content: "Accountant AI has revolutionized how I manage my finances. What used to take hours now takes minutes!",
-      rating: 5,
-    },
-    {
-      name: "Michael Chen",
-      role: "Freelance Consultant",
-      content: "The tax preparation feature saved me thousands in accountant fees. Highly recommended!",
-      rating: 5,
-    },
-    {
-      name: "Emily Rodriguez",
-      role: "E-commerce Manager",
-      content: "The analytics dashboard gives me insights I never had before. It's like having a CFO on demand.",
-      rating: 5,
-    },
-  ];
-
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
@@ -125,13 +153,13 @@ const Landing = () => {
             </Button>
             
             {/* Biometric Sign-in CTA - Show if user has set up biometrics */}
-            {isSetUp && (
+            {isEnabled && (
               <Button
                 onClick={handleBiometricSignIn}
                 size="sm"
                 className="hidden sm:inline-flex items-center gap-2 hover-scale transition-all duration-200 bg-gradient-to-r from-primary to-purple-600 hover:from-primary/90 hover:to-purple-600/90"
               >
-                <Fingerprint className="h-4 w-4" />
+                {getQuickSignInIcon()}
                 Quick Sign-in
               </Button>
             )}
@@ -142,13 +170,13 @@ const Landing = () => {
               </Button>
             </Link>
             {/* Mobile Biometric Quick Sign-in */}
-            {isSetUp && (
+            {isEnabled && (
               <Button
                 onClick={handleBiometricSignIn}
                 size="icon"
                 className="sm:hidden h-9 w-9 bg-gradient-to-r from-primary to-purple-600 hover:from-primary/90 hover:to-purple-600/90"
               >
-                <Fingerprint className="h-4 w-4" />
+                {getQuickSignInIcon()}
               </Button>
             )}
             
@@ -258,7 +286,7 @@ const Landing = () => {
             </div>
           </motion.div>
 
-          {/* Biometric Quick Access Section */}
+          {/* Biometric Quick Access Section - Only show if available */}
           {isAvailable && (
             <motion.div
               initial={{ opacity: 0, y: 20 }}
@@ -268,33 +296,30 @@ const Landing = () => {
             >
               <div 
                 className="backdrop-blur-xl rounded-2xl p-6 max-w-md mx-auto border border-primary/30 cursor-pointer hover:scale-[1.02] transition-all duration-300 bg-gradient-to-br from-primary/15 to-purple-500/15"
-                onClick={isSetUp ? handleBiometricSignIn : handleGetStarted}
+                onClick={isEnabled ? handleBiometricSignIn : handleGetStartedWithBiometric}
               >
                 <div className="flex items-center justify-center gap-3 mb-3">
                   <div className="p-3 rounded-full bg-primary/20">
-                    <Fingerprint className="h-8 w-8 text-primary" />
+                    {getBiometricIcon()}
                   </div>
                 </div>
                 <h3 className="text-xl font-bold mb-2">
-                  {isSetUp ? "Quick Sign-in Available" : "Enable Biometric Login"}
+                  {isEnabled ? "Quick Sign-in Available" : `Enable ${capabilities.biometricLabel}`}
                 </h3>
                 <p className="text-sm text-muted-foreground mb-4">
-                  {isSetUp 
-                    ? "Use your fingerprint or face to sign in instantly"
-                    : "Set up fingerprint or face recognition for faster, more secure access"
-                  }
+                  {getBiometricDescription()}
                 </p>
                 <Button 
                   className="w-full bg-gradient-to-r from-primary to-purple-600 hover:from-primary/90 hover:to-purple-600/90"
                   onClick={(e) => {
                     e.stopPropagation();
-                    isSetUp ? handleBiometricSignIn() : handleGetStarted();
+                    isEnabled ? handleBiometricSignIn() : handleGetStartedWithBiometric();
                   }}
                 >
-                  {isSetUp ? (
+                  {isEnabled ? (
                     <>
-                      <Fingerprint className="mr-2 h-4 w-4" />
-                      Sign in with Biometrics
+                      {getQuickSignInIcon()}
+                      <span className="ml-2">Sign in with {capabilities.biometricLabel}</span>
                     </>
                   ) : (
                     <>
@@ -431,54 +456,74 @@ const Landing = () => {
             Join thousands of businesses already using Accountant AI
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <Link to="/auth">
+              <Button size="lg" className="text-lg px-8 py-6 w-full sm:w-auto">
+                Start Free Trial
+                <ArrowRight className="ml-2 h-5 w-5" />
+              </Button>
+            </Link>
             <Button 
-              size="lg" 
-              onClick={() => navigate("/auth")}
-              className="text-lg px-8 py-6 group"
-            >
-              Get Started Now 
-              <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
-            </Button>
-            <Button 
-              size="lg" 
-              variant="outline"
-              onClick={() => navigate("/pricing")}
+              variant="outline" 
+              size="lg"
+              onClick={() => setShowVideoTutorial(true)}
               className="text-lg px-8 py-6"
             >
-              View Pricing
+              Watch Demo
             </Button>
           </div>
         </motion.div>
       </section>
 
       {/* Footer */}
-      <footer className="border-t py-8 sm:py-12 px-4 sm:px-6">
-        <div className="max-w-7xl mx-auto text-center">
-          <div className="flex items-center justify-center space-x-2 mb-4">
-            <Bot className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
-            <span className="text-lg sm:text-xl font-bold">Accountant AI</span>
+      <footer className="py-12 px-4 border-t">
+        <div className="max-w-7xl mx-auto">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
+            <div className="space-y-4">
+              <div className="flex items-center space-x-2">
+                <Bot className="h-6 w-6 text-primary" />
+                <span className="font-bold">Accountant AI</span>
+              </div>
+              <p className="text-sm text-muted-foreground">
+                AI-powered accounting solutions for modern businesses.
+              </p>
+              <SocialMediaLinks />
+            </div>
+            
+            <div>
+              <h4 className="font-semibold mb-4">Product</h4>
+              <ul className="space-y-2 text-sm text-muted-foreground">
+                <li><Link to="/pricing" className="hover:text-foreground transition-colors">Pricing</Link></li>
+                <li><Link to="/auth" className="hover:text-foreground transition-colors">Get Started</Link></li>
+                <li><Link to="/roadmap" className="hover:text-foreground transition-colors">Roadmap</Link></li>
+              </ul>
+            </div>
+            
+            <div>
+              <h4 className="font-semibold mb-4">Company</h4>
+              <ul className="space-y-2 text-sm text-muted-foreground">
+                <li><Link to="/help" className="hover:text-foreground transition-colors">Help Center</Link></li>
+                <li><Link to="/developer-docs" className="hover:text-foreground transition-colors">API Docs</Link></li>
+              </ul>
+            </div>
+            
+            <div>
+              <h4 className="font-semibold mb-4">Legal</h4>
+              <ul className="space-y-2 text-sm text-muted-foreground">
+                <li><Link to="/privacy" className="hover:text-foreground transition-colors">Privacy Policy</Link></li>
+                <li><Link to="/terms" className="hover:text-foreground transition-colors">Terms of Service</Link></li>
+                <li><Link to="/cookies" className="hover:text-foreground transition-colors">Cookie Policy</Link></li>
+              </ul>
+            </div>
           </div>
           
-          {/* Social Media Links */}
-          <SocialMediaLinks />
-          
-          <nav className="mt-6 flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-sm text-muted-foreground">
-            <Link to="/roadmap" className="story-link">Roadmap</Link>
-            <Link to="/pricing" className="story-link">Pricing</Link>
-            <Link to="/privacy" className="story-link">Privacy Policy</Link>
-            <Link to="/terms" className="story-link">Terms of Service</Link>
-            <Link to="/cookies" className="story-link">Cookie Policy</Link>
-          </nav>
-          <p className="text-muted-foreground text-sm sm:text-base mt-4">© {new Date().getFullYear()} Accountant AI. All rights reserved.</p>
+          <div className="border-t pt-8 text-center text-sm text-muted-foreground">
+            <p>© 2024 Accountant AI. All rights reserved.</p>
+          </div>
         </div>
       </footer>
 
-
-      {/* Video Tutorial */}
-      <VideoTutorial 
-        isOpen={showVideoTutorial} 
-        onClose={() => setShowVideoTutorial(false)}
-      />
+      {/* Video Tutorial Modal */}
+      <VideoTutorial isOpen={showVideoTutorial} onClose={() => setShowVideoTutorial(false)} />
     </div>
   );
 };

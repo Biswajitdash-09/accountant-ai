@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { Fingerprint, Shield, CheckCircle, Smartphone, ArrowRight, X } from 'lucide-react';
+import { Fingerprint, Shield, CheckCircle, Smartphone, ArrowRight, ScanFace, Monitor } from 'lucide-react';
 import { useBiometric } from '@/contexts/BiometricContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
@@ -14,7 +14,7 @@ interface BiometricSetupWizardProps {
 }
 
 const BiometricSetupWizard = ({ isOpen, onClose, onComplete }: BiometricSetupWizardProps) => {
-  const { isAvailable, enable, isEnabled } = useBiometric();
+  const { isAvailable, enable, isEnabled, platform, capabilities } = useBiometric();
   const { user } = useAuth();
   const { toast } = useToast();
   const [step, setStep] = useState<'intro' | 'setup' | 'success'>('intro');
@@ -37,8 +37,8 @@ const BiometricSetupWizard = ({ isOpen, onClose, onComplete }: BiometricSetupWiz
         setStep('success');
         localStorage.setItem('biometric-setup-shown', 'true');
         toast({
-          title: "Biometric Sign-in Enabled! 🎉",
-          description: "You can now use fingerprint or Face ID to sign in.",
+          title: `${capabilities.biometricLabel} Enabled! 🎉`,
+          description: `You can now use ${capabilities.biometricLabel.toLowerCase()} to sign in.`,
         });
       } else {
         toast({
@@ -51,7 +51,7 @@ const BiometricSetupWizard = ({ isOpen, onClose, onComplete }: BiometricSetupWiz
       console.error('Biometric setup error:', error);
       toast({
         title: "Setup Failed",
-        description: error.message || "Could not enable biometric authentication. Please ensure your device supports fingerprint or face recognition.",
+        description: error.message || `Could not enable ${capabilities.biometricLabel}. Please ensure your device supports biometric authentication.`,
         variant: "destructive",
       });
     } finally {
@@ -67,6 +67,51 @@ const BiometricSetupWizard = ({ isOpen, onClose, onComplete }: BiometricSetupWiz
   const handleComplete = () => {
     onComplete();
     onClose();
+  };
+
+  // Get the appropriate icon based on device
+  const BiometricIcon = ({ size = 12, className = "" }: { size?: number; className?: string }) => {
+    if (capabilities.biometricIcon === 'face') {
+      return <ScanFace className={`h-${size} w-${size} ${className}`} />;
+    }
+    return <Fingerprint className={`h-${size} w-${size} ${className}`} />;
+  };
+
+  // Get setup instruction text based on device
+  const getSetupInstructionText = () => {
+    if (platform.isMobile) {
+      if (platform.os === 'iOS') {
+        return 'Place your finger on the sensor or look at your camera when prompted.';
+      }
+      return 'Place your finger on the sensor or position your face when prompted.';
+    }
+    
+    if (platform.os === 'Windows') {
+      return 'Look at your camera when Windows Hello prompts you.';
+    }
+    
+    if (platform.os === 'macOS') {
+      return 'Place your finger on the Touch ID sensor when prompted.';
+    }
+    
+    return 'Complete the biometric verification when prompted.';
+  };
+
+  // Get description text based on device
+  const getDescriptionText = () => {
+    if (platform.isMobile) {
+      return `Skip passwords! Use your ${capabilities.biometricLabel.toLowerCase()} for instant, secure access every time you open the app.`;
+    }
+    
+    if (platform.os === 'Windows') {
+      return 'Skip passwords! Use Windows Hello face recognition for instant, secure access every time you open the app.';
+    }
+    
+    if (platform.os === 'macOS') {
+      return 'Skip passwords! Use Touch ID for instant, secure access every time you open the app.';
+    }
+    
+    return 'Skip passwords! Use biometric authentication for instant, secure access.';
   };
 
   if (!isAvailable) {
@@ -87,11 +132,21 @@ const BiometricSetupWizard = ({ isOpen, onClose, onComplete }: BiometricSetupWiz
             >
               <DialogHeader className="text-center">
                 <div className="mx-auto mb-4 p-4 rounded-full bg-primary/10">
-                  <Fingerprint className="h-12 w-12 text-primary" />
+                  {capabilities.biometricIcon === 'face' ? (
+                    <ScanFace className="h-12 w-12 text-primary" />
+                  ) : capabilities.biometricIcon === 'both' ? (
+                    <div className="flex items-center gap-1">
+                      <Fingerprint className="h-10 w-10 text-primary" />
+                      <span className="text-primary/50">/</span>
+                      <ScanFace className="h-10 w-10 text-primary" />
+                    </div>
+                  ) : (
+                    <Fingerprint className="h-12 w-12 text-primary" />
+                  )}
                 </div>
-                <DialogTitle className="text-2xl">Enable Quick Sign-in</DialogTitle>
+                <DialogTitle className="text-2xl">Enable {capabilities.biometricLabel}</DialogTitle>
                 <DialogDescription className="text-base mt-2">
-                  Skip passwords! Use your fingerprint or Face ID for instant, secure access every time you open the app.
+                  {getDescriptionText()}
                 </DialogDescription>
               </DialogHeader>
 
@@ -105,12 +160,38 @@ const BiometricSetupWizard = ({ isOpen, onClose, onComplete }: BiometricSetupWiz
                 </div>
                 
                 <div className="flex items-start gap-3 p-3 rounded-lg bg-muted/50">
-                  <Smartphone className="h-5 w-5 text-blue-500 mt-0.5 flex-shrink-0" />
+                  {platform.isMobile ? (
+                    <Smartphone className="h-5 w-5 text-blue-500 mt-0.5 flex-shrink-0" />
+                  ) : (
+                    <Monitor className="h-5 w-5 text-blue-500 mt-0.5 flex-shrink-0" />
+                  )}
                   <div>
                     <p className="font-medium text-sm">Instant Access</p>
-                    <p className="text-xs text-muted-foreground">Sign in with a single touch or glance</p>
+                    <p className="text-xs text-muted-foreground">
+                      {platform.isMobile 
+                        ? 'Sign in with a single touch or glance'
+                        : platform.os === 'Windows'
+                          ? 'Sign in by just looking at your camera'
+                          : 'Sign in with a single touch'
+                      }
+                    </p>
                   </div>
                 </div>
+
+                {/* Show available biometric options for mobile */}
+                {platform.isMobile && capabilities.biometricIcon === 'both' && (
+                  <div className="flex items-center justify-center gap-4 py-2 border rounded-lg bg-primary/5">
+                    <div className="flex items-center gap-2 text-sm">
+                      <Fingerprint className="h-4 w-4 text-primary" />
+                      <span>Fingerprint</span>
+                    </div>
+                    <div className="h-4 w-px bg-border" />
+                    <div className="flex items-center gap-2 text-sm">
+                      <ScanFace className="h-4 w-4 text-primary" />
+                      <span>Face</span>
+                    </div>
+                  </div>
+                )}
               </div>
 
               <div className="flex gap-3 mt-6">
@@ -135,11 +216,15 @@ const BiometricSetupWizard = ({ isOpen, onClose, onComplete }: BiometricSetupWiz
             >
               <DialogHeader className="text-center">
                 <div className="mx-auto mb-4 p-4 rounded-full bg-primary/10 animate-pulse">
-                  <Fingerprint className="h-12 w-12 text-primary" />
+                  {capabilities.biometricIcon === 'face' ? (
+                    <ScanFace className="h-12 w-12 text-primary" />
+                  ) : (
+                    <Fingerprint className="h-12 w-12 text-primary" />
+                  )}
                 </div>
-                <DialogTitle className="text-2xl">Register Your Device</DialogTitle>
+                <DialogTitle className="text-2xl">Register {capabilities.biometricLabel}</DialogTitle>
                 <DialogDescription className="text-base mt-2">
-                  Place your finger on the sensor or look at your camera when prompted.
+                  {getSetupInstructionText()}
                 </DialogDescription>
               </DialogHeader>
 
@@ -150,13 +235,21 @@ const BiometricSetupWizard = ({ isOpen, onClose, onComplete }: BiometricSetupWiz
                 <Button onClick={handleSetup} disabled={isSettingUp} className="flex-1">
                   {isSettingUp ? (
                     <>
-                      <Fingerprint className="mr-2 h-4 w-4 animate-pulse" />
-                      Waiting for biometric...
+                      {capabilities.biometricIcon === 'face' ? (
+                        <ScanFace className="mr-2 h-4 w-4 animate-pulse" />
+                      ) : (
+                        <Fingerprint className="mr-2 h-4 w-4 animate-pulse" />
+                      )}
+                      Waiting for {capabilities.biometricLabel.toLowerCase()}...
                     </>
                   ) : (
                     <>
-                      <Fingerprint className="mr-2 h-4 w-4" />
-                      Register Biometric
+                      {capabilities.biometricIcon === 'face' ? (
+                        <ScanFace className="mr-2 h-4 w-4" />
+                      ) : (
+                        <Fingerprint className="mr-2 h-4 w-4" />
+                      )}
+                      Register {capabilities.biometricLabel}
                     </>
                   )}
                 </Button>
@@ -179,7 +272,7 @@ const BiometricSetupWizard = ({ isOpen, onClose, onComplete }: BiometricSetupWiz
                   You're All Set!
                 </DialogTitle>
                 <DialogDescription className="text-base mt-2">
-                  Biometric sign-in is now enabled. Next time you open the app, just use your fingerprint or Face ID.
+                  {capabilities.biometricLabel} is now enabled. Next time you open the app, just use your {capabilities.biometricLabel.toLowerCase()}.
                 </DialogDescription>
               </DialogHeader>
 
