@@ -63,14 +63,79 @@ export const BUTTON_STYLE = `
   margin: 20px 0;
 `;
 
-// Email Templates
+// User type labels for personalization
+const userTypeLabels: Record<string, string> = {
+  individual: 'individual',
+  small_business: 'small business owner',
+  accountant: 'finance professional',
+  startup: 'startup founder',
+  other: 'valued user',
+};
+
+// Stress level personalization
+const stressMessages: Record<string, string> = {
+  very_stressful: "We understand how overwhelming tax and accounting can be. That's exactly why we built Accountant AI - to take that stress away.",
+  stressful: "Managing finances shouldn't be confusing. We're building tools to make it crystal clear.",
+  mildly_stressful: "Even mild stress about finances is too much. We're here to make it effortless.",
+  not_stressful: "Great that you've got things under control! We'll help you stay that way with even smarter insights.",
+};
 
 export const waitlistConfirmationEmail = (params: {
   fullName?: string;
   position: number;
   totalCount: number;
+  surveyResponses?: {
+    user_type?: string;
+    stress_level?: string;
+    pain_points?: string[];
+    value_rating?: string;
+    pricing_preference?: string;
+    urgency_triggers?: string[];
+    notification_preferences?: string[];
+  };
 }) => {
-  const greeting = params.fullName ? `Hi ${params.fullName},` : 'Hi there,';
+  const { surveyResponses } = params;
+  const userType = surveyResponses?.user_type ? userTypeLabels[surveyResponses.user_type] || 'valued user' : null;
+  const greeting = params.fullName 
+    ? `Hi ${params.fullName},` 
+    : userType 
+      ? `Hi there, fellow ${userType}!`
+      : 'Hi there,';
+  
+  const stressMessage = surveyResponses?.stress_level 
+    ? stressMessages[surveyResponses.stress_level] || ''
+    : '';
+
+  // Personalized pain point benefits
+  const getPainPointBenefits = () => {
+    if (!surveyResponses?.pain_points || surveyResponses.pain_points.length === 0) return '';
+    
+    const benefits: string[] = [];
+    if (surveyResponses.pain_points.includes('paid_fines')) {
+      benefits.push('<li style="margin: 8px 0; padding-left: 28px; position: relative;"><span style="position: absolute; left: 0;">🛡️</span><strong>Automatic deadline tracking</strong> to never miss a payment again</li>');
+    }
+    if (surveyResponses.pain_points.includes('overpaid_taxes')) {
+      benefits.push('<li style="margin: 8px 0; padding-left: 28px; position: relative;"><span style="position: absolute; left: 0;">💰</span><strong>AI-powered deduction finder</strong> to maximize your savings</li>');
+    }
+    if (surveyResponses.pain_points.includes('missed_deadlines')) {
+      benefits.push('<li style="margin: 8px 0; padding-left: 28px; position: relative;"><span style="position: absolute; left: 0;">📅</span><strong>Smart reminders</strong> weeks before every deadline</li>');
+    }
+    if (surveyResponses.pain_points.includes('unexpected_charges')) {
+      benefits.push('<li style="margin: 8px 0; padding-left: 28px; position: relative;"><span style="position: absolute; left: 0;">🔔</span><strong>Real-time alerts</strong> for any unusual activity</li>');
+    }
+    if (surveyResponses.pain_points.includes('hired_expensive')) {
+      benefits.push('<li style="margin: 8px 0; padding-left: 28px; position: relative;"><span style="position: absolute; left: 0;">🤖</span><strong>AI accountant on-demand</strong> at a fraction of the cost</li>');
+    }
+    
+    if (benefits.length === 0) return '';
+    
+    return `
+      <h3 style="color: #1f2937; margin-top: 30px; font-size: 18px;">🎯 Based on your experience, here's what we're building for you:</h3>
+      <ul style="padding-left: 0; list-style: none;">
+        ${benefits.join('')}
+      </ul>
+    `;
+  };
   
   return BASE_EMAIL_WRAPPER(`
     ${EMAIL_HEADER('🎉 Welcome to Accountant AI!', "You're officially on the waitlist")}
@@ -79,6 +144,8 @@ export const waitlistConfirmationEmail = (params: {
       
       <p style="font-size: 16px;">You're officially on the waitlist for <strong>Accountant AI</strong> - the future of AI-powered accounting!</p>
       
+      ${stressMessage ? `<p style="font-size: 16px; color: ${BRAND_COLORS.primary}; font-style: italic;">${stressMessage}</p>` : ''}
+      
       <div style="text-align: center; margin: 30px 0;">
         <div style="background: ${BRAND_COLORS.primaryGradient}; color: white; padding: 25px 40px; border-radius: 12px; display: inline-block;">
           <p style="margin: 0; font-size: 14px; opacity: 0.9;">Your Position</p>
@@ -86,6 +153,8 @@ export const waitlistConfirmationEmail = (params: {
           <p style="margin: 0; font-size: 14px; opacity: 0.9;">of ${params.totalCount} people waiting</p>
         </div>
       </div>
+      
+      ${getPainPointBenefits()}
       
       <h3 style="color: #1f2937; margin-top: 30px; font-size: 18px;">🌟 What you'll get as an early supporter:</h3>
       <ul style="padding-left: 0; list-style: none;">

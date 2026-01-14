@@ -8,11 +8,22 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+interface SurveyResponses {
+  user_type?: string;
+  stress_level?: string;
+  pain_points?: string[];
+  value_rating?: string;
+  pricing_preference?: string;
+  urgency_triggers?: string[];
+  notification_preferences?: string[];
+}
+
 interface WaitlistSignupRequest {
   email: string;
   full_name?: string;
   company_name?: string;
   referral_source?: string;
+  survey_responses?: SurveyResponses;
 }
 
 serve(async (req) => {
@@ -29,7 +40,7 @@ serve(async (req) => {
 
     const resend = new Resend(Deno.env.get('RESEND_API_KEY') as string);
 
-    const { email, full_name, company_name, referral_source }: WaitlistSignupRequest = await req.json();
+    const { email, full_name, company_name, referral_source, survey_responses }: WaitlistSignupRequest = await req.json();
 
     // Validate email
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -68,6 +79,14 @@ serve(async (req) => {
       );
     }
 
+    // Build metadata with survey responses
+    const metadata: Record<string, unknown> = {};
+    if (survey_responses) {
+      metadata.survey_completed = true;
+      metadata.survey_responses = survey_responses;
+      metadata.survey_completed_at = new Date().toISOString();
+    }
+
     // Insert into waitlist
     const { data: waitlistEntry, error: insertError } = await supabase
       .from('waitlist')
@@ -77,6 +96,7 @@ serve(async (req) => {
         company_name,
         referral_source: referral_source || 'direct',
         status: 'pending',
+        metadata: Object.keys(metadata).length > 0 ? metadata : null,
       })
       .select('id, position')
       .single();
@@ -103,6 +123,7 @@ serve(async (req) => {
         fullName: full_name,
         position: waitlistEntry.position,
         totalCount: totalCount || waitlistEntry.position,
+        surveyResponses: survey_responses,
       });
 
       const emailResult = await resend.emails.send({

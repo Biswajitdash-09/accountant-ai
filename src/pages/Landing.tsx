@@ -11,7 +11,7 @@ import { TrustBadges } from "@/components/landing/TrustBadges";
 import { ComparisonSection } from "@/components/landing/ComparisonSection";
 import { FAQSection } from "@/components/landing/FAQSection";
 import { EnhancedTestimonials } from "@/components/landing/EnhancedTestimonials";
-import { WaitlistForm } from "@/components/landing/WaitlistForm";
+import { EnhancedWaitlistForm } from "@/components/landing/waitlist/EnhancedWaitlistForm";
 import { WaitlistCounter } from "@/components/landing/WaitlistCounter";
 import { motion } from "framer-motion";
 import {
@@ -262,15 +262,15 @@ const Landing = () => {
           >
             <WaitlistCounter />
             
-            <div className="backdrop-blur-xl rounded-2xl p-8 max-w-3xl mx-auto shadow-lg bg-card/90 border border-border">
-              <h3 className="text-2xl font-bold mb-3">Be Among the First to Experience the Future</h3>
-              <p className="text-muted-foreground mb-6">
+            <div className="backdrop-blur-xl rounded-2xl p-4 sm:p-8 max-w-3xl mx-auto shadow-lg bg-card/90 border border-border">
+              <h3 className="text-xl sm:text-2xl font-bold mb-2 sm:mb-3">Be Among the First to Experience the Future</h3>
+              <p className="text-sm sm:text-base text-muted-foreground mb-4 sm:mb-6">
                 Join the waitlist and get exclusive early access with special launch benefits
               </p>
               
-              <WaitlistForm />
+              <EnhancedWaitlistForm />
               
-              <div className="mt-8 grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
+              <div className="mt-6 sm:mt-8 grid grid-cols-2 gap-3 sm:gap-4 text-xs sm:text-sm">
                 {[
                   "✨ 30% launch discount",
                   "🎁 100 bonus AI credits",
@@ -278,8 +278,8 @@ const Landing = () => {
                   "📞 Personal onboarding"
                 ].map((benefit, i) => (
                   <div key={i} className="flex items-center gap-2 text-left">
-                    <span className="text-lg">{benefit.split(' ')[0]}</span>
-                    <span>{benefit.split(' ').slice(1).join(' ')}</span>
+                    <span className="text-base sm:text-lg">{benefit.split(' ')[0]}</span>
+                    <span className="leading-tight">{benefit.split(' ').slice(1).join(' ')}</span>
                   </div>
                 ))}
               </div>
