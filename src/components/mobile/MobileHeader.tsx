@@ -15,6 +15,7 @@ import { cn } from '@/lib/utils';
 import { useAuth } from '@/contexts/AuthContext';
 import { useTheme } from '@/hooks/useTheme';
 import { useRealtimeNotifications } from '@/hooks/useRealtimeNotifications';
+import { useToast } from '@/hooks/use-toast';
 
 interface MobileHeaderProps {
   onMenuToggle: () => void;
@@ -27,9 +28,16 @@ const MobileHeader = ({ onMenuToggle, onSearchToggle, className }: MobileHeaderP
   const navigate = useNavigate();
   const { theme, setTheme } = useTheme();
   const { unreadCount } = useRealtimeNotifications();
+  const { toast } = useToast();
 
   const toggleTheme = () => {
-    setTheme(theme === 'dark' ? 'light' : 'dark');
+    const newTheme = theme === 'dark' ? 'light' : 'dark';
+    setTheme(newTheme);
+    toast({
+      title: `${newTheme === 'dark' ? '🌙' : '☀️'} ${newTheme.charAt(0).toUpperCase() + newTheme.slice(1)} Mode`,
+      description: `Theme switched to ${newTheme} mode`,
+      duration: 2000,
+    });
   };
 
   return (

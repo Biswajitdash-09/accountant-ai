@@ -4,11 +4,13 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
-import { Brain, TrendingUp, AlertTriangle, Lightbulb, RefreshCw, FileText, Bitcoin, X, ArrowRight, DollarSign, Target, CreditCard } from "lucide-react";
+import { Brain, TrendingUp, AlertTriangle, Lightbulb, RefreshCw, FileText, Bitcoin, X, ArrowRight, DollarSign, Target, CreditCard, Clock } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useNavigate } from "react-router-dom";
 import { useCurrencyFormatter } from "@/hooks/useCurrencyFormatter";
+import { useAutoInsights } from "@/hooks/useAutoInsights";
+import { formatDistanceToNow } from "date-fns";
 
 interface Insight {
   id: string;
@@ -34,6 +36,16 @@ const AIInsightsSummary = () => {
     const stored = localStorage.getItem('dismissedInsights');
     return stored ? JSON.parse(stored) : [];
   });
+
+  // Use auto-insights hook for automatic background refresh
+  const { 
+    insights: autoInsights, 
+    isLoading: autoLoading, 
+    lastUpdated, 
+    hasNewInsights,
+    refreshInsights,
+    dismissNewInsights 
+  } = useAutoInsights({ refreshInterval: 15 * 60 * 1000, autoRefresh: true });
 
   const dismissInsight = (id: string) => {
     const updated = [...dismissedInsights, id];
@@ -258,16 +270,34 @@ const AIInsightsSummary = () => {
       <CardHeader className="flex flex-row items-center justify-between pb-4">
         <div className="flex items-center gap-2">
           <Brain className="h-5 w-5 text-primary" />
-          <CardTitle>Arnold's Insights</CardTitle>
+          <div>
+            <CardTitle className="flex items-center gap-2">
+              Arnold's Insights
+              {hasNewInsights && (
+                <Badge variant="destructive" className="text-xs animate-pulse">
+                  New
+                </Badge>
+              )}
+            </CardTitle>
+            {lastUpdated && (
+              <p className="text-xs text-muted-foreground flex items-center gap-1 mt-1">
+                <Clock className="h-3 w-3" />
+                Updated {formatDistanceToNow(lastUpdated, { addSuffix: true })}
+              </p>
+            )}
+          </div>
         </div>
         <Button
           variant="outline"
           size="sm"
-          onClick={analyzeWithAI}
-          disabled={analyzing}
+          onClick={() => {
+            dismissNewInsights();
+            analyzeWithAI();
+          }}
+          disabled={analyzing || autoLoading}
           className="h-8 gap-2"
         >
-          <RefreshCw className={`h-3 w-3 ${analyzing ? 'animate-spin' : ''}`} />
+          <RefreshCw className={`h-3 w-3 ${analyzing || autoLoading ? 'animate-spin' : ''}`} />
           {analyzing ? 'Analyzing...' : 'Refresh'}
         </Button>
       </CardHeader>
