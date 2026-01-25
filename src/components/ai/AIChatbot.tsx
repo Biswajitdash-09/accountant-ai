@@ -411,7 +411,7 @@ const AIChatbot = () => {
               <div className="min-w-0">
                 <CardTitle className="text-sm sm:text-lg truncate">Arnold - AI Financial Assistant</CardTitle>
                 <CardDescription className="text-xs hidden sm:block">
-                  Your trusted financial advisor • Powered by GPT-5
+                  Your trusted financial advisor • Powered by AI
                 </CardDescription>
               </div>
             </div>

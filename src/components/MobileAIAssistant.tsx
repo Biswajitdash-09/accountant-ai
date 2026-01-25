@@ -1,9 +1,11 @@
-import React, { useState } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Avatar } from "@/components/ui/avatar";
 import { 
   Brain, 
   Mic, 
@@ -16,14 +18,33 @@ import {
   Calendar,
   Target,
   Lightbulb,
-  Phone
+  Phone,
+  Loader2,
+  Bot,
+  User
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { VoiceAgent } from "@/components/voice/VoiceAgent";
+import { useAI } from "@/hooks/useAI";
+import { useToast } from "@/hooks/use-toast";
+import { motion, AnimatePresence } from "framer-motion";
+
+interface Message {
+  id: string;
+  role: 'user' | 'assistant';
+  content: string;
+  timestamp: Date;
+}
 
 const MobileAIAssistant = () => {
   const [message, setMessage] = useState("");
+  const [messages, setMessages] = useState<Message[]>([]);
   const [activeTab, setActiveTab] = useState("assistant");
+  const scrollAreaRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
+  
+  const { generateResponse, isLoading, availableCredits } = useAI();
+  const { toast } = useToast();
 
   const promptButtons = [
     "Help me create a budget plan",
@@ -80,15 +101,70 @@ const MobileAIAssistant = () => {
     }
   ];
 
-  const handlePromptClick = (prompt: string) => {
-    setMessage(prompt);
+  // Scroll to bottom when messages change
+  useEffect(() => {
+    if (scrollAreaRef.current) {
+      const scrollContainer = scrollAreaRef.current.querySelector('[data-radix-scroll-area-viewport]');
+      if (scrollContainer) {
+        scrollContainer.scrollTop = scrollContainer.scrollHeight;
+      }
+    }
+  }, [messages]);
+
+  const handleSendMessage = async (promptOverride?: string) => {
+    const messageToSend = promptOverride || message.trim();
+    if (!messageToSend || isLoading) return;
+
+    // Check credits
+    if (availableCredits <= 0) {
+      toast({
+        title: "No credits available",
+        description: "Please purchase credits to continue using the AI assistant.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Add user message
+    const userMessage: Message = {
+      id: Date.now().toString(),
+      role: 'user',
+      content: messageToSend,
+      timestamp: new Date(),
+    };
+    setMessages(prev => [...prev, userMessage]);
+    setMessage("");
+
+    try {
+      // Call AI
+      const response = await generateResponse(messageToSend);
+      
+      // Add assistant message
+      const assistantMessage: Message = {
+        id: (Date.now() + 1).toString(),
+        role: 'assistant',
+        content: response.text,
+        timestamp: new Date(),
+      };
+      setMessages(prev => [...prev, assistantMessage]);
+    } catch (error) {
+      console.error('AI Error:', error);
+      toast({
+        title: "Error",
+        description: "Failed to get response. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
 
-  const handleSendMessage = () => {
-    if (message.trim()) {
-      // Handle message sending
-      console.log("Sending message:", message);
-      setMessage("");
+  const handlePromptClick = async (prompt: string) => {
+    await handleSendMessage(prompt);
+  };
+
+  const handleKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      handleSendMessage();
     }
   };
 
@@ -134,9 +210,9 @@ const MobileAIAssistant = () => {
         </TabsList>
 
         {/* Assistant View */}
-        <TabsContent value="assistant" className="px-3 pb-4 space-y-3 min-h-0 animate-fade-in">
+        <TabsContent value="assistant" className="px-3 pb-4 space-y-3 min-h-0 animate-fade-in flex-1 flex flex-col">
           {/* AI Assistant Card - Compact */}
-          <Card className="shadow-md border-0 rounded-xl overflow-hidden bg-card">
+          <Card className="shadow-md border-0 rounded-xl overflow-hidden bg-card shrink-0">
             <CardHeader className="pb-2 pt-3">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
@@ -144,74 +220,145 @@ const MobileAIAssistant = () => {
                     <Brain className="h-5 w-5 text-white" />
                   </div>
                   <div>
-                    <CardTitle className="text-base font-bold">AI Assistant</CardTitle>
+                    <CardTitle className="text-base font-bold">Arnold AI</CardTitle>
                     <Badge variant="secondary" className="text-xs px-2 py-0">
-                      Powered by Google Gemini
+                      Powered by AI
                     </Badge>
                   </div>
                 </div>
                 <Badge variant="outline" className="text-xs text-success font-semibold px-2 py-0.5">
-                  Free to Use
+                  {availableCredits} credits
                 </Badge>
               </div>
             </CardHeader>
           </Card>
 
-          {/* Chat Section - Compact */}
-          <Card className="shadow-md rounded-xl border-0">
-            <CardContent className="p-3">
-              <div className="bg-primary/5 rounded-xl p-3 mb-3 border border-primary/10">
-                <div className="flex items-start gap-2">
-                  <div className="w-8 h-8 bg-gradient-primary rounded-lg flex items-center justify-center flex-shrink-0">
-                    <Brain className="h-4 w-4 text-white" />
-                  </div>
-                  <div className="flex-1">
-                    <p className="text-sm text-foreground leading-relaxed">
-                      Hi! I'm your AI assistant. I can help you with finance, business, or anything else.
-                    </p>
-                  </div>
-                </div>
-              </div>
+          {/* Chat Section */}
+          <Card className="shadow-md rounded-xl border-0 flex-1 flex flex-col min-h-0">
+            <CardContent className="p-3 flex flex-col flex-1 min-h-0">
+              {/* Messages Area */}
+              <ScrollArea className="flex-1 min-h-[200px] max-h-[300px] mb-3" ref={scrollAreaRef}>
+                <div className="space-y-3 pr-2">
+                  {messages.length === 0 ? (
+                    <>
+                      {/* Welcome Message */}
+                      <div className="bg-primary/5 rounded-xl p-3 border border-primary/10">
+                        <div className="flex items-start gap-2">
+                          <div className="w-8 h-8 bg-gradient-primary rounded-lg flex items-center justify-center flex-shrink-0">
+                            <Brain className="h-4 w-4 text-white" />
+                          </div>
+                          <div className="flex-1">
+                            <p className="text-sm text-foreground leading-relaxed">
+                              Hi! I'm Arnold, your AI financial assistant. I can help you with budgeting, investments, taxes, and more. Ask me anything!
+                            </p>
+                          </div>
+                        </div>
+                      </div>
 
-              <div className="mb-3">
-                <p className="text-sm font-semibold text-foreground mb-2">Quick prompts:</p>
-                <div className="grid grid-cols-1 gap-2">
-                   {promptButtons.map((prompt, index) => (
-                     <Button
-                       key={index}
-                       variant="outline"
-                       className="h-auto p-3 text-left justify-start text-sm text-wrap min-h-[44px] touch-manipulation hover:bg-accent/50 rounded-lg"
-                       onClick={() => handlePromptClick(prompt)}
-                     >
-                       {prompt}
-                     </Button>
-                   ))}
+                      {/* Quick Prompts */}
+                      <div>
+                        <p className="text-sm font-semibold text-foreground mb-2">Quick prompts:</p>
+                        <div className="grid grid-cols-1 gap-2">
+                          {promptButtons.map((prompt, index) => (
+                            <Button
+                              key={index}
+                              variant="outline"
+                              className="h-auto p-3 text-left justify-start text-sm text-wrap min-h-[44px] touch-manipulation hover:bg-accent/50 rounded-lg"
+                              onClick={() => handlePromptClick(prompt)}
+                              disabled={isLoading}
+                            >
+                              {prompt}
+                            </Button>
+                          ))}
+                        </div>
+                      </div>
+                    </>
+                  ) : (
+                    <AnimatePresence mode="popLayout">
+                      {messages.map((msg) => (
+                        <motion.div
+                          key={msg.id}
+                          initial={{ opacity: 0, y: 10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          exit={{ opacity: 0, y: -10 }}
+                          className={cn(
+                            "flex gap-2",
+                            msg.role === 'user' ? "justify-end" : "justify-start"
+                          )}
+                        >
+                          {msg.role === 'assistant' && (
+                            <Avatar className="h-8 w-8 bg-primary/10 shrink-0">
+                              <Bot className="h-4 w-4 text-primary" />
+                            </Avatar>
+                          )}
+                          <div
+                            className={cn(
+                              "max-w-[85%] rounded-xl p-3 text-sm",
+                              msg.role === 'user'
+                                ? "bg-primary text-primary-foreground"
+                                : "bg-muted"
+                            )}
+                          >
+                            <p className="whitespace-pre-wrap leading-relaxed">{msg.content}</p>
+                          </div>
+                          {msg.role === 'user' && (
+                            <Avatar className="h-8 w-8 bg-primary shrink-0">
+                              <User className="h-4 w-4 text-primary-foreground" />
+                            </Avatar>
+                          )}
+                        </motion.div>
+                      ))}
+                      
+                      {/* Typing Indicator */}
+                      {isLoading && (
+                        <motion.div
+                          initial={{ opacity: 0, y: 10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          className="flex gap-2 justify-start"
+                        >
+                          <Avatar className="h-8 w-8 bg-primary/10 shrink-0">
+                            <Bot className="h-4 w-4 text-primary" />
+                          </Avatar>
+                          <div className="bg-muted rounded-xl p-3 flex items-center gap-2">
+                            <Loader2 className="h-4 w-4 animate-spin text-primary" />
+                            <span className="text-sm text-muted-foreground">Arnold is thinking...</span>
+                          </div>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  )}
                 </div>
-              </div>
+              </ScrollArea>
 
               {/* Message Input */}
-              <div className="flex gap-2">
+              <div className="flex gap-2 shrink-0">
                 <Input
+                  ref={inputRef}
                   placeholder="Type your message..."
                   value={message}
                   onChange={(e) => setMessage(e.target.value)}
-                  onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
+                  onKeyPress={handleKeyPress}
                   className="flex-1 h-12 text-sm rounded-lg border focus:border-primary transition-colors"
+                  disabled={isLoading}
                 />
                 <Button 
                   size="icon" 
-                  onClick={handleSendMessage}
-                  disabled={!message.trim()}
+                  onClick={() => handleSendMessage()}
+                  disabled={!message.trim() || isLoading}
                   className="min-w-[48px] h-12 rounded-lg"
                 >
-                  <Send className="h-4 w-4" />
+                  {isLoading ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <Send className="h-4 w-4" />
+                  )}
                 </Button>
               </div>
             </CardContent>
           </Card>
 
           {/* AI Capabilities - Compact */}
-          <Card className="shadow-md rounded-xl">
+          <Card className="shadow-md rounded-xl shrink-0">
             <CardHeader className="pb-2 pt-3">
               <CardTitle className="text-sm">AI Capabilities</CardTitle>
             </CardHeader>

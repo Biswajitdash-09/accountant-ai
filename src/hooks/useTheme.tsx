@@ -58,20 +58,28 @@ export function ThemeProvider({
 
   React.useEffect(() => {
     const root = window.document.documentElement;
+    const body = window.document.body;
+    
+    // Remove both classes first
     root.classList.remove("light", "dark");
+    body.classList.remove("light", "dark");
 
+    let appliedTheme = theme;
     if (theme === "system") {
-      const systemTheme = window.matchMedia("(prefers-color-scheme: dark)").matches
+      appliedTheme = window.matchMedia("(prefers-color-scheme: dark)").matches
         ? "dark"
         : "light";
-      root.classList.add(systemTheme);
-      return;
     }
 
-    root.classList.add(theme);
+    // Apply to both html and body for consistency
+    root.classList.add(appliedTheme);
+    body.classList.add(appliedTheme);
+    
+    console.log(`Theme applied: ${appliedTheme}`);
   }, [theme]);
 
   const setTheme = React.useCallback((newTheme: Theme) => {
+    console.log(`Setting theme to: ${newTheme}`);
     setStoredTheme(storageKey, newTheme);
     setThemeState(newTheme);
   }, [storageKey]);

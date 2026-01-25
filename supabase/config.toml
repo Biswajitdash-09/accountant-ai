@@ -102,3 +102,6 @@ verify_jwt = false  # Auth handled in code
 
 [functions.gdpr-data-delete]
 verify_jwt = false  # Auth handled in code
+
+[functions.auto-generate-insights]
+verify_jwt = true   # Require authentication for auto insights
