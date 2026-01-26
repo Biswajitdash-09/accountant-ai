@@ -74,23 +74,12 @@
     <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" onload="this.onload=null;this.rel='stylesheet'">
     <noscript><link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet"></noscript>
     
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  <meta property="og:title" content="Accountant AI">
-  <meta name="twitter:title" content="Accountant AI">
-  <meta property="og:description" content="Accountant AI is an easy to use financial management platform.">
-  <meta name="twitter:description" content="Accountant AI is an easy to use financial management platform.">
-  <link rel="icon" href="/favicon.jpg" type="image/jpeg" />
-</head>
+    <meta property="og:title" content="Accountant AI">
+    <meta name="twitter:title" content="Accountant AI">
+    <meta property="og:description" content="Accountant AI is an easy to use financial management platform.">
+    <meta name="twitter:description" content="Accountant AI is an easy to use financial management platform.">
+    <link rel="icon" href="/favicon.jpg" type="image/jpeg" />
+  </head>
 
   <body class="dark">
     <script>
@@ -99,7 +88,7 @@
         try {
           var theme = localStorage.getItem('accountant-ai-theme');
           if (!theme || theme === 'system') {
-            // Fix: properly detect system preference (was always defaulting to 'dark')
+            // Detect system preference
             theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
           }
           if (theme === 'dark') {
@@ -122,97 +111,38 @@
     <script>
       // IMPORTANT: Disable/cleanup Service Worker during Vite dev (prevents stale cached JS causing React hook dispatcher errors)
       if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => {
-          const isViteDev = !!document.querySelector('script[src="/@vite/client"]');
+        window.addEventListener('load', function() {
+          var isViteDev = !!document.querySelector('script[src="/@vite/client"]');
 
           if (isViteDev) {
             // Unregister any existing SW and clear caches so dev always uses fresh modules
             navigator.serviceWorker.getRegistrations()
-              .then((regs) => Promise.all(regs.map((r) => r.unregister())))
-              .catch(() => {});
+              .then(function(regs) { return Promise.all(regs.map(function(r) { return r.unregister(); })); })
+              .catch(function() {});
 
             if (window.caches && caches.keys) {
               caches.keys()
-                .then((keys) => Promise.all(keys.map((k) => caches.delete(k))))
-                .catch(() => {});
+                .then(function(keys) { return Promise.all(keys.map(function(k) { return caches.delete(k); })); })
+                .catch(function() {});
             }
 
             return;
           }
 
           navigator.serviceWorker.register('/sw.js')
-            .then((registration) => {
+            .then(function(registration) {
               // Force an update check so users pick up latest CSS/JS after deploy
-              registration.update().catch(() => {});
+              registration.update().catch(function() {});
 
               // If a new SW takes control, reload once to get fresh assets
-              let refreshing = false;
-              navigator.serviceWorker.addEventListener('controllerchange', () => {
+              var refreshing = false;
+              navigator.serviceWorker.addEventListener('controllerchange', function() {
                 if (refreshing) return;
                 refreshing = true;
                 window.location.reload();
               });
             })
-            .catch(() => {});
-        });
-      }
-    </script>
-  </body>
-</html>
-            theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'dark';
-          }
-          if (theme === 'dark') {
-            document.documentElement.classList.add('dark');
-            document.body.classList.add('dark');
-          } else {
-            document.documentElement.classList.remove('dark');
-            document.body.classList.remove('dark');
-          }
-        } catch(e) {
-          // Default to dark if localStorage fails
-          document.documentElement.classList.add('dark');
-        }
-      })();
-    </script>
-    <div id="root"></div>
-    <script type="module" src="/src/main.tsx" fetchpriority="high"></script>
-    
-    <!-- PWA Installation Script -->
-    <script>
-      // IMPORTANT: Disable/cleanup Service Worker during Vite dev (prevents stale cached JS causing React hook dispatcher errors)
-      if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => {
-          const isViteDev = !!document.querySelector('script[src="/@vite/client"]');
-
-          if (isViteDev) {
-            // Unregister any existing SW and clear caches so dev always uses fresh modules
-            navigator.serviceWorker.getRegistrations()
-              .then((regs) => Promise.all(regs.map((r) => r.unregister())))
-              .catch(() => {});
-
-            if (window.caches && caches.keys) {
-              caches.keys()
-                .then((keys) => Promise.all(keys.map((k) => caches.delete(k))))
-                .catch(() => {});
-            }
-
-            return;
-          }
-
-          navigator.serviceWorker.register('/sw.js')
-            .then((registration) => {
-              // Force an update check so users pick up latest CSS/JS after deploy
-              registration.update().catch(() => {});
-
-              // If a new SW takes control, reload once to get fresh assets
-              let refreshing = false;
-              navigator.serviceWorker.addEventListener('controllerchange', () => {
-                if (refreshing) return;
-                refreshing = true;
-                window.location.reload();
-              });
-            })
-            .catch(() => {});
+            .catch(function() {});
         });
       }
     </script>
