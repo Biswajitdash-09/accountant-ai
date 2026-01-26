@@ -95,12 +95,17 @@ serve(async (req) => {
       // Download the audio file
       const audioResponse = await fetch(signedUrlData.signedUrl);
       const audioBuffer = await audioResponse.arrayBuffer();
+      const audioBlob = new Blob([audioBuffer], { type: 'audio/webm' });
 
-      // Enhanced STT simulation with better transcripts
-      const transcript = await enhancedWhisperAPI(audioBuffer);
+      console.log('Audio file downloaded, size:', audioBuffer.byteLength);
+
+      // Use OpenAI Whisper for real transcription
+      const transcript = await transcribeWithWhisper(audioBlob);
       
-      // Enhanced AI parsing with confidence scoring
-      const parsed = await enhancedTransactionParsing(transcript);
+      console.log('Transcription result:', transcript);
+
+      // Parse the transcript for transaction data
+      const parsed = await parseTranscriptForTransaction(transcript);
 
       // Update voice entry with results
       await serviceSupabase
@@ -137,6 +142,7 @@ serve(async (req) => {
           success: true, 
           message: 'Voice processing completed',
           entry_id,
+          transcript,
           confidence: parsed?.confidence || 0
         }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -169,55 +175,179 @@ serve(async (req) => {
   }
 });
 
-// Enhanced Whisper API simulation with better quality transcripts
-async function enhancedWhisperAPI(audioBuffer: ArrayBuffer): Promise<string> {
-  // Simulate more realistic and varied transcripts
-  const enhancedTranscripts = [
-    "I paid 2,450 rupees for dinner at Taj Hotel last night including tip and taxes",
-    "Spent 850 rupees on groceries at More Megastore this morning for weekly shopping",
-    "Uber ride to airport cost 1,200 rupees including toll and waiting charges",
-    "Coffee and snacks at Cafe Coffee Day came to 320 rupees for two people",
-    "Electricity bill payment of 3,200 rupees done online through PayTM",
-    "Medical consultation fee of 800 rupees at Apollo Clinic for checkup",
-    "Petrol refill for 2,100 rupees at HP petrol pump on highway",
-    "Online shopping on Amazon for 4,500 rupees for electronic accessories",
-    "Restaurant bill at Barbeque Nation was 1,800 rupees for family dinner",
-    "Auto rickshaw fare of 150 rupees from metro station to office"
-  ];
+// Real transcription using OpenAI Whisper API
+async function transcribeWithWhisper(audioBlob: Blob): Promise<string> {
+  const openaiApiKey = Deno.env.get('OPENAI_API_KEY');
   
-  return enhancedTranscripts[Math.floor(Math.random() * enhancedTranscripts.length)];
+  if (!openaiApiKey) {
+    console.warn('OPENAI_API_KEY not configured, using fallback transcription');
+    return fallbackTranscription();
+  }
+
+  try {
+    // Convert blob to form data for OpenAI Whisper API
+    const formData = new FormData();
+    formData.append('file', audioBlob, 'audio.webm');
+    formData.append('model', 'whisper-1');
+    formData.append('language', 'en'); // Can be changed based on user preference
+    formData.append('response_format', 'text');
+
+    console.log('Sending audio to OpenAI Whisper API...');
+
+    const response = await fetch('https://api.openai.com/v1/audio/transcriptions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${openaiApiKey}`,
+      },
+      body: formData,
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error('Whisper API error:', response.status, errorText);
+      throw new Error(`Whisper API error: ${response.status} - ${errorText}`);
+    }
+
+    const transcript = await response.text();
+    console.log('Whisper transcription successful:', transcript);
+    
+    if (!transcript || transcript.trim().length === 0) {
+      throw new Error('Empty transcription received');
+    }
+    
+    return transcript.trim();
+  } catch (error) {
+    console.error('Whisper transcription failed:', error);
+    throw error;
+  }
 }
 
-// Enhanced AI parsing with confidence scoring and better extraction
-async function enhancedTransactionParsing(transcript: string) {
-  // Enhanced parsing with confidence scoring
-  const amountMatch = transcript.match(/(\d{1,3}(?:,\d{3})*(?:\.\d{2})?)\s*rupees?/i);
-  const amount = amountMatch ? parseFloat(amountMatch[1].replace(/,/g, '')) : null;
+// Fallback if Whisper fails (should rarely be used)
+function fallbackTranscription(): string {
+  console.warn('Using fallback - no real transcription available');
+  return "Unable to transcribe audio. Please try again or type your transaction details.";
+}
 
-  // Enhanced category detection with more patterns
+// Parse transcript to extract transaction data
+async function parseTranscriptForTransaction(transcript: string) {
+  // Try to use AI for better parsing
+  const lovableApiKey = Deno.env.get('LOVABLE_API_KEY');
+  
+  if (lovableApiKey) {
+    try {
+      const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${lovableApiKey}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          model: 'google/gemini-3-flash-preview',
+          messages: [
+            {
+              role: 'system',
+              content: `You are a financial transaction parser. Extract transaction details from user speech.
+              Return a JSON object with:
+              - amount: number (the monetary amount)
+              - currency: string (INR, USD, EUR, GBP, NGN, etc. - default to INR if not specified)
+              - category: string (Food, Transport, Shopping, Bills, Healthcare, Entertainment, Other)
+              - description: string (brief description of the transaction)
+              - date: string (YYYY-MM-DD format, use today if not specified)
+              - type: string (expense or income)
+              - confidence: number (0-1, how confident you are in the extraction)
+              
+              Only respond with valid JSON. If you can't extract meaningful transaction data, return {"confidence": 0}`
+            },
+            {
+              role: 'user',
+              content: `Extract transaction details from: "${transcript}"`
+            }
+          ],
+        }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        const content = data.choices?.[0]?.message?.content;
+        
+        if (content) {
+          // Extract JSON from the response
+          const jsonMatch = content.match(/\{[\s\S]*\}/);
+          if (jsonMatch) {
+            const parsed = JSON.parse(jsonMatch[0]);
+            console.log('AI parsed transaction:', parsed);
+            return parsed;
+          }
+        }
+      }
+    } catch (error) {
+      console.error('AI parsing failed, using regex fallback:', error);
+    }
+  }
+
+  // Fallback to regex-based parsing
+  return parseWithRegex(transcript);
+}
+
+// Regex-based parsing as fallback
+function parseWithRegex(transcript: string) {
+  // Amount patterns - support multiple currencies
+  const amountPatterns = [
+    /(\d{1,3}(?:,\d{3})*(?:\.\d{2})?)\s*(?:rupees?|rs\.?|inr)/i,
+    /(?:rupees?|rs\.?|inr)\s*(\d{1,3}(?:,\d{3})*(?:\.\d{2})?)/i,
+    /\$(\d{1,3}(?:,\d{3})*(?:\.\d{2})?)/i,
+    /(\d{1,3}(?:,\d{3})*(?:\.\d{2})?)\s*(?:dollars?|usd)/i,
+    /₦(\d{1,3}(?:,\d{3})*(?:\.\d{2})?)/i,
+    /(\d{1,3}(?:,\d{3})*(?:\.\d{2})?)\s*(?:naira|ngn)/i,
+    /(\d+(?:\.\d{2})?)/i, // Fallback: any number
+  ];
+
+  let amount = null;
+  let currency = 'INR'; // Default currency
+
+  for (const pattern of amountPatterns) {
+    const match = transcript.match(pattern);
+    if (match) {
+      amount = parseFloat(match[1].replace(/,/g, ''));
+      
+      // Detect currency from the pattern match
+      if (/\$|dollar|usd/i.test(match[0])) currency = 'USD';
+      else if (/₦|naira|ngn/i.test(match[0])) currency = 'NGN';
+      else if (/€|euro/i.test(match[0])) currency = 'EUR';
+      else if (/£|pound|gbp/i.test(match[0])) currency = 'GBP';
+      
+      break;
+    }
+  }
+
+  // Category detection
   let category = 'Other';
   let confidence = 0.5;
   
-  const categoryPatterns = {
+  const categoryPatterns: Record<string, { patterns: RegExp[], confidence: number }> = {
     'Food': {
-      patterns: [/hotel|restaurant|cafe|dinner|lunch|breakfast|food|snacks|barbeque|dining/i],
+      patterns: [/hotel|restaurant|cafe|dinner|lunch|breakfast|food|snacks|barbeque|dining|coffee|tea|meal|eat/i],
       confidence: 0.9
     },
     'Transport': {
-      patterns: [/taxi|uber|ola|auto|rickshaw|bus|train|metro|petrol|fuel|toll|airport/i],
+      patterns: [/taxi|uber|ola|auto|rickshaw|bus|train|metro|petrol|fuel|toll|airport|cab|ride|fare|travel/i],
       confidence: 0.9
     },
     'Shopping': {
-      patterns: [/shopping|amazon|flipkart|store|mall|grocery|megastore|accessories|electronic/i],
+      patterns: [/shopping|amazon|flipkart|store|mall|grocery|megastore|accessories|electronic|clothes|buy|purchase|order/i],
       confidence: 0.85
     },
     'Bills': {
-      patterns: [/bill|electricity|water|gas|phone|internet|payment|paytm/i],
+      patterns: [/bill|electricity|water|gas|phone|internet|payment|paytm|rent|subscription|utility/i],
       confidence: 0.9
     },
     'Healthcare': {
-      patterns: [/medical|doctor|clinic|hospital|consultation|checkup|apollo/i],
+      patterns: [/medical|doctor|clinic|hospital|consultation|checkup|apollo|medicine|pharmacy|health/i],
       confidence: 0.9
+    },
+    'Entertainment': {
+      patterns: [/movie|cinema|netflix|game|concert|show|entertainment|fun|party/i],
+      confidence: 0.85
     }
   };
 
@@ -229,20 +359,22 @@ async function enhancedTransactionParsing(transcript: string) {
     }
   }
 
-  // Enhanced date detection
+  // Date detection
   let date = new Date().toISOString().split('T')[0];
   if (/yesterday/i.test(transcript)) {
     const yesterday = new Date();
     yesterday.setDate(yesterday.getDate() - 1);
     date = yesterday.toISOString().split('T')[0];
-  } else if (/last night/i.test(transcript)) {
-    date = new Date().toISOString().split('T')[0]; // Assume same day for "last night"
+  } else if (/last\s*(week|night)/i.test(transcript)) {
+    date = new Date().toISOString().split('T')[0];
   }
 
   // Determine transaction type
-  const type = /received|income|salary|payment received/i.test(transcript) ? 'income' : 'expense';
+  const type = /received|income|salary|payment\s*received|got|earned|credited/i.test(transcript) 
+    ? 'income' 
+    : 'expense';
 
-  // Calculate overall confidence based on multiple factors
+  // Calculate overall confidence
   const hasAmount = amount !== null;
   const hasValidCategory = category !== 'Other';
   const hasLocation = /at\s+\w+|from\s+\w+|to\s+\w+/i.test(transcript);
@@ -251,12 +383,11 @@ async function enhancedTransactionParsing(transcript: string) {
   if (hasAmount) finalConfidence += 0.2;
   if (hasValidCategory) finalConfidence += 0.1;
   if (hasLocation) finalConfidence += 0.05;
-  
   finalConfidence = Math.min(finalConfidence, 1.0);
 
   return {
     amount,
-    currency: 'INR',
+    currency,
     category,
     description: transcript,
     date,
@@ -266,10 +397,7 @@ async function enhancedTransactionParsing(transcript: string) {
       hasAmount,
       hasValidCategory,
       hasLocation,
-      extractedPatterns: {
-        amount: amountMatch ? amountMatch[0] : null,
-        category_matched: category !== 'Other'
-      }
+      parsingMethod: 'regex'
     }
   };
 }
