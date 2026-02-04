@@ -14,11 +14,12 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useAuth } from "@/contexts/AuthContext";
 import { useUserPreferences } from "@/hooks/useUserPreferences";
 import { useSecurityAuditLogs } from "@/hooks/useSecurityAuditLogs";
-import { User, Settings, Shield, LogOut, Clock, Calendar, Bell, ExternalLink, Download, Share, Plus, Smartphone, Check, Fingerprint } from "lucide-react";
+import { User, Settings, Shield, LogOut, Clock, Calendar, Bell, ExternalLink, Download, Share, Plus, Smartphone, Check, Fingerprint, Film } from "lucide-react";
 import { BiometricAuth } from "@/components/security/BiometricAuth";
 import { formatDistanceToNow } from "date-fns";
 import { HMRCSettings } from "@/components/hmrc/HMRCSettings";
 import { useHMRCConnection } from "@/hooks/useHMRCConnection";
+import DemoControlPanel from "@/components/demo/DemoControlPanel";
 
 import { usePWAInstall } from "@/components/PWAEnhancements";
 import { toast } from "sonner";
@@ -75,7 +76,7 @@ const Profile = () => {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-        <TabsList className="grid w-full grid-cols-3 h-auto p-1">
+        <TabsList className="grid w-full grid-cols-4 h-auto p-1">
           <TabsTrigger value="profile" className="flex items-center gap-2 min-h-[44px]">
             <User className="h-4 w-4" />
             <span className="hidden sm:inline">Profile</span>
@@ -87,6 +88,10 @@ const Profile = () => {
           <TabsTrigger value="security" className="flex items-center gap-2 min-h-[44px]">
             <Shield className="h-4 w-4" />
             <span className="hidden sm:inline">Security</span>
+          </TabsTrigger>
+          <TabsTrigger value="demo" className="flex items-center gap-2 min-h-[44px]">
+            <Film className="h-4 w-4" />
+            <span className="hidden sm:inline">Demo</span>
           </TabsTrigger>
         </TabsList>
 
@@ -376,6 +381,10 @@ const Profile = () => {
               </div>
             </CardContent>
           </Card>
+        </TabsContent>
+
+        <TabsContent value="demo" className="space-y-4">
+          <DemoControlPanel />
         </TabsContent>
       </Tabs>
     </div>

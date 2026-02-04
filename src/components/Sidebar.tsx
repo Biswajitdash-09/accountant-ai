@@ -25,12 +25,15 @@ import {
   CreditCard,
   QrCode,
   Plug,
+  Film,
 } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { cn } from "@/lib/utils";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Badge } from "@/components/ui/badge";
+import { useDemoMode } from "@/contexts/DemoModeContext";
+import DemoModeBanner from "@/components/demo/DemoModeBanner";
 
 interface SidebarProps {
   isCollapsed: boolean;
@@ -45,6 +48,7 @@ const Sidebar = ({ isCollapsed, onToggle, isMobileOpen = false, onMobileToggle }
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const isMobile = useIsMobile();
   const { isTechnicalTeam } = useUserRole();
+  const { isDemoMode } = useDemoMode();
 
   const handleSignOut = async () => {
     setIsLoggingOut(true);
@@ -226,6 +230,13 @@ const Sidebar = ({ isCollapsed, onToggle, isMobileOpen = false, onMobileToggle }
           </Button>
         )}
       </div>
+
+      {/* Demo Mode Indicator */}
+      {isDemoMode && !isCollapsed && (
+        <div className="px-3 pt-3">
+          <DemoModeBanner compact />
+        </div>
+      )}
 
       {/* Navigation */}
       <ScrollArea className="flex-1 px-3 custom-scrollbar">

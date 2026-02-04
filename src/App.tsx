@@ -10,6 +10,7 @@ import { OfflineIndicator } from "@/components/mobile/OfflineIndicator";
 import { MobileSyncStatus } from "@/components/mobile/MobileSyncStatus";
 import { ErrorBoundary } from "@/components/ui/error-boundary";
 import { CookieConsentBanner } from "@/components/gdpr/CookieConsentBanner";
+import { DemoModeProvider } from "@/contexts/DemoModeContext";
 import "./App.css";
 
 // Eager load only critical public pages
@@ -58,13 +59,14 @@ const PageLoader = () => (
 function App() {
   return (
     <ErrorBoundary>
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <PWAEnhancements />
-        <OfflineIndicator />
-        <MobileSyncStatus />
-        <CookieConsentBanner />
+      <DemoModeProvider>
+        <TooltipProvider>
+          <Toaster />
+          <Sonner />
+          <PWAEnhancements />
+          <OfflineIndicator />
+          <MobileSyncStatus />
+          <CookieConsentBanner />
       <Suspense fallback={<PageLoader />}>
         <Routes>
           {/* Public routes */}
@@ -263,7 +265,8 @@ function App() {
           <Route path="*" element={<NotFound />} />
         </Routes>
       </Suspense>
-      </TooltipProvider>
+        </TooltipProvider>
+      </DemoModeProvider>
     </ErrorBoundary>
   );
 }

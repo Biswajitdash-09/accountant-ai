@@ -1,6 +1,6 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Menu, Bell, Search, User, Moon, Sun } from 'lucide-react';
+import { Menu, Bell, Search, User, Moon, Sun, Film } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
@@ -16,6 +16,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useTheme } from '@/hooks/useTheme';
 import { useRealtimeNotifications } from '@/hooks/useRealtimeNotifications';
 import { useToast } from '@/hooks/use-toast';
+import { useDemoMode } from '@/contexts/DemoModeContext';
 
 interface MobileHeaderProps {
   onMenuToggle: () => void;
@@ -29,6 +30,7 @@ const MobileHeader = ({ onMenuToggle, onSearchToggle, className }: MobileHeaderP
   const { theme, setTheme } = useTheme();
   const { unreadCount } = useRealtimeNotifications();
   const { toast } = useToast();
+  const { isDemoMode } = useDemoMode();
 
   const toggleTheme = () => {
     const newTheme = theme === 'dark' ? 'light' : 'dark';
@@ -67,6 +69,13 @@ const MobileHeader = ({ onMenuToggle, onSearchToggle, className }: MobileHeaderP
             <span className="font-heading font-semibold text-sm text-foreground hidden xs:block">
               AccountantAI
             </span>
+            {/* Demo Mode Badge */}
+            {isDemoMode && (
+              <Badge className="bg-amber-100 text-amber-700 dark:bg-amber-900/50 dark:text-amber-300 text-[10px] px-1.5">
+                <Film className="h-3 w-3 mr-0.5" />
+                DEMO
+              </Badge>
+            )}
           </div>
         </div>
 

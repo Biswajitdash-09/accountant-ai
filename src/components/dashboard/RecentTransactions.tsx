@@ -10,6 +10,8 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
+import { useDemoMode } from "@/contexts/DemoModeContext";
+import DemoBadge from "@/components/demo/DemoBadge";
 
 interface Transaction {
   id: string;
@@ -25,10 +27,14 @@ interface RecentTransactionsProps {
 }
 
 const RecentTransactions = ({ transactions }: RecentTransactionsProps) => {
+  const { isDemoMode } = useDemoMode();
   return (
     <Card>
       <CardHeader className="flex flex-row items-center justify-between">
-        <CardTitle>Recent Transactions</CardTitle>
+        <div className="flex items-center gap-2">
+          <CardTitle>Recent Transactions</CardTitle>
+          {isDemoMode && <DemoBadge size="sm" />}
+        </div>
       </CardHeader>
       <CardContent>
         {/* Desktop table view */}
