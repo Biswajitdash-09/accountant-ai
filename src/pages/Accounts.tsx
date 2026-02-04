@@ -12,9 +12,13 @@ import EditAccountModal from "@/components/modals/EditAccountModal";
 import { CreditCard, Wallet, Building, Trash2, Edit, Eye, Loader2, Plus, Upload } from "lucide-react";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { useCurrencyFormatter } from "@/hooks/useCurrencyFormatter";
+import DemoModeBanner from "@/components/demo/DemoModeBanner";
+import DemoBadge from "@/components/demo/DemoBadge";
+import { useDemoMode } from "@/contexts/DemoModeContext";
 
 const Accounts = () => {
   const { accounts, isLoading, deleteAccount } = useAccounts();
+  const { isDemoMode } = useDemoMode();
 
   const getAccountIcon = (type: string) => {
     switch (type.toLowerCase()) {
@@ -65,6 +69,9 @@ const Accounts = () => {
 
   return (
     <div className="space-y-6">
+      {/* Demo Mode Banner */}
+      <DemoModeBanner />
+      
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h1 className="text-3xl font-bold">Accounts</h1>
@@ -111,8 +118,9 @@ const Accounts = () => {
                       {getAccountIcon(account.account_type)}
                     </div>
                     <div className="min-w-0 flex-1">
-                      <CardTitle className="text-lg truncate max-w-[180px]" title={account.account_name}>
+                      <CardTitle className="text-lg truncate max-w-[180px] flex items-center gap-2" title={account.account_name}>
                         {account.account_name}
+                        {isDemoMode && <DemoBadge size="sm" />}
                       </CardTitle>
                       <Badge className={getAccountTypeColor(account.account_type)} variant="outline">
                         {account.account_type}

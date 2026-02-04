@@ -5,7 +5,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Drawer, DrawerContent, DrawerTitle } from "@/components/ui/drawer";
 import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
-import { DollarSign, TrendingUp, TrendingDown, PieChart, CheckSquare, Calendar, Bell, Bitcoin, PlayCircle, Phone } from "lucide-react";
+import { DollarSign, TrendingUp, TrendingDown, PieChart, CheckSquare, Calendar, Bell, Bitcoin, PlayCircle, Phone, Film } from "lucide-react";
 import { MetricCard } from "@/components/dashboard/MetricCard";
 import IncomeExpenseChart from "@/components/dashboard/IncomeExpenseChart";
 import ExpenseChart from "@/components/dashboard/ExpenseChart";
@@ -33,6 +33,8 @@ import { OfflineIndicator } from "@/components/mobile/OfflineIndicator";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { toast } from "sonner";
 import { InteractiveTutorial } from "@/components/tutorials/InteractiveTutorial";
+import DemoModeBanner from "@/components/demo/DemoModeBanner";
+import { useDemoMode } from "@/contexts/DemoModeContext";
 
 const Dashboard = () => {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -165,6 +167,10 @@ const Dashboard = () => {
       <PullToRefresh onRefresh={handleRefresh} className="h-full">
         <div className="container mx-auto p-2 sm:p-4 max-w-7xl">
           <OfflineIndicator />
+          
+          {/* Demo Mode Banner */}
+          <DemoModeBanner className="mb-4" />
+          
         <div className="space-y-3 sm:space-y-6">
           <div className="flex items-center justify-between flex-wrap gap-3">
             <div>
