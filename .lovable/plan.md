@@ -1,174 +1,249 @@
 
-## Comprehensive Fix Plan for All 4 Issues
+# Investor Demo Mode Implementation Plan
 
-### Phase 1: Automatic Smart Recommendations System
+## Overview
+Create a comprehensive **Investor Demo Mode** that simulates connected bank accounts with realistic transactions, allowing you to demonstrate AccountantAI's features during investor presentations without requiring real financial data.
 
-**New File: `src/hooks/useAutoInsights.tsx`**
-Create a new hook that automatically generates insights in the background:
-- Run analysis every 15 minutes when user is active
-- Trigger on significant data changes (new transactions, budget updates)
-- Use Supabase realtime subscriptions to detect changes
-- Store insights in local state with timestamp
-- Persist last analysis timestamp to avoid redundant calls
+---
 
-**Modify: `src/components/dashboard/AIInsightsSummary.tsx`**
-- Integrate `useAutoInsights` hook
-- Show "Last updated" timestamp
-- Add visual indicator when new insights are available
-- Auto-refresh insights when user visits dashboard
+## Architecture Design
 
-**Modify: `supabase/functions/smart-alerts-engine/index.ts`**
-- Add a cron trigger option (can be called by Supabase scheduled function)
-- Optimize to avoid duplicate alerts
-- Add insight categories: spending, savings, investment, tax
+The demo mode will be implemented as a **toggle-based system** that:
+1. Creates realistic demo bank connections and accounts in the database (tagged with `is_demo: true`)
+2. Populates them with meaningful transactions showing various use cases
+3. Provides easy activation/deactivation from a dedicated Demo Control Panel
+4. Clearly labels demo data with visual badges to distinguish from real data
+5. Auto-cleans up demo data when deactivated
 
-### Phase 2: Unify Mobile and Desktop AI Chat
+---
 
-**Modify: `src/components/MobileAIAssistant.tsx`**
-Complete rewrite of the chat functionality:
-- Import and use the `useAI` hook from `@/hooks/useAI`
-- Add proper message state management with conversation history
-- Implement loading states and error handling
-- Connect quick prompt buttons to actually send messages
-- Add streaming response display
-- Match the exact AI capabilities of desktop
+## Demo Data Structure
 
-**Changes to implement:**
+### Simulated Bank Accounts (5 accounts covering key regions)
+
+| Bank Name | Type | Region | Balance | Provider |
+|-----------|------|--------|---------|----------|
+| Chase Business Checking | Checking | US | $45,230.50 | Plaid |
+| Bank of America Savings | Savings | US | $125,000.00 | Plaid |
+| Barclays UK Premium | Checking | UK | £32,450.75 | TrueLayer |
+| GTBank Nigeria Business | Checking | Nigeria | ₦2,850,000 | Mono |
+| HDFC India Salary | Savings | India | ₹485,000 | Setu |
+
+### Simulated Transactions (100+ realistic transactions)
+- **Income transactions**: Salary deposits, client payments, investment returns
+- **Expense transactions**: Rent, utilities, software subscriptions, office supplies
+- **Recurring transactions**: Monthly subscriptions, loan payments
+- **Large transactions**: Quarterly tax payments, equipment purchases
+- **Various categories**: Food, Transport, Entertainment, Healthcare, Business Expenses
+
+---
+
+## Implementation Phases
+
+### Phase 1: Demo Mode Infrastructure
+
+**New Files:**
+- `src/hooks/useDemoMode.tsx` - Core demo mode state management
+- `src/components/demo/DemoModeContext.tsx` - React context for global demo state
+- `src/lib/demoData.ts` - Demo accounts, transactions, and bank connections data
+
+**Features:**
+- Global demo mode toggle
+- localStorage persistence for demo state
+- Visual indicator when demo mode is active
+- Protection against mixing demo and real data
+
+### Phase 2: Demo Data Configuration
+
+**New File: `src/lib/demoData.ts`**
+
+Contains all demo data generators:
+
+```text
+DEMO ACCOUNTS:
+┌─────────────────────────────────────────────────────────────────┐
+│ Chase Business Checking  │ $45,230.50  │ US    │ Plaid        │
+│ Bank of America Savings  │ $125,000.00 │ US    │ Plaid        │
+│ Barclays UK Premium      │ £32,450.75  │ UK    │ TrueLayer    │
+│ GTBank Nigeria Business  │ ₦2,850,000  │ Nigeria│ Mono        │
+│ HDFC India Salary        │ ₹485,000    │ India │ Setu         │
+└─────────────────────────────────────────────────────────────────┘
+
+DEMO TRANSACTIONS (sample):
+├── 3 days ago: Amazon Web Services ($299.00) - Software
+├── 5 days ago: Salary Deposit ($8,500.00) - Income  
+├── 7 days ago: Office Rent ($2,500.00) - Business
+├── 10 days ago: Client Payment ($15,000.00) - Income
+├── 14 days ago: Quarterly Tax ($4,250.00) - Tax
+└── ... 100+ more realistic transactions
+```
+
+### Phase 3: Demo Control Panel
+
+**New File: `src/components/demo/DemoControlPanel.tsx`**
+
+Features:
+- One-click "Start Demo" button
+- Progress indicator during data loading
+- "Reset Demo" to regenerate fresh data
+- "End Demo" to clean up all demo data
+- Quick stats showing demo data counts
+- Warning badges when demo mode is active
+
+**Location:** Accessible from:
+- Settings page (new "Demo Mode" tab)
+- Quick-access button in header (for presenters)
+
+### Phase 4: Demo Bank Connections
+
+**New File: `src/components/demo/DemoBankConnectionCard.tsx`**
+
+Simulates the bank connection experience:
+- Shows realistic connected bank logos and names
+- Displays "Connected via [Provider]" with provider logos
+- Shows last sync timestamp
+- Balance display with proper currency formatting
+- "Sync Now" button with animation (simulated)
+
+### Phase 5: Visual Demo Indicators
+
+**Modifications to existing files:**
+
+1. **Dashboard.tsx** - Add demo mode banner at top
+2. **Accounts.tsx** - Show "DEMO" badge on demo accounts
+3. **RecentTransactions.tsx** - Tag demo transactions
+4. **Sidebar/Header** - Show "DEMO MODE" indicator
+
+**Demo Badge Component:**
+```text
+┌──────────────────────┐
+│ 🎬 DEMO MODE ACTIVE │
+│ For presentation use │
+└──────────────────────┘
+```
+
+### Phase 6: Data Isolation & Cleanup
+
+**Database approach:**
+- Add `is_demo: true` in metadata for demo records
+- Demo data uses special prefixed IDs for easy identification
+- Cleanup function removes all demo-tagged records
+- RLS policies ensure demo data only visible to owner
+
+**Cleanup triggers:**
+- Manual "End Demo" button
+- Auto-cleanup after 24 hours (optional)
+- Session-based cleanup on logout (optional)
+
+---
+
+## Files to Create
+
+| File | Purpose |
+|------|---------|
+| `src/contexts/DemoModeContext.tsx` | Global demo mode state provider |
+| `src/hooks/useDemoMode.tsx` | Demo mode hook with activation/deactivation |
+| `src/lib/demoData.ts` | All demo data definitions and generators |
+| `src/components/demo/DemoControlPanel.tsx` | Main demo control interface |
+| `src/components/demo/DemoBankCard.tsx` | Demo bank account display card |
+| `src/components/demo/DemoModeBanner.tsx` | Header banner when demo is active |
+| `src/components/demo/DemoBadge.tsx` | Small badge component for demo items |
+
+## Files to Modify
+
+| File | Changes |
+|------|---------|
+| `src/App.tsx` | Wrap with DemoModeContext provider |
+| `src/pages/Settings.tsx` | Add Demo Mode tab with control panel |
+| `src/pages/Dashboard.tsx` | Show DemoModeBanner when active |
+| `src/pages/Accounts.tsx` | Display DemoBadge on demo accounts |
+| `src/components/dashboard/RecentTransactions.tsx` | Tag demo transactions |
+| `src/components/Sidebar.tsx` | Show demo mode indicator |
+| `src/components/mobile/MobileHeader.tsx` | Add demo mode quick toggle |
+
+---
+
+## Demo Activation Flow
+
+```text
+User Flow:
+┌─────────────────────────────────────────────────────────────────┐
+│  1. Navigate to Settings → Demo Mode                           │
+│  2. Click "Start Investor Demo"                                │
+│  3. System creates demo accounts & transactions                │
+│  4. Dashboard shows demo data with visual indicators           │
+│  5. Present features to investors                              │
+│  6. Click "End Demo" to clean up                               │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+---
+
+## Demo Features to Showcase
+
+With the demo mode active, you can demonstrate:
+
+1. **Multi-Bank Connectivity** - Show 5 connected banks from different regions
+2. **Transaction Categorization** - Pre-categorized transactions in various categories
+3. **Dashboard Analytics** - Real-looking charts and metrics
+4. **AI Insights** - Arnold can analyze demo data and provide recommendations
+5. **Net Worth Tracking** - Combined balance across all demo accounts
+6. **Regional Support** - Different currencies (USD, GBP, NGN, INR)
+7. **Bank Sync** - Simulated sync button with animation
+
+---
+
+## Technical Details
+
+### Demo Data Metadata Structure
 ```typescript
-// Add imports
-import { useAI } from "@/hooks/useAI";
-import { useState } from "react";
-
-// Add message state
-const [messages, setMessages] = useState<Message[]>([]);
-const { generateResponse, isLoading, availableCredits } = useAI();
-
-// Fix handlePromptClick to send message
-const handlePromptClick = async (prompt: string) => {
-  setMessage(prompt);
-  await handleSendMessage(prompt);
-};
-
-// Fix handleSendMessage to call AI
-const handleSendMessage = async (promptOverride?: string) => {
-  const messageToSend = promptOverride || message.trim();
-  if (!messageToSend || isLoading) return;
-  
-  // Add user message to state
-  setMessages(prev => [...prev, { role: 'user', content: messageToSend }]);
-  setMessage('');
-  
-  // Call AI
-  const response = await generateResponse(messageToSend);
-  setMessages(prev => [...prev, { role: 'assistant', content: response.text }]);
-};
+{
+  is_demo: true,
+  demo_session_id: "demo_2026_01_25_abc123",
+  demo_provider: "plaid" | "truelayer" | "mono" | "setu",
+  demo_created_at: "2026-01-25T12:00:00Z"
+}
 ```
 
-**Update branding:**
-- Change desktop from "Powered by GPT-5" to "Powered by AI" (more accurate since it uses Gemini)
-- Change mobile from "Powered by Google Gemini" to "Powered by AI" (consistent branding)
-- Or keep as "Powered by Arnold" for product branding
+### Demo Account Naming Convention
+- Prefix: `[DEMO]` in account names (optional, for database queries)
+- Visual badge in UI only (cleaner presentation)
 
-### Phase 3: Fix Mobile AI Chat Button Responsiveness
-
-**Modify: `src/components/MobileAIAssistant.tsx`**
-Add complete chat functionality:
-
-1. **Message State Management:**
-   - Add `messages` array state for conversation history
-   - Add `isLoading` state for showing typing indicator
-
-2. **Fix Button Click Handlers:**
-   - Quick prompt buttons: Call AI directly on click
-   - Send button: Submit typed message to AI
-   - Add touch feedback animations
-
-3. **Add Chat Message Display:**
-   - Render conversation history in scrollable area
-   - Show user messages aligned right
-   - Show AI responses aligned left with Arnold avatar
-   - Add typing indicator during loading
-
-4. **Add Scroll Behavior:**
-   - Auto-scroll to bottom on new messages
-   - Use ScrollArea component for smooth scrolling
-
-5. **Error Handling:**
-   - Show toast on AI errors
-   - Display retry button on failures
-   - Show credit balance and warning
-
-### Phase 4: Fix Day/Night Mode Toggle
-
-**Modify: `index.html`**
-Fix the theme initialization script (line 102):
-```javascript
-// Before (broken):
-theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'dark';
-
-// After (fixed):
-theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-```
-
-**Modify: `src/hooks/useTheme.tsx`**
-Add additional safeguards:
-- Ensure class toggle actually applies
-- Add debug logging for theme changes
-- Force re-render on theme change
-
-**Modify: `src/components/mobile/MobileHeader.tsx`**
-- Add visual feedback when theme toggles
-- Show toast confirmation on theme change
-- Ensure icon correctly reflects current theme state
-
-### Phase 5: Create Background Insight Generation
-
-**New Edge Function: `supabase/functions/auto-generate-insights/index.ts`**
-Create automated insight generation:
-- Analyze user transactions for patterns
-- Detect spending anomalies
-- Calculate budget utilization
-- Identify optimization opportunities
-- Generate actionable recommendations
-
-**Database Enhancement:**
-- Add `user_insights` table to store generated insights
-- Add `insight_generated_at` timestamp
-- Add realtime subscription for new insights
-
-### Phase 6: Testing & Mobile Optimization
-
-**Ensure Mobile Responsiveness:**
-- All chat messages properly wrap on small screens
-- Touch targets minimum 44x44px
-- Keyboard doesn't cover input field
-- Pull-to-refresh for insight updates
-
-**Cross-Device Sync:**
-- Insights stored in Supabase, accessible on all devices
-- Conversation history persisted (optional, per user setting)
-- Theme preference synced via localStorage key
+### Currency Support
+Demo accounts will use proper currency formatting:
+- US accounts → USD ($)
+- UK accounts → GBP (£)
+- Nigeria accounts → NGN (₦)
+- India accounts → INR (₹)
 
 ---
 
-### Files to Modify/Create
+## Mobile Responsiveness
 
-| File | Action | Description |
-|------|--------|-------------|
-| `src/hooks/useAutoInsights.tsx` | CREATE | Auto-refresh insights hook |
-| `src/components/MobileAIAssistant.tsx` | MODIFY | Add full AI chat functionality |
-| `src/components/ai/AIChatbot.tsx` | MODIFY | Update branding consistency |
-| `src/components/dashboard/AIInsightsSummary.tsx` | MODIFY | Integrate auto-insights |
-| `index.html` | MODIFY | Fix theme initialization bug |
-| `src/hooks/useTheme.tsx` | MODIFY | Add theme change logging |
-| `src/components/mobile/MobileHeader.tsx` | MODIFY | Add theme toggle feedback |
-| `supabase/functions/auto-generate-insights/index.ts` | CREATE | Background insight generation |
+All demo components will be:
+- Touch-friendly with 44px minimum targets
+- Responsive layouts for all screen sizes
+- Drawer-based modals on mobile
+- Swipe-to-dismiss gestures supported
 
 ---
 
-### Expected Results
+## Safety Features
 
-1. **Smart Recommendations:** Insights update automatically every 15 minutes and when financial data changes
-2. **AI Sync:** Both mobile and desktop use the same AI backend with consistent branding
-3. **Mobile Chat:** Clicking quick prompts or send button will actually send messages to AI and display responses
-4. **Theme Toggle:** Day/night mode will properly toggle and persist across sessions
+1. **Demo data isolation** - Demo records tagged and easily filterable
+2. **No real data mixing** - Demo and real accounts clearly separated
+3. **Easy cleanup** - One-click removal of all demo data
+4. **Visual warnings** - Clear indicators prevent confusion
+5. **Presenter mode** - Optional hide real data toggle for demos
+
+---
+
+## Expected Results
+
+After implementation:
+- You can instantly populate AccountantAI with realistic demo data
+- All features work with demo data (charts, AI, analytics)
+- Investors see a fully functional product experience
+- One-click cleanup returns to clean state
+- Demo data persists across page refreshes during presentation
+- Clear visual distinction between demo and real data
