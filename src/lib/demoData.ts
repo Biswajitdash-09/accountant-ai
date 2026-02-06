@@ -22,16 +22,12 @@ export interface DemoBankConnection {
   };
 }
 
+// Updated: Removed metadata field since accounts table doesn't have it
 export interface DemoAccount {
-  id: string;
   account_name: string;
   account_type: string;
   balance: number;
-  currency_id: string | null;
-  metadata?: {
-    is_demo: true;
-    demo_session_id: string;
-  };
+  currency_code: string; // Used for currency mapping
 }
 
 export interface DemoTransaction {
@@ -42,7 +38,7 @@ export interface DemoTransaction {
   date: string;
   description: string;
   type: 'income' | 'expense';
-  metadata: {
+  data_source_metadata: {
     is_demo: true;
     demo_session_id: string;
   };
@@ -63,7 +59,7 @@ export const generateDemoBankConnections = (userId: string, sessionId: string): 
   return [
     {
       id: `demo_bank_chase_${sessionId}`,
-      account_name: 'Chase Business Checking',
+      account_name: '[DEMO] Chase Business Checking',
       account_type: 'checking',
       balance: 45230.50,
       currency: 'USD',
@@ -82,7 +78,7 @@ export const generateDemoBankConnections = (userId: string, sessionId: string): 
     },
     {
       id: `demo_bank_boa_${sessionId}`,
-      account_name: 'Bank of America Savings',
+      account_name: '[DEMO] Bank of America Savings',
       account_type: 'savings',
       balance: 125000.00,
       currency: 'USD',
@@ -101,7 +97,7 @@ export const generateDemoBankConnections = (userId: string, sessionId: string): 
     },
     {
       id: `demo_bank_barclays_${sessionId}`,
-      account_name: 'Barclays UK Premium',
+      account_name: '[DEMO] Barclays UK Premium',
       account_type: 'checking',
       balance: 32450.75,
       currency: 'GBP',
@@ -120,7 +116,7 @@ export const generateDemoBankConnections = (userId: string, sessionId: string): 
     },
     {
       id: `demo_bank_gtbank_${sessionId}`,
-      account_name: 'GTBank Nigeria Business',
+      account_name: '[DEMO] GTBank Nigeria Business',
       account_type: 'checking',
       balance: 2850000,
       currency: 'NGN',
@@ -139,7 +135,7 @@ export const generateDemoBankConnections = (userId: string, sessionId: string): 
     },
     {
       id: `demo_bank_hdfc_${sessionId}`,
-      account_name: 'HDFC India Salary',
+      account_name: '[DEMO] HDFC India Salary',
       account_type: 'savings',
       balance: 485000,
       currency: 'INR',
@@ -160,42 +156,38 @@ export const generateDemoBankConnections = (userId: string, sessionId: string): 
 };
 
 // Demo Accounts (mirrors bank connections for the accounts table)
-export const generateDemoAccounts = (userId: string, sessionId: string): Omit<DemoAccount, 'id'>[] => {
+// No metadata field - uses [DEMO] prefix for identification
+export const generateDemoAccounts = (sessionId: string): DemoAccount[] => {
   return [
     {
-      account_name: 'Chase Business Checking',
+      account_name: '[DEMO] Chase Business Checking',
       account_type: 'Checking',
       balance: 45230.50,
-      currency_id: null,
-      metadata: { is_demo: true, demo_session_id: sessionId },
+      currency_code: 'USD',
     },
     {
-      account_name: 'Bank of America Savings',
+      account_name: '[DEMO] Bank of America Savings',
       account_type: 'Savings',
       balance: 125000.00,
-      currency_id: null,
-      metadata: { is_demo: true, demo_session_id: sessionId },
+      currency_code: 'USD',
     },
     {
-      account_name: 'Barclays UK Premium',
+      account_name: '[DEMO] Barclays UK Premium',
       account_type: 'Checking',
       balance: 32450.75,
-      currency_id: null,
-      metadata: { is_demo: true, demo_session_id: sessionId },
+      currency_code: 'GBP',
     },
     {
-      account_name: 'GTBank Nigeria Business',
+      account_name: '[DEMO] GTBank Nigeria Business',
       account_type: 'Checking',
       balance: 2850000,
-      currency_id: null,
-      metadata: { is_demo: true, demo_session_id: sessionId },
+      currency_code: 'NGN',
     },
     {
-      account_name: 'HDFC India Salary',
+      account_name: '[DEMO] HDFC India Salary',
       account_type: 'Savings',
       balance: 485000,
-      currency_id: null,
-      metadata: { is_demo: true, demo_session_id: sessionId },
+      currency_code: 'INR',
     },
   ];
 };
@@ -223,7 +215,7 @@ const transactionTemplates = {
   ],
 };
 
-// Generate realistic demo transactions
+// Generate realistic demo transactions - uses data_source_metadata
 export const generateDemoTransactions = (
   accountId: string, 
   sessionId: string,
@@ -272,7 +264,7 @@ export const generateDemoTransactions = (
       date: date.toISOString().split('T')[0],
       description,
       type: isIncome ? 'income' : 'expense',
-      metadata: {
+      data_source_metadata: {
         is_demo: true,
         demo_session_id: sessionId,
       },
@@ -321,4 +313,13 @@ export const calculateDemoNetWorth = (connections: DemoBankConnection[]): number
     const rate = rates[conn.currency] || 1;
     return sum + (conn.balance * rate);
   }, 0);
+};
+
+// Get currency code to ID mapping
+export const currencyCodeToAccount: Record<string, string> = {
+  '[DEMO] Chase Business Checking': 'USD',
+  '[DEMO] Bank of America Savings': 'USD',
+  '[DEMO] Barclays UK Premium': 'GBP',
+  '[DEMO] GTBank Nigeria Business': 'NGN',
+  '[DEMO] HDFC India Salary': 'INR',
 };

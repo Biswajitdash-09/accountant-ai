@@ -10,9 +10,21 @@ import {
   DemoBankConnection,
 } from '@/lib/demoData';
 
+export type DemoActivationStep = 
+  | 'idle' 
+  | 'starting'
+  | 'fetching_currencies'
+  | 'creating_bank_connections' 
+  | 'creating_accounts' 
+  | 'generating_transactions' 
+  | 'complete'
+  | 'error';
+
 interface DemoModeContextType {
   isDemoMode: boolean;
   isLoading: boolean;
+  currentStep: DemoActivationStep;
+  stepProgress: string;
   demoSessionId: string | null;
   demoBankConnections: DemoBankConnection[];
   demoStats: {
@@ -34,6 +46,8 @@ export const DemoModeProvider = ({ children }: { children: ReactNode }) => {
   const { user } = useAuth();
   const [isDemoMode, setIsDemoMode] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [currentStep, setCurrentStep] = useState<DemoActivationStep>('idle');
+  const [stepProgress, setStepProgress] = useState('');
   const [demoSessionId, setDemoSessionId] = useState<string | null>(null);
   const [demoBankConnections, setDemoBankConnections] = useState<DemoBankConnection[]>([]);
   const [demoStats, setDemoStats] = useState({
@@ -64,7 +78,7 @@ export const DemoModeProvider = ({ children }: { children: ReactNode }) => {
         .from('bank_connections')
         .select('*')
         .eq('user_id', user.id)
-        .contains('metadata', { is_demo: true, demo_session_id: sessionId });
+        .contains('metadata', { is_demo: true });
 
       if (connections) {
         const demoConns = connections.map(conn => ({
@@ -74,20 +88,22 @@ export const DemoModeProvider = ({ children }: { children: ReactNode }) => {
         setDemoBankConnections(demoConns);
       }
 
-      // Get stats
+      // Get demo accounts count (by [DEMO] prefix)
+      const { data: accounts, count: accountCount } = await supabase
+        .from('accounts')
+        .select('*', { count: 'exact' })
+        .eq('user_id', user.id)
+        .like('account_name', '[DEMO]%');
+
+      // Get demo transactions count (by data_source_metadata)
       const { count: transactionCount } = await supabase
         .from('transactions')
         .select('*', { count: 'exact', head: true })
         .eq('user_id', user.id)
-        .contains('metadata', { is_demo: true });
+        .contains('data_source_metadata', { is_demo: true });
 
-      const { count: accountCount } = await supabase
-        .from('accounts')
-        .select('*', { count: 'exact', head: true })
-        .eq('user_id', user.id);
-
-      // Calculate total balance from connections
-      const totalBalance = connections?.reduce((sum, conn) => sum + (conn.balance || 0), 0) || 0;
+      // Calculate total balance from accounts
+      const totalBalance = accounts?.reduce((sum, acc) => sum + (acc.balance || 0), 0) || 0;
 
       setDemoStats({
         accountCount: accountCount || 0,
@@ -106,14 +122,45 @@ export const DemoModeProvider = ({ children }: { children: ReactNode }) => {
     }
 
     setIsLoading(true);
+    setCurrentStep('starting');
+    setStepProgress('Initializing demo mode...');
     const sessionId = generateDemoSessionId();
 
     try {
-      // Generate demo data
-      const bankConnections = generateDemoBankConnections(user.id, sessionId);
-      const accounts = generateDemoAccounts(user.id, sessionId);
+      // Step 1: Fetch currencies
+      setCurrentStep('fetching_currencies');
+      setStepProgress('Fetching currency data...');
+      
+      const { data: currencies, error: currError } = await supabase
+        .from('currencies')
+        .select('id, code')
+        .in('code', ['USD', 'GBP', 'NGN', 'INR']);
 
-      // Insert demo bank connections
+      if (currError) {
+        console.error('[Demo Mode] Currency fetch error:', currError);
+        throw new Error('Failed to fetch currencies: ' + currError.message);
+      }
+
+      // Create currency map with fallback
+      const currencyMap = new Map<string, string>();
+      currencies?.forEach(c => currencyMap.set(c.code, c.id));
+      
+      // Use USD as fallback if available
+      const fallbackCurrencyId = currencyMap.get('USD') || currencies?.[0]?.id;
+      
+      if (!fallbackCurrencyId) {
+        console.error('[Demo Mode] No currencies found in database');
+        throw new Error('No currencies configured. Please add currencies first.');
+      }
+      
+      console.log('[Demo Mode] Currency map:', Object.fromEntries(currencyMap));
+
+      // Step 2: Create bank connections
+      setCurrentStep('creating_bank_connections');
+      setStepProgress('Creating bank connections...');
+      
+      const bankConnections = generateDemoBankConnections(user.id, sessionId);
+
       const { error: connError } = await supabase
         .from('bank_connections')
         .insert(
@@ -131,58 +178,103 @@ export const DemoModeProvider = ({ children }: { children: ReactNode }) => {
           }))
         );
 
-      if (connError) throw connError;
+      if (connError) {
+        console.error('[Demo Mode] Bank connections error:', connError);
+        throw new Error('Failed to create bank connections: ' + connError.message);
+      }
+      
+      console.log('[Demo Mode] Bank connections created:', bankConnections.length);
 
-      // Insert demo accounts
+      // Step 3: Create accounts (no metadata column - use [DEMO] prefix)
+      setCurrentStep('creating_accounts');
+      setStepProgress('Creating demo accounts...');
+      
+      const accounts = generateDemoAccounts(sessionId);
+      
+      // Map accounts with correct currency IDs
+      const accountsToInsert = accounts.map(acc => ({
+        user_id: user.id,
+        account_name: acc.account_name,
+        account_type: acc.account_type,
+        balance: acc.balance,
+        currency_id: currencyMap.get(acc.currency_code) || fallbackCurrencyId,
+      }));
+
+      console.log('[Demo Mode] Inserting accounts:', accountsToInsert);
+
       const { data: insertedAccounts, error: accError } = await supabase
         .from('accounts')
-        .insert(
-          accounts.map(acc => ({
-            user_id: user.id,
-            account_name: acc.account_name,
-            account_type: acc.account_type,
-            balance: acc.balance,
-            currency_id: acc.currency_id,
-          }))
-        )
+        .insert(accountsToInsert)
         .select();
 
-      if (accError) throw accError;
+      if (accError) {
+        console.error('[Demo Mode] Accounts error:', accError);
+        // Cleanup bank connections on failure
+        await supabase
+          .from('bank_connections')
+          .delete()
+          .eq('user_id', user.id)
+          .contains('metadata', { is_demo: true });
+        throw new Error('Failed to create accounts: ' + accError.message);
+      }
+      
+      console.log('[Demo Mode] Accounts created:', insertedAccounts?.length);
 
-      // Generate transactions for each account
-      if (insertedAccounts) {
-        const allTransactions = insertedAccounts.flatMap(account => 
-          generateDemoTransactions(account.id, sessionId, 20)
-        );
+      // Step 4: Generate transactions (use data_source_metadata)
+      setCurrentStep('generating_transactions');
+      setStepProgress('Generating realistic transactions...');
 
-        // Get a default currency_id (or null if none exists)
-        const { data: defaultCurrency } = await supabase
-          .from('currencies')
-          .select('id')
-          .eq('is_base', true)
-          .limit(1)
-          .single();
+      if (insertedAccounts && insertedAccounts.length > 0) {
+        const allTransactions: any[] = [];
 
-        const { error: txError } = await supabase
-          .from('transactions')
-          .insert(
-            allTransactions.map(tx => ({
+        for (const account of insertedAccounts) {
+          const txCount = 20 + Math.floor(Math.random() * 10); // 20-30 per account
+          const transactions = generateDemoTransactions(account.id, sessionId, txCount);
+          
+          transactions.forEach(tx => {
+            allTransactions.push({
               user_id: user.id,
               account_id: tx.account_id,
               amount: tx.type === 'expense' ? -Math.abs(tx.amount) : Math.abs(tx.amount),
               category: tx.category,
-              currency_id: defaultCurrency?.id,
+              currency_id: account.currency_id || fallbackCurrencyId,
               date: tx.date,
               description: tx.description,
               type: tx.type,
-              metadata: tx.metadata,
-            }))
-          );
+              data_source_metadata: tx.data_source_metadata,
+            });
+          });
+        }
 
-        if (txError) throw txError;
+        console.log('[Demo Mode] Inserting transactions:', allTransactions.length);
+
+        const { error: txError } = await supabase
+          .from('transactions')
+          .insert(allTransactions);
+
+        if (txError) {
+          console.error('[Demo Mode] Transactions error:', txError);
+          // Cleanup on failure
+          await supabase
+            .from('accounts')
+            .delete()
+            .eq('user_id', user.id)
+            .like('account_name', '[DEMO]%');
+          await supabase
+            .from('bank_connections')
+            .delete()
+            .eq('user_id', user.id)
+            .contains('metadata', { is_demo: true });
+          throw new Error('Failed to create transactions: ' + txError.message);
+        }
+        
+        console.log('[Demo Mode] Transactions created successfully');
       }
 
-      // Save state
+      // Success!
+      setCurrentStep('complete');
+      setStepProgress('Demo mode activated!');
+      
       localStorage.setItem(DEMO_MODE_KEY, 'true');
       localStorage.setItem(DEMO_SESSION_KEY, sessionId);
       setIsDemoMode(true);
@@ -195,36 +287,69 @@ export const DemoModeProvider = ({ children }: { children: ReactNode }) => {
       toast.success('🎬 Demo Mode Activated', {
         description: '5 bank accounts and 100+ transactions created for your demo.',
       });
-    } catch (error) {
-      console.error('Error activating demo mode:', error);
-      toast.error('Failed to activate demo mode');
+    } catch (error: any) {
+      console.error('[Demo Mode] Activation failed:', error);
+      setCurrentStep('error');
+      setStepProgress(error.message || 'An error occurred');
+      toast.error('Failed to activate demo mode', {
+        description: error.message,
+      });
     } finally {
       setIsLoading(false);
+      // Reset step after delay
+      setTimeout(() => {
+        setCurrentStep('idle');
+      }, 2000);
     }
   }, [user]);
 
   const deactivateDemoMode = useCallback(async () => {
-    if (!user || !demoSessionId) return;
+    if (!user) return;
 
     setIsLoading(true);
+    setCurrentStep('starting');
+    setStepProgress('Cleaning up demo data...');
 
     try {
-      // Delete demo transactions (with metadata)
-      await supabase
+      console.log('[Demo Mode] Starting cleanup for user:', user.id);
+
+      // Delete demo transactions (by data_source_metadata)
+      setStepProgress('Removing demo transactions...');
+      const { error: txDeleteError } = await supabase
         .from('transactions')
         .delete()
         .eq('user_id', user.id)
-        .contains('metadata', { is_demo: true });
+        .contains('data_source_metadata', { is_demo: true });
 
-      // Delete demo bank connections
-      await supabase
+      if (txDeleteError) {
+        console.error('[Demo Mode] Transaction deletion error:', txDeleteError);
+      }
+
+      // Delete demo accounts (by [DEMO] prefix in name)
+      setStepProgress('Removing demo accounts...');
+      const { error: accDeleteError } = await supabase
+        .from('accounts')
+        .delete()
+        .eq('user_id', user.id)
+        .like('account_name', '[DEMO]%');
+
+      if (accDeleteError) {
+        console.error('[Demo Mode] Account deletion error:', accDeleteError);
+      }
+
+      // Delete demo bank connections (by metadata)
+      setStepProgress('Removing demo bank connections...');
+      const { error: bankDeleteError } = await supabase
         .from('bank_connections')
         .delete()
         .eq('user_id', user.id)
         .contains('metadata', { is_demo: true });
 
-      // Note: We don't delete accounts that don't have metadata tagging
-      // In a real implementation, you'd add metadata to accounts table
+      if (bankDeleteError) {
+        console.error('[Demo Mode] Bank connection deletion error:', bankDeleteError);
+      }
+
+      console.log('[Demo Mode] Cleanup complete');
 
       // Clear state
       localStorage.removeItem(DEMO_MODE_KEY);
@@ -233,20 +358,25 @@ export const DemoModeProvider = ({ children }: { children: ReactNode }) => {
       setDemoSessionId(null);
       setDemoBankConnections([]);
       setDemoStats({ accountCount: 0, transactionCount: 0, totalBalance: 0 });
+      setCurrentStep('idle');
 
       toast.success('Demo Mode Deactivated', {
         description: 'All demo data has been cleaned up.',
       });
-    } catch (error) {
-      console.error('Error deactivating demo mode:', error);
-      toast.error('Failed to clean up demo data');
+    } catch (error: any) {
+      console.error('[Demo Mode] Deactivation failed:', error);
+      setCurrentStep('error');
+      toast.error('Failed to clean up demo data', {
+        description: error.message,
+      });
     } finally {
       setIsLoading(false);
     }
-  }, [user, demoSessionId]);
+  }, [user]);
 
   const resetDemoData = useCallback(async () => {
     await deactivateDemoMode();
+    await new Promise(resolve => setTimeout(resolve, 500));
     await activateDemoMode();
   }, [deactivateDemoMode, activateDemoMode]);
 
@@ -255,6 +385,8 @@ export const DemoModeProvider = ({ children }: { children: ReactNode }) => {
       value={{
         isDemoMode,
         isLoading,
+        currentStep,
+        stepProgress,
         demoSessionId,
         demoBankConnections,
         demoStats,
